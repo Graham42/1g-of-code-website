@@ -1,0 +1,23 @@
+{
+  "name": "home-graham-github-graham42-1g-of-code",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "fetch-videos": "node scripts/fetch-twitch-videos.cjs"
+  },
+  "dependencies": {
+    "astro": "^5.17.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.1"
+  }
+}
