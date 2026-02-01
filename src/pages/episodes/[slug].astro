@@ -1,0 +1,391 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+	const episodes = await getCollection('episodes');
+	return episodes.map((episode) => ({
+		params: { slug: episode.slug },
+		props: { episode },
+	}));
+}
+
+const { episode } = Astro.props;
+const { Content } = await render(episode);
+
+// Format the date for display
+const formattedDate = new Date(episode.data.date).toLocaleDateString('en-US', {
+	weekday: 'long',
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+
+// Format date for datetime attribute (ISO format)
+const isoDate = new Date(episode.data.date).toISOString().split('T')[0];
+---
+
+<BaseLayout title={`${episode.data.title} - 1g of Code`}>
+	<article class="episode-page container">
+		<nav class="back-nav">
+			<a href="/episodes/" class="back-link">
+				<span aria-hidden="true">&larr;</span> Back to Episodes
+			</a>
+		</nav>
+
+		<header class="episode-header">
+			<h1>{episode.data.title}</h1>
+			<time datetime={isoDate} class="episode-date">
+				{formattedDate}
+			</time>
+
+			{episode.data.tags.length > 0 && (
+				<ul class="tag-list" role="list" aria-label="Episode tags">
+					{episode.data.tags.map((tag) => (
+						<li>
+							<a href="#" class="tag">{tag}</a>
+						</li>
+					))}
+				</ul>
+			)}
+		</header>
+
+		<section class="video-section">
+			<h2 class="visually-hidden">Watch Episode</h2>
+
+			<div class="video-card">
+				<a href={episode.data.twitchUrl} target="_blank" rel="noopener noreferrer" class="video-link">
+					<div class="thumbnail-wrapper">
+						<img
+							src={episode.data.twitchThumbnail}
+							alt={`Thumbnail for ${episode.data.title}`}
+							class="thumbnail"
+							loading="eager"
+						/>
+						<div class="play-overlay" aria-hidden="true">
+							<svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
+								<path d="M8 5v14l11-7z"/>
+							</svg>
+						</div>
+					</div>
+					<span class="video-label">
+						<svg class="twitch-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+							<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+						</svg>
+						Watch on Twitch
+					</span>
+				</a>
+			</div>
+
+			{episode.data.youtubeUrl && (
+				<div class="youtube-link-wrapper">
+					<a href={episode.data.youtubeUrl} target="_blank" rel="noopener noreferrer" class="youtube-link">
+						<svg class="youtube-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+							<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+						</svg>
+						Also available on YouTube
+					</a>
+				</div>
+			)}
+		</section>
+
+		<section class="episode-content prose">
+			<Content />
+		</section>
+
+		<nav class="bottom-nav">
+			<a href="/episodes/" class="back-link">
+				<span aria-hidden="true">&larr;</span> Back to Episodes
+			</a>
+		</nav>
+	</article>
+</BaseLayout>
+
+<style>
+	.episode-page {
+		padding-block: var(--spacing-xl);
+		max-width: 800px;
+	}
+
+	/* Navigation */
+	.back-nav,
+	.bottom-nav {
+		margin-bottom: var(--spacing-xl);
+	}
+
+	.bottom-nav {
+		margin-top: var(--spacing-2xl);
+		padding-top: var(--spacing-xl);
+		border-top: 1px solid var(--color-border);
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		color: var(--color-text-muted);
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+		transition: color var(--transition-fast);
+	}
+
+	.back-link:hover {
+		color: var(--color-primary);
+	}
+
+	/* Header */
+	.episode-header {
+		margin-bottom: var(--spacing-xl);
+	}
+
+	.episode-header h1 {
+		font-size: var(--font-size-3xl);
+		margin-bottom: var(--spacing-md);
+	}
+
+	@media (min-width: 640px) {
+		.episode-header h1 {
+			font-size: var(--font-size-4xl);
+		}
+	}
+
+	.episode-date {
+		display: block;
+		color: var(--color-text-muted);
+		font-size: var(--font-size-base);
+		margin-bottom: var(--spacing-md);
+	}
+
+	/* Tags */
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+	}
+
+	.tag {
+		display: inline-block;
+		padding: var(--spacing-xs) var(--spacing-md);
+		background-color: var(--color-bg-secondary);
+		color: var(--color-text-muted);
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+		border-radius: var(--border-radius-md);
+		transition: background-color var(--transition-fast), color var(--transition-fast);
+	}
+
+	.tag:hover {
+		background-color: rgba(99, 102, 241, 0.15);
+		color: var(--color-primary);
+	}
+
+	/* Video Section */
+	.video-section {
+		margin-bottom: var(--spacing-2xl);
+	}
+
+	.video-card {
+		border-radius: var(--border-radius-lg);
+		overflow: hidden;
+		box-shadow: var(--shadow-md);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.video-link {
+		display: block;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.thumbnail-wrapper {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		background-color: var(--color-bg-secondary);
+	}
+
+	.thumbnail {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform var(--transition-base);
+	}
+
+	.video-link:hover .thumbnail {
+		transform: scale(1.02);
+	}
+
+	.play-overlay {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(0, 0, 0, 0.4);
+		opacity: 0;
+		transition: opacity var(--transition-base);
+	}
+
+	.video-link:hover .play-overlay {
+		opacity: 1;
+	}
+
+	.play-icon {
+		color: white;
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+	}
+
+	.video-label {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-md);
+		background-color: #9146FF;
+		color: white;
+		font-weight: 600;
+		transition: background-color var(--transition-fast);
+	}
+
+	.video-link:hover .video-label {
+		background-color: #772ce8;
+	}
+
+	.twitch-icon,
+	.youtube-icon {
+		flex-shrink: 0;
+	}
+
+	.youtube-link-wrapper {
+		text-align: center;
+	}
+
+	.youtube-link {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-lg);
+		color: var(--color-text-muted);
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+		border: 1px solid var(--color-border);
+		border-radius: var(--border-radius-md);
+		transition: all var(--transition-fast);
+	}
+
+	.youtube-link:hover {
+		color: #FF0000;
+		border-color: #FF0000;
+		background-color: rgba(255, 0, 0, 0.05);
+	}
+
+	/* Prose Content - Markdown Styling */
+	.prose {
+		color: var(--color-text);
+		line-height: var(--line-height-base);
+	}
+
+	.prose :global(h2) {
+		font-size: var(--font-size-2xl);
+		margin-top: var(--spacing-2xl);
+		margin-bottom: var(--spacing-md);
+		padding-bottom: var(--spacing-sm);
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.prose :global(h3) {
+		font-size: var(--font-size-xl);
+		margin-top: var(--spacing-xl);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.prose :global(h4) {
+		font-size: var(--font-size-lg);
+		margin-top: var(--spacing-lg);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.prose :global(p) {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.prose :global(ul),
+	.prose :global(ol) {
+		margin-bottom: var(--spacing-md);
+		padding-left: var(--spacing-xl);
+	}
+
+	.prose :global(ul) {
+		list-style-type: disc;
+	}
+
+	.prose :global(ol) {
+		list-style-type: decimal;
+	}
+
+	.prose :global(li) {
+		margin-bottom: var(--spacing-xs);
+	}
+
+	.prose :global(a) {
+		color: var(--color-link);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.prose :global(a:hover) {
+		color: var(--color-link-hover);
+	}
+
+	.prose :global(blockquote) {
+		margin: var(--spacing-lg) 0;
+		padding: var(--spacing-md) var(--spacing-lg);
+		border-left: 4px solid var(--color-primary);
+		background-color: var(--color-bg-secondary);
+		border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+	}
+
+	.prose :global(blockquote p:last-child) {
+		margin-bottom: 0;
+	}
+
+	/* Code Blocks - Shiki styling */
+	.prose :global(code) {
+		font-family: var(--font-family-mono);
+		font-size: 0.9em;
+	}
+
+	.prose :global(:not(pre) > code) {
+		padding: 0.2em 0.4em;
+		background-color: var(--color-bg-secondary);
+		border-radius: var(--border-radius-sm);
+		color: var(--color-accent);
+	}
+
+	.prose :global(pre) {
+		margin: var(--spacing-lg) 0;
+		padding: var(--spacing-lg);
+		border-radius: var(--border-radius-md);
+		overflow-x: auto;
+		font-size: var(--font-size-sm);
+		line-height: 1.7;
+	}
+
+	.prose :global(pre code) {
+		padding: 0;
+		background: none;
+		border-radius: 0;
+	}
+
+	/* Image styling in content */
+	.prose :global(img) {
+		border-radius: var(--border-radius-md);
+		margin: var(--spacing-lg) 0;
+	}
+
+	/* Horizontal rule */
+	.prose :global(hr) {
+		margin: var(--spacing-2xl) 0;
+		border: none;
+		border-top: 1px solid var(--color-border);
+	}
+</style>
