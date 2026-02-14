@@ -1,13 +1,16 @@
 ---
+import { Picture } from 'astro:assets'
+import type { ImageMetadata } from 'astro'
+
 interface Props {
   title: string
   date: Date | string
   tags: string[]
-  twitchThumbnail: string
+  thumbnail: ImageMetadata
   slug: string
 }
 
-const { title, date, tags, twitchThumbnail, slug } = Astro.props
+const { title, date, tags, thumbnail, slug } = Astro.props
 
 // Format the date for display
 const formattedDate = new Date(date).toLocaleDateString('en-US', {
@@ -29,8 +32,11 @@ const episodeUrl = `/episodes/${slug}/`
     aria-labelledby={`episode-title-${slug}`}
   >
     <div class="thumbnail-wrapper">
-      <img
-        src={twitchThumbnail}
+      <Picture
+        src={thumbnail}
+        widths={[320, 640, 960]}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        formats={['avif', 'webp', 'jpeg']}
         alt=""
         class="thumbnail"
         loading="lazy"

@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content'
+import { Picture } from 'astro:assets'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 
 export async function getStaticPaths() {
@@ -65,8 +66,11 @@ const isoDate = new Date(episode.data.date).toISOString().split('T')[0]
           class="video-link"
         >
           <div class="thumbnail-wrapper">
-            <img
-              src={episode.data.twitchThumbnail}
+            <Picture
+              src={episode.data.thumbnail}
+              widths={[640, 960, 1280]}
+              sizes="(max-width: 800px) 100vw, 800px"
+              formats={['avif', 'webp', 'jpeg']}
               alt={`Thumbnail for ${episode.data.title}`}
               class="thumbnail"
               loading="eager"
