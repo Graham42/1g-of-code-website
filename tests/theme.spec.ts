@@ -203,4 +203,41 @@ test.describe('Theme Toggle', () => {
     const theme = await page.locator('html').getAttribute('data-theme')
     expect(theme).toBe('dark')
   })
+
+  test('desktop: theme toggle shows icon only (no text)', async ({ page }) => {
+    // Desktop viewport
+    await page.setViewportSize({ width: 1024, height: 768 })
+    await page.goto('/')
+
+    const systemIcon = page.locator('#theme-toggle .system-icon')
+    const themeText = page.locator('#theme-toggle .nav-button-text')
+
+    // System icon should be visible by default
+    await expect(systemIcon).toBeVisible()
+
+    // Text should not be visible on desktop
+    await expect(themeText).not.toBeVisible()
+  })
+
+  test('mobile: theme toggle shows icon and text', async ({ page }) => {
+    // Mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto('/')
+
+    // Wait for JavaScript to run
+    await page.waitForTimeout(500)
+
+    // Open mobile menu
+    const navToggle = page.locator('[data-testid="nav-toggle"]')
+    await navToggle.click()
+
+    const themeToggle = page.locator('#theme-toggle')
+    const systemIcon = page.locator('#theme-toggle .system-icon')
+    const themeText = page.locator('#theme-toggle .nav-button-text')
+
+    // Both icon and text should be visible
+    await expect(systemIcon).toBeVisible()
+    await expect(themeText).toBeVisible()
+    await expect(themeText).toHaveText('Theme')
+  })
 })
