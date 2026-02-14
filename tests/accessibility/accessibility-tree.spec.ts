@@ -1,117 +1,55 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
 /**
  * Layer 3: Accessibility Tree Validation
  *
  * Purpose: Validate what screen readers will "see" without running actual screen readers.
- * This tests the semantic structure and ARIA implementation.
+ * This tests the semantic structure and ARIA implementation using Playwright's role-based
+ * locators instead of the deprecated accessibility.snapshot() API.
  */
-
-// Type extension for page.accessibility API
-interface PageWithAccessibility extends Page {
-  accessibility: {
-    snapshot(options?: { interestingOnly?: boolean; root?: any }): Promise<any>
-  }
-}
-
-/**
- * Helper function to recursively find nodes by role in accessibility tree
- */
-function findByRole(node: any, role: string): any[] {
-  const results: any[] = []
-
-  if (node.role === role) {
-    results.push(node)
-  }
-
-  if (node.children) {
-    for (const child of node.children) {
-      results.push(...findByRole(child, role))
-    }
-  }
-
-  return results
-}
-
-/**
- * Helper function to find all landmarks in accessibility tree
- */
-function findLandmarks(node: any): string[] {
-  const landmarks: string[] = []
-  const landmarkRoles = [
-    'banner',
-    'navigation',
-    'main',
-    'contentinfo',
-    'complementary',
-    'search',
-    'region',
-  ]
-
-  if (node.role && landmarkRoles.includes(node.role)) {
-    landmarks.push(node.role)
-  }
-
-  if (node.children) {
-    for (const child of node.children) {
-      landmarks.push(...findLandmarks(child))
-    }
-  }
-
-  return landmarks
-}
-
-/**
- * Helper function to get heading structure
- */
-function getHeadingStructure(node: any): number[] {
-  const levels: number[] = []
-
-  if (node.role === 'heading' && node.level) {
-    levels.push(node.level)
-  }
-
-  if (node.children) {
-    for (const child of node.children) {
-      levels.push(...getHeadingStructure(child))
-    }
-  }
-
-  return levels
-}
 
 test.describe('Accessibility Tree Validation', () => {
   test('page should have proper landmark regions', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const landmarks = findLandmarks(snapshot)
+    // Verify presence of required landmarks using role locators
+    await expect(page.getByRole('banner')).toBeVisible() // header
 
-    // Verify presence of required landmarks
-    expect(landmarks).toContain('banner') // header
-    expect(landmarks).toContain('navigation') // nav
-    expect(landmarks).toContain('main') // main content
-    expect(landmarks).toContain('contentinfo') // footer
+    // There may be multiple navigation landmarks (primary nav + footer nav)
+    const navs = await page.getByRole('navigation').all()
+    expect(navs.length).toBeGreaterThan(0)
+
+    await expect(page.getByRole('main')).toBeVisible() // main content
+    await expect(page.getByRole('contentinfo')).toBeVisible() // footer
   })
 
   test('all buttons should have accessible names', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const buttons = findByRole(snapshot, 'button')
+    const buttons = await page.getByRole('button').all()
 
     expect(buttons.length).toBeGreaterThan(0)
 
     for (const button of buttons) {
-      expect(button.name).toBeTruthy()
-      expect(button.name).not.toBe('button')
-      expect(button.name.length).toBeGreaterThan(0)
+      // Check if button has accessible name (text content or aria-label)
+      const accessibleName = await button.evaluate((el) => {
+        // Get accessible name from text content, aria-label, or aria-labelledby
+        return (
+          el.getAttribute('aria-label') ||
+          el.textContent?.trim() ||
+          (el.getAttribute('aria-labelledby')
+            ? document
+                .getElementById(el.getAttribute('aria-labelledby')!)
+                ?.textContent?.trim()
+            : '')
+        )
+      })
+
+      expect(accessibleName).toBeTruthy()
+      expect(accessibleName).not.toBe('button')
+      expect(accessibleName!.length).toBeGreaterThan(0)
     }
   })
 
@@ -119,17 +57,27 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const links = findByRole(snapshot, 'link')
+    const links = await page.getByRole('link').all()
 
     expect(links.length).toBeGreaterThan(0)
 
     for (const link of links) {
-      expect(link.name).toBeTruthy()
-      expect(link.name).not.toBe('link')
-      expect(link.name.length).toBeGreaterThan(0)
+      // Check if link has accessible name
+      const accessibleName = await link.evaluate((el) => {
+        return (
+          el.getAttribute('aria-label') ||
+          el.textContent?.trim() ||
+          (el.getAttribute('aria-labelledby')
+            ? document
+                .getElementById(el.getAttribute('aria-labelledby')!)
+                ?.textContent?.trim()
+            : '')
+        )
+      })
+
+      expect(accessibleName).toBeTruthy()
+      expect(accessibleName).not.toBe('link')
+      expect(accessibleName!.length).toBeGreaterThan(0)
     }
   })
 
@@ -139,19 +87,26 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const buttons = findByRole(snapshot, 'button')
+    // Find theme toggle button by data-testid
+    const themeToggle = page.getByTestId('theme-toggle')
+    await expect(themeToggle).toBeVisible()
 
-    const themeToggle = buttons.find(
-      (b) => b.name && b.name.toLowerCase().includes('mode')
-    )
+    const accessibleName = await themeToggle.evaluate((el) => {
+      return (
+        el.getAttribute('aria-label') ||
+        el.textContent?.trim() ||
+        (el.getAttribute('aria-labelledby')
+          ? document
+              .getElementById(el.getAttribute('aria-labelledby')!)
+              ?.textContent?.trim()
+          : '')
+      )
+    })
 
-    expect(themeToggle).toBeTruthy()
-    expect(themeToggle.name).toBeTruthy()
+    expect(accessibleName).toBeTruthy()
+    expect(accessibleName!.toLowerCase()).toMatch(/mode|theme/)
     // Name should describe current state or action
-    expect(themeToggle.name.length).toBeGreaterThan(5)
+    expect(accessibleName!.length).toBeGreaterThan(5)
   })
 
   test('nav toggle should have accessible name and state', async ({ page }) => {
@@ -159,51 +114,59 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const buttons = findByRole(snapshot, 'button')
+    const navToggle = page.getByTestId('nav-toggle')
+    await expect(navToggle).toBeVisible()
 
-    const navToggle = buttons.find(
-      (b) =>
-        b.name &&
-        (b.name.toLowerCase().includes('navigation') ||
-          b.name.toLowerCase().includes('menu'))
-    )
+    const accessibleName = await navToggle.evaluate((el) => {
+      return el.getAttribute('aria-label') || el.textContent?.trim() || ''
+    })
 
-    expect(navToggle).toBeTruthy()
-    expect(navToggle.name).toBeTruthy()
-    expect(navToggle.expanded).toBeDefined()
+    expect(accessibleName).toBeTruthy()
+    expect(accessibleName.toLowerCase()).toMatch(/navigation|menu/)
+
+    // Check for aria-expanded attribute
+    const ariaExpanded = await navToggle.getAttribute('aria-expanded')
+    expect(ariaExpanded).toBeDefined()
+    expect(['true', 'false']).toContain(ariaExpanded)
   })
 
   test('logo link should have accessible name', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const links = findByRole(snapshot, 'link')
+    const logoLink = page.getByTestId('site-logo')
+    await expect(logoLink).toBeVisible()
 
-    const logoLink = links.find(
-      (l) =>
-        l.name &&
-        (l.name.toLowerCase().includes('1g of code') ||
-          l.name.toLowerCase().includes('home'))
-    )
+    const accessibleName = await logoLink.evaluate((el) => {
+      return (
+        el.getAttribute('aria-label') ||
+        el.textContent?.trim() ||
+        (el.getAttribute('aria-labelledby')
+          ? document
+              .getElementById(el.getAttribute('aria-labelledby')!)
+              ?.textContent?.trim()
+          : '')
+      )
+    })
 
-    expect(logoLink).toBeTruthy()
-    expect(logoLink.name).toBeTruthy()
+    expect(accessibleName).toBeTruthy()
+    expect(
+      accessibleName!.toLowerCase().includes('1g of code') ||
+        accessibleName!.toLowerCase().includes('home')
+    ).toBe(true)
   })
 
   test('heading hierarchy should be valid', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const levels = getHeadingStructure(snapshot)
+    // Get all headings in document order
+    const levels = await page.evaluate(() => {
+      const headings = Array.from(
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+      )
+      return headings.map((h) => parseInt(h.tagName.substring(1)))
+    })
 
     // Should have at least one heading
     expect(levels.length).toBeGreaterThan(0)
@@ -232,10 +195,12 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/episodes/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const levels = getHeadingStructure(snapshot)
+    const levels = await page.evaluate(() => {
+      const headings = Array.from(
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+      )
+      return headings.map((h) => parseInt(h.tagName.substring(1)))
+    })
 
     expect(levels.length).toBeGreaterThan(0)
 
@@ -249,10 +214,12 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/episodes/2026-01-05')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const levels = getHeadingStructure(snapshot)
+    const levels = await page.evaluate(() => {
+      const headings = Array.from(
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+      )
+      return headings.map((h) => parseInt(h.tagName.substring(1)))
+    })
 
     expect(levels.length).toBeGreaterThan(0)
 
@@ -264,21 +231,19 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const lists = findByRole(snapshot, 'list')
+    const lists = await page.getByRole('list').all()
 
     // Should have at least one list (navigation)
     expect(lists.length).toBeGreaterThan(0)
 
     // Check each list has list items as children
     for (const list of lists) {
-      if (list.children && list.children.length > 0) {
-        const hasListItems = list.children.some(
-          (child: any) => child.role === 'listitem'
-        )
-        expect(hasListItems).toBe(true)
+      const listItems = await list.locator('li, [role="listitem"]').count()
+      // Lists should have at least one item
+      if ((await list.isVisible()) && listItems === 0) {
+        // If no li elements, might be using role="listitem" explicitly
+        const hasListItemRole = await list.locator('[role="listitem"]').count()
+        expect(hasListItemRole).toBeGreaterThan(0)
       }
     }
   })
@@ -288,38 +253,19 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Get initial state (closed)
-    const initialSnapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const initialButtons = findByRole(initialSnapshot, 'button')
-    const initialNavToggle = initialButtons.find(
-      (b) =>
-        b.name &&
-        (b.name.toLowerCase().includes('navigation') ||
-          b.name.toLowerCase().includes('menu'))
-    )
+    const navToggle = page.getByTestId('nav-toggle')
 
-    expect(initialNavToggle.expanded).toBe(false)
+    // Get initial state (closed)
+    const initialExpanded = await navToggle.getAttribute('aria-expanded')
+    expect(initialExpanded).toBe('false')
 
     // Open menu
-    const navToggle = page.locator('.nav-toggle')
     await navToggle.click()
     await page.waitForTimeout(100)
 
     // Get state after opening
-    const openSnapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const openButtons = findByRole(openSnapshot, 'button')
-    const openNavToggle = openButtons.find(
-      (b) =>
-        b.name &&
-        (b.name.toLowerCase().includes('navigation') ||
-          b.name.toLowerCase().includes('menu'))
-    )
-
-    expect(openNavToggle.expanded).toBe(true)
+    const openExpanded = await navToggle.getAttribute('aria-expanded')
+    expect(openExpanded).toBe('true')
   })
 
   test('current page should be indicated in navigation', async ({ page }) => {
@@ -342,28 +288,17 @@ test.describe('Accessibility Tree Validation', () => {
     // Check that icons with aria-hidden are actually hidden
     const hiddenIcons = await page.locator('[aria-hidden="true"]').all()
 
-    // Should have some decorative elements
+    // Should have some decorative elements (theme icons, hamburger, etc.)
     expect(hiddenIcons.length).toBeGreaterThan(0)
 
-    // Verify they don't appear in accessibility tree
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
+    // Verify that decorative SVG icons inside buttons have aria-hidden
+    // (Some SVGs might be meaningful and not have aria-hidden, which is fine)
+    const decorativeSvgsCount = await page
+      .locator('button svg[aria-hidden="true"], a svg[aria-hidden="true"]')
+      .count()
 
-    // Helper to check if any node in tree has a specific role
-    function hasImageRole(node: any): boolean {
-      if (node.role === 'img') {
-        return true
-      }
-      if (node.children) {
-        return node.children.some((child: any) => hasImageRole(child))
-      }
-      return false
-    }
-
-    // The snapshot shouldn't include decorative SVG icons as separate accessible elements
-    // (They should be hidden via aria-hidden="true")
-    // This is verified by checking that buttons have names, not separate icon elements
+    // Should have at least some decorative SVGs (theme toggle icons, social icons, etc.)
+    expect(decorativeSvgsCount).toBeGreaterThan(0)
   })
 
   test('mobile menu content should be accessible when open', async ({
@@ -373,23 +308,27 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Open menu
-    const navToggle = page.locator('.nav-toggle')
+    // Open menu using data-testid
+    const navToggle = page.getByTestId('nav-toggle')
     await navToggle.click()
     await page.waitForTimeout(100)
 
-    // Get accessibility tree with menu open
-    const snapshot = await (
-      page as PageWithAccessibility
-    ).accessibility.snapshot()
-    const links = findByRole(snapshot, 'link')
+    // Find navigation links within the nav menu
+    // Use data-testid pattern for nav links
+    const homeLink = page.getByTestId('nav-link-home')
+    const episodesLink = page.getByTestId('nav-link-episodes')
+    const aboutLink = page.getByTestId('nav-link-about')
 
-    // Should find navigation links in the tree
-    const navLinks = links.filter(
-      (l) => l.name === 'Home' || l.name === 'Episodes' || l.name === 'About'
-    )
+    // Count visible links
+    const navLinks = [homeLink, episodesLink, aboutLink]
 
-    expect(navLinks.length).toBeGreaterThanOrEqual(2)
+    // Count how many are visible
+    const visibleCount = await Promise.all(
+      navLinks.map((link) => link.isVisible())
+    ).then((results) => results.filter((v) => v).length)
+
+    // Should have at least 2 visible navigation links when menu is open
+    expect(visibleCount).toBeGreaterThanOrEqual(2)
   })
 
   test('mobile menu content should not be in tree when closed', async ({
@@ -399,8 +338,8 @@ test.describe('Accessibility Tree Validation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Ensure menu is closed
-    const navToggle = page.locator('.nav-toggle')
+    // Ensure menu is closed using data-testid
+    const navToggle = page.getByTestId('nav-toggle')
     const expanded = await navToggle.getAttribute('aria-expanded')
 
     if (expanded === 'true') {
@@ -408,9 +347,9 @@ test.describe('Accessibility Tree Validation', () => {
       await page.waitForTimeout(100)
     }
 
-    // Check if nav items are hidden (display: none or visibility: hidden)
-    const navList = page.locator('.nav-list')
-    const isHidden = await navList.evaluate((el) => {
+    // Check if primary-nav (the menu container) is hidden using data-testid
+    const primaryNav = page.getByTestId('primary-nav')
+    const isHidden = await primaryNav.evaluate((el) => {
       const computed = window.getComputedStyle(el)
       return (
         computed.display === 'none' ||
@@ -419,7 +358,7 @@ test.describe('Accessibility Tree Validation', () => {
       )
     })
 
-    // When properly hidden, they should not be accessible
+    // When properly hidden, the menu should not be accessible
     expect(isHidden).toBe(true)
   })
 })
