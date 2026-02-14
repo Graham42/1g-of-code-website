@@ -38,9 +38,9 @@ const episodeUrl = `/episodes/${slug}/`;
 		</div>
 
 		<div class="episode-content">
-			<h3 id={`episode-title-${slug}`} class="episode-title">
+			<h2 id={`episode-title-${slug}`} class="episode-title">
 				{title}
-			</h3>
+			</h2>
 
 			<time datetime={isoDate} class="episode-date">
 				{formattedDate}
@@ -62,7 +62,6 @@ const episodeUrl = `/episodes/${slug}/`;
 		background-color: var(--color-bg);
 		border: 1px solid var(--color-border);
 		border-radius: var(--border-radius-lg);
-		overflow: hidden;
 		transition: box-shadow var(--transition-base), transform var(--transition-base);
 	}
 
@@ -78,8 +77,10 @@ const episodeUrl = `/episodes/${slug}/`;
 	}
 
 	.episode-link:focus-visible {
-		outline: 2px solid var(--color-primary);
-		outline-offset: 2px;
+		outline: 3px solid var(--color-primary);
+		outline-offset: 3px;
+		box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.1);
+		border-radius: var(--border-radius-md);
 	}
 
 	/* Thumbnail */
@@ -88,6 +89,7 @@ const episodeUrl = `/episodes/${slug}/`;
 		aspect-ratio: 16 / 9;
 		overflow: hidden;
 		background-color: var(--color-bg-secondary);
+		border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 	}
 
 	.thumbnail {

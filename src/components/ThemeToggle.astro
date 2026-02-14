@@ -7,7 +7,7 @@
 
 <button
 	type="button"
-	class="theme-toggle"
+	class="theme-toggle nav-button-item"
 	id="theme-toggle"
 	aria-label="Toggle theme"
 	title="Toggle theme"
@@ -72,6 +72,8 @@
 		<line x1="8" y1="21" x2="16" y2="21"></line>
 		<line x1="12" y1="17" x2="12" y2="21"></line>
 	</svg>
+
+	<span class="nav-button-text">Toggle Theme</span>
 </button>
 
 <style>
@@ -162,8 +164,8 @@
 				dark: 'Dark mode (click for system)',
 				system: 'System mode (click for light)',
 			};
-			toggle.setAttribute('aria-label', labels[setting]);
-			toggle.setAttribute('title', labels[setting]);
+			toggle!.setAttribute('aria-label', labels[setting]);
+			toggle!.setAttribute('title', labels[setting]);
 		}
 
 		// Initialize

@@ -51,9 +51,10 @@ const { title, description = '1g of Code - A companion website for twitch.tv/1gO
 		<title>{title}</title>
 	</head>
 	<body>
+		<a href="#main-content" class="skip-link">Skip to main content</a>
 		<div class="site-wrapper">
 			<Header />
-			<main id="main-content">
+			<main id="main-content" tabindex="-1">
 				<slot />
 			</main>
 			<Footer />
@@ -68,13 +69,13 @@ const { title, description = '1g of Code - A companion website for twitch.tv/1gO
 		--color-bg: #ffffff;
 		--color-bg-secondary: #f8f9fa;
 		--color-text: #212529;
-		--color-text-muted: #6c757d;
-		--color-primary: #6366f1;
-		--color-primary-hover: #4f46e5;
+		--color-text-muted: #696d71;
+		--color-primary: #4f46e5;
+		--color-primary-hover: #4338ca;
 		--color-accent: #8b5cf6;
 		--color-border: #dee2e6;
-		--color-link: #6366f1;
-		--color-link-hover: #4f46e5;
+		--color-link: #4f46e5;
+		--color-link-hover: #4338ca;
 
 		/* Typography */
 		--font-family-base: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -121,12 +122,12 @@ const { title, description = '1g of Code - A companion website for twitch.tv/1gO
 		--color-bg-secondary: #16213e;
 		--color-text: #e4e4e7;
 		--color-text-muted: #a1a1aa;
-		--color-primary: #818cf8;
-		--color-primary-hover: #a5b4fc;
+		--color-primary: #c7d2fe;
+		--color-primary-hover: #e0e7ff;
 		--color-accent: #a78bfa;
 		--color-border: #3f3f46;
-		--color-link: #818cf8;
-		--color-link-hover: #a5b4fc;
+		--color-link: #c7d2fe;
+		--color-link-hover: #e0e7ff;
 	}
 
 	/* Dark Mode Fallback - for when JS is disabled */
@@ -136,13 +137,31 @@ const { title, description = '1g of Code - A companion website for twitch.tv/1gO
 			--color-bg-secondary: #16213e;
 			--color-text: #e4e4e7;
 			--color-text-muted: #a1a1aa;
-			--color-primary: #818cf8;
-			--color-primary-hover: #a5b4fc;
+			--color-primary: #c7d2fe;
+			--color-primary-hover: #e0e7ff;
 			--color-accent: #a78bfa;
 			--color-border: #3f3f46;
-			--color-link: #818cf8;
-			--color-link-hover: #a5b4fc;
+			--color-link: #c7d2fe;
+			--color-link-hover: #e0e7ff;
 		}
+	}
+
+	/* Dark Mode Button Contrast Fixes */
+	[data-theme="dark"] .cta-button,
+	[data-theme="dark"] .home-link,
+	[data-theme="dark"] .watch-label {
+		background-color: #6366f1 !important;
+	}
+
+	[data-theme="dark"] .cta-button:hover,
+	[data-theme="dark"] .home-link:hover {
+		background-color: #4f46e5 !important;
+	}
+
+	/* Enhanced Episode Link Focus in Dark Mode */
+	[data-theme="dark"] .episode-link:focus-visible {
+		outline-color: #a5b4fc !important;
+		box-shadow: 0 0 0 6px rgba(165, 180, 252, 0.15) !important;
 	}
 
 	/* CSS Reset */
@@ -260,7 +279,7 @@ const { title, description = '1g of Code - A companion website for twitch.tv/1gO
 		position: absolute;
 		top: -40px;
 		left: 0;
-		background: var(--color-primary);
+		background: #4f46e5;
 		color: white;
 		padding: var(--spacing-sm) var(--spacing-md);
 		z-index: 100;
@@ -269,6 +288,7 @@ const { title, description = '1g of Code - A companion website for twitch.tv/1gO
 
 	.skip-link:focus {
 		top: 0;
+		background: #4338ca;
 	}
 
 	/* Layout */

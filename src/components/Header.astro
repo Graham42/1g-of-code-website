@@ -31,21 +31,25 @@ const navLinks = [
 						</li>
 					))}
 				</ul>
+
+				<!-- Button group - positioned differently on mobile vs desktop -->
+				<div class="nav-buttons">
+					<a
+						href="https://twitch.tv/1gOfCode"
+						class="twitch-link nav-button-item"
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label="Watch on Twitch"
+					>
+						<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+							<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+						</svg>
+						<span class="nav-button-text">Watch on Twitch</span>
+					</a>
+
+					<ThemeToggle />
+				</div>
 			</nav>
-
-			<a
-				href="https://twitch.tv/1gOfCode"
-				class="twitch-link"
-				target="_blank"
-				rel="noopener noreferrer"
-				aria-label="Watch on Twitch"
-			>
-				<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-					<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
-				</svg>
-			</a>
-
-			<ThemeToggle />
 		</div>
 
 		<button
@@ -278,6 +282,50 @@ const navLinks = [
 		background-color: var(--color-bg-secondary);
 	}
 
+	/* Button group - mobile first (inside menu at bottom) */
+	.nav-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		padding: 0;
+		border-top: 1px solid var(--color-border);
+		margin-top: var(--spacing-xs);
+	}
+
+	/* Button items styled like nav links on mobile */
+	.nav-button-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-md);
+		width: 100%;
+		color: var(--color-text);
+		font-weight: 500;
+		text-decoration: none;
+		border-radius: 0;
+		transition: background-color var(--transition-fast), color var(--transition-fast);
+	}
+
+	.nav-button-item:hover {
+		background-color: var(--color-bg-secondary);
+		color: var(--color-primary);
+	}
+
+	.nav-button-item:focus-visible {
+		outline: 2px solid var(--color-primary);
+		outline-offset: -2px;
+	}
+
+	.nav-button-item svg {
+		width: 24px;
+		height: 24px;
+		flex-shrink: 0;
+	}
+
+	.nav-button-text {
+		display: block;
+	}
+
 	/* Desktop styles */
 	@media (min-width: 768px) {
 		.nav-toggle {
@@ -285,7 +333,10 @@ const navLinks = [
 		}
 
 		.primary-nav {
-			display: block;
+			display: flex !important; /* Override .is-open state */
+			flex-direction: row;
+			align-items: center;
+			gap: var(--spacing-sm);
 			position: static;
 			background: transparent;
 			border: none;
@@ -317,6 +368,32 @@ const navLinks = [
 			height: 2px;
 			background-color: var(--color-primary);
 			border-radius: 1px;
+		}
+
+		/* Button group on desktop - icon buttons only */
+		.nav-buttons {
+			flex-direction: row;
+			gap: var(--spacing-sm);
+			border-top: none;
+			margin-top: 0;
+			padding: 0;
+		}
+
+		.nav-button-item {
+			width: 40px;
+			height: 40px;
+			padding: 0;
+			justify-content: center;
+			gap: 0;
+			border-radius: var(--border-radius-md);
+		}
+
+		.nav-button-item:focus-visible {
+			outline-offset: 2px;
+		}
+
+		.nav-button-text {
+			display: none;
 		}
 	}
 </style>

@@ -27,7 +27,7 @@ const isoDate = new Date(episode.data.date).toISOString().split('T')[0];
 
 <BaseLayout title={`${episode.data.title} - 1g of Code`}>
 	<article class="episode-page container">
-		<nav class="back-nav">
+		<nav class="back-nav" aria-label="Episode navigation">
 			<a href="/episodes/" class="back-link">
 				<span aria-hidden="true">&larr;</span> Back to Episodes
 			</a>
@@ -93,7 +93,7 @@ const isoDate = new Date(episode.data.date).toISOString().split('T')[0];
 			<Content />
 		</section>
 
-		<nav class="bottom-nav">
+		<nav class="bottom-nav" aria-label="Return navigation">
 			<a href="/episodes/" class="back-link">
 				<span aria-hidden="true">&larr;</span> Back to Episodes
 			</a>
