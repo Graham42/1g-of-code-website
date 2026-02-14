@@ -10,15 +10,25 @@ const navLinks = [
 ]
 ---
 
-<header class="site-header">
+<header class="site-header" data-testid="site-header">
   <div class="header-container">
-    <a href="/" class="site-logo" aria-label="1g of Code - Home">
+    <a
+      href="/"
+      class="site-logo"
+      aria-label="1g of Code - Home"
+      data-testid="site-logo"
+    >
       <span class="logo-text">1g of Code</span>
     </a>
 
     <div class="header-actions">
-      <nav id="primary-nav" class="primary-nav" aria-label="Primary navigation">
-        <ul class="nav-list" role="list">
+      <nav
+        id="primary-nav"
+        class="primary-nav"
+        aria-label="Primary navigation"
+        data-testid="primary-nav"
+      >
+        <ul class="nav-list" role="list" data-testid="nav-list">
           {
             navLinks.map((link) => (
               <li>
@@ -29,6 +39,7 @@ const navLinks = [
                     { 'is-active': currentPath === link.href },
                   ]}
                   aria-current={currentPath === link.href ? 'page' : undefined}
+                  data-testid={`nav-link-${link.label.toLowerCase()}`}
                 >
                   {link.label}
                 </a>
@@ -38,13 +49,14 @@ const navLinks = [
         </ul>
 
         <!-- Button group - positioned differently on mobile vs desktop -->
-        <div class="nav-buttons">
+        <div class="nav-buttons" data-testid="nav-buttons">
           <a
             href="https://twitch.tv/1gOfCode"
             class="twitch-link nav-button-item"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Watch on Twitch"
+            data-testid="twitch-link"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path
@@ -64,6 +76,7 @@ const navLinks = [
       aria-expanded="false"
       aria-controls="primary-nav"
       aria-label="Toggle navigation menu"
+      data-testid="nav-toggle"
     >
       <span class="hamburger" aria-hidden="true"></span>
     </button>

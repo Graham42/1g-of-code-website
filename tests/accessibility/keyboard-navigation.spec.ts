@@ -79,12 +79,14 @@ test.describe('Keyboard Navigation', () => {
     // Press Tab to focus skip link
     await page.keyboard.press('Tab')
 
-    // Verify skip link is focused
-    const focusedInfo = await getFocusedElementInfo(page)
-    expect(focusedInfo?.className).toContain('skip-link')
+    // Verify skip link is focused using data-testid
+    const skipLink = page.getByTestId('skip-link')
+    const isFocused = await skipLink.evaluate(
+      (el) => document.activeElement === el
+    )
+    expect(isFocused).toBe(true)
 
     // Verify skip link is visible when focused
-    const skipLink = page.locator('.skip-link')
     const isVisible = await skipLink.evaluate((el) => {
       const computed = window.getComputedStyle(el)
       return computed.clip === 'auto' || computed.clip === ''
@@ -96,9 +98,10 @@ test.describe('Keyboard Navigation', () => {
 
     // Verify focus moved to main content
     await page.waitForTimeout(100) // Brief wait for focus to move
-    const mainFocused = await page.evaluate(() => {
-      return document.activeElement?.id === 'main-content'
-    })
+    const mainContent = page.getByTestId('main-content')
+    const mainFocused = await mainContent.evaluate(
+      (el) => document.activeElement === el
+    )
     expect(mainFocused).toBe(true)
   })
 
@@ -209,15 +212,15 @@ test.describe('Keyboard Navigation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Verify buttons are NOT visible before menu opens
-    const twitchLink = page.locator('.twitch-link')
-    const themeToggle = page.locator('.theme-toggle')
+    // Verify buttons are NOT visible before menu opens using data-testid
+    const twitchLink = page.getByTestId('twitch-link')
+    const themeToggle = page.getByTestId('theme-toggle')
 
     expect(await twitchLink.isVisible()).toBe(false)
     expect(await themeToggle.isVisible()).toBe(false)
 
-    // Open menu
-    const navToggle = page.locator('.nav-toggle')
+    // Open menu using data-testid
+    const navToggle = page.getByTestId('nav-toggle')
     await navToggle.click()
     await page.waitForTimeout(100)
 
@@ -230,8 +233,8 @@ test.describe('Keyboard Navigation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Tab to theme toggle
-    const themeToggle = page.locator('.theme-toggle')
+    // Tab to theme toggle using data-testid
+    const themeToggle = page.getByTestId('theme-toggle')
     await themeToggle.focus()
 
     // Get initial theme
@@ -273,8 +276,8 @@ test.describe('Keyboard Navigation', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Tab to nav toggle button
-    const navToggle = page.locator('.nav-toggle')
+    // Tab to nav toggle button using data-testid
+    const navToggle = page.getByTestId('nav-toggle')
     await navToggle.focus()
 
     // Verify initial state
@@ -289,8 +292,8 @@ test.describe('Keyboard Navigation', () => {
     const expandedAfterOpen = await navToggle.getAttribute('aria-expanded')
     expect(expandedAfterOpen).toBe('true')
 
-    // Verify menu is visible
-    const navList = page.locator('.nav-list')
+    // Verify menu is visible using data-testid
+    const navList = page.getByTestId('nav-list')
     const isVisible = await navList.isVisible()
     expect(isVisible).toBe(true)
 

@@ -1,6 +1,6 @@
 # 1g of Code
 
-Companion website for the [1g of Code Twitch channel](https://twitch.tv/1gOfCode) — a show about coding and building with AI for beginners, hosted by Graham (experienced software engineer) and co-host (common knowledge perspective).
+Companion website for the [1g of Code Twitch channel](https://twitch.tv/1gOfCode) — a show about coding and building with AI for beginners, hosted by Graham (experienced software engineer) and Kipper (common knowledge perspective).
 
 ## Quick Start
 

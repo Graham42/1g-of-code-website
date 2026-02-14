@@ -57,10 +57,12 @@ const {
     <title>{title}</title>
   </head>
   <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    <div class="site-wrapper">
+    <a href="#main-content" class="skip-link" data-testid="skip-link"
+      >Skip to main content</a
+    >
+    <div class="site-wrapper" data-testid="site-wrapper">
       <Header />
-      <main id="main-content" tabindex="-1">
+      <main id="main-content" tabindex="-1" data-testid="main-content">
         <slot />
       </main>
       <Footer />
