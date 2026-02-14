@@ -1,7 +1,7 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection, z } from 'astro:content'
 
 const episodes = defineCollection({
-  type: "content",
+  type: 'content',
   schema: z.object({
     title: z.string(),
     date: z.date(),
@@ -10,8 +10,8 @@ const episodes = defineCollection({
     twitchThumbnail: z.string(),
     youtubeUrl: z.string().optional(),
   }),
-});
+})
 
 export const collections = {
   episodes,
-};
+}

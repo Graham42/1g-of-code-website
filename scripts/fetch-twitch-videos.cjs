@@ -73,10 +73,9 @@
  * - Thumbnails are 320x180 by default; change dimensions in URL if needed
  */
 
-const { chromium } = require("@playwright/test");
+const { chromium } = require('@playwright/test')
 
-const CHANNEL_URL =
-  "https://www.twitch.tv/1gOfCode/videos?filter=all&sort=time";
+const CHANNEL_URL = 'https://www.twitch.tv/1gOfCode/videos?filter=all&sort=time'
 
 /**
  * Estimates an actual date from Twitch's relative date strings
@@ -84,49 +83,49 @@ const CHANNEL_URL =
  * @returns {string} ISO date string (YYYY-MM-DD)
  */
 function estimateDateFromRelative(relativeDate) {
-  const now = new Date();
-  const lower = relativeDate.toLowerCase().trim();
+  const now = new Date()
+  const lower = relativeDate.toLowerCase().trim()
 
   // Match patterns like "5 days ago", "2 weeks ago", etc.
   const match = lower.match(
-    /^(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$/,
-  );
+    /^(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$/
+  )
 
   if (match) {
-    const amount = parseInt(match[1], 10);
-    const unit = match[2];
+    const amount = parseInt(match[1], 10)
+    const unit = match[2]
 
     switch (unit) {
-      case "second":
-      case "minute":
-      case "hour":
+      case 'second':
+      case 'minute':
+      case 'hour':
         // Same day
-        break;
-      case "day":
-        now.setDate(now.getDate() - amount);
-        break;
-      case "week":
-        now.setDate(now.getDate() - amount * 7);
-        break;
-      case "month":
-        now.setMonth(now.getMonth() - amount);
-        break;
-      case "year":
-        now.setFullYear(now.getFullYear() - amount);
-        break;
+        break
+      case 'day':
+        now.setDate(now.getDate() - amount)
+        break
+      case 'week':
+        now.setDate(now.getDate() - amount * 7)
+        break
+      case 'month':
+        now.setMonth(now.getMonth() - amount)
+        break
+      case 'year':
+        now.setFullYear(now.getFullYear() - amount)
+        break
     }
-  } else if (lower === "yesterday") {
-    now.setDate(now.getDate() - 1);
-  } else if (lower === "last week") {
-    now.setDate(now.getDate() - 7);
-  } else if (lower === "last month") {
-    now.setMonth(now.getMonth() - 1);
-  } else if (lower === "last year") {
-    now.setFullYear(now.getFullYear() - 1);
+  } else if (lower === 'yesterday') {
+    now.setDate(now.getDate() - 1)
+  } else if (lower === 'last week') {
+    now.setDate(now.getDate() - 7)
+  } else if (lower === 'last month') {
+    now.setMonth(now.getMonth() - 1)
+  } else if (lower === 'last year') {
+    now.setFullYear(now.getFullYear() - 1)
   }
   // If no match, returns today's date
 
-  return now.toISOString().split("T")[0];
+  return now.toISOString().split('T')[0]
 }
 
 /**
@@ -135,176 +134,174 @@ function estimateDateFromRelative(relativeDate) {
  * @returns {string|null} Video ID or null
  */
 function extractVideoId(url) {
-  const match = url.match(/\/videos\/(\d+)/);
-  return match ? match[1] : null;
+  const match = url.match(/\/videos\/(\d+)/)
+  return match ? match[1] : null
 }
 
 async function fetchTwitchVideos() {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
+  const browser = await chromium.launch()
+  const page = await browser.newPage()
 
   try {
     // Navigate to videos page
     await page.goto(CHANNEL_URL, {
-      waitUntil: "networkidle",
+      waitUntil: 'networkidle',
       timeout: 30000,
-    });
+    })
 
     // Wait for content to load
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(3000)
 
     // Dismiss any popups
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(1000);
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(1000)
 
     // Scroll to load more videos
     for (let i = 0; i < 3; i++) {
-      await page.evaluate(() => window.scrollBy(0, 800));
-      await page.waitForTimeout(1500);
+      await page.evaluate(() => window.scrollBy(0, 800))
+      await page.waitForTimeout(1500)
     }
 
     // Collect thumbnail URLs from network/page
     const thumbnails = await page.evaluate(() => {
-      const imgs = document.querySelectorAll("img");
-      const results = [];
+      const imgs = document.querySelectorAll('img')
+      const results = []
       imgs.forEach((img) => {
-        const src = img.src;
-        if (src && src.includes("cf_vods") && src.includes("thumb")) {
-          results.push(src);
+        const src = img.src
+        if (src && src.includes('cf_vods') && src.includes('thumb')) {
+          results.push(src)
         }
-      });
-      return results;
-    });
+      })
+      return results
+    })
 
     // Collect video metadata from the page
     const videoData = await page.evaluate(() => {
-      const results = [];
-      const seen = new Set();
+      const results = []
+      const seen = new Set()
 
       // Find video links with their containers
       // Use querySelectorAll on links that have the filter param (these are in the video list, not the featured carousel)
       const videoLinks = document.querySelectorAll(
-        'a[href*="/videos/"][href*="filter="]',
-      );
+        'a[href*="/videos/"][href*="filter="]'
+      )
 
       videoLinks.forEach((link) => {
-        const url = link.href;
+        const url = link.href
 
         // Clean URL (remove query params for deduplication)
-        const cleanUrl = url.split("?")[0];
-        if (seen.has(cleanUrl)) return;
-        seen.add(cleanUrl);
+        const cleanUrl = url.split('?')[0]
+        if (seen.has(cleanUrl)) return
+        seen.add(cleanUrl)
 
         // Skip if not a video URL
-        if (!cleanUrl.includes("/videos/")) return;
+        if (!cleanUrl.includes('/videos/')) return
 
         // Find the containing card element by walking up the DOM
-        let container = link.parentElement;
+        let container = link.parentElement
         for (let i = 0; i < 8 && container; i++) {
-          const text = container.innerText || "";
+          const text = container.innerText || ''
           // Stop when we find a container that has views and duration info
-          if (text.includes("views") && text.match(/\d+:\d+/)) {
-            break;
+          if (text.includes('views') && text.match(/\d+:\d+/)) {
+            break
           }
-          container = container.parentElement;
+          container = container.parentElement
         }
 
-        const containerText = container?.innerText || "";
+        const containerText = container?.innerText || ''
 
         // Skip the featured "Check out this..." preview - it has different markup
-        if (containerText.includes("Check out this")) {
-          return;
+        if (containerText.includes('Check out this')) {
+          return
         }
 
         // Extract metadata from container text
         // Typical format: "Title\n\nChannel\n\nCategory\n\nDuration\nViews\nDate"
-        const lines = containerText.split("\n").filter((l) => l.trim());
+        const lines = containerText.split('\n').filter((l) => l.trim())
 
         // Find title - usually the first substantive line or from a specific element
         const titleEl = container?.querySelector(
-          'h3, [data-a-target="preview-card-title-link"], p[title]',
-        );
+          'h3, [data-a-target="preview-card-title-link"], p[title]'
+        )
         let title =
-          titleEl?.textContent?.trim() || titleEl?.getAttribute("title") || "";
+          titleEl?.textContent?.trim() || titleEl?.getAttribute('title') || ''
 
         // If no title found, try first line that's not the channel name or category
         if (!title && lines.length > 0) {
           title =
             lines.find(
               (l) =>
-                !l.includes("1gOfCode") &&
-                !l.includes("Software and Game") &&
+                !l.includes('1gOfCode') &&
+                !l.includes('Software and Game') &&
                 l.length > 10 &&
                 !l.match(/^\d+:\d+/) &&
-                !l.match(/^\d+\s*views/),
-            ) || lines[0];
+                !l.match(/^\d+\s*views/)
+            ) || lines[0]
         }
 
         // Find duration (format: H:MM:SS or MM:SS)
         const durationMatch = containerText.match(
-          /(\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})/,
-        );
-        const duration = durationMatch ? durationMatch[1] : "";
+          /(\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})/
+        )
+        const duration = durationMatch ? durationMatch[1] : ''
 
         // Find views
-        const viewsMatch = containerText.match(/(\d+)\s*views/i);
-        const views = viewsMatch ? viewsMatch[1] : "";
+        const viewsMatch = containerText.match(/(\d+)\s*views/i)
+        const views = viewsMatch ? viewsMatch[1] : ''
 
         // Find relative date
         const dateMatch = containerText.match(
-          /(yesterday|\d+\s+\w+\s+ago|last\s+\w+)/i,
-        );
-        const relativeDate = dateMatch ? dateMatch[1] : "";
+          /(yesterday|\d+\s+\w+\s+ago|last\s+\w+)/i
+        )
+        const relativeDate = dateMatch ? dateMatch[1] : ''
 
-        if (title && title !== "stream" && !title.includes("Check out this")) {
+        if (title && title !== 'stream' && !title.includes('Check out this')) {
           results.push({
             url: cleanUrl,
             title: title.substring(0, 200),
             duration,
             views,
             relativeDate,
-          });
+          })
         }
-      });
+      })
 
-      return results;
-    });
+      return results
+    })
 
     // Match thumbnails to videos (they appear in the same order)
     const videos = videoData.map((video, index) => {
-      const videoId = extractVideoId(video.url);
+      const videoId = extractVideoId(video.url)
       return {
         videoId,
         url: video.url,
         title: video.title,
-        thumbnail: thumbnails[index] || "",
+        thumbnail: thumbnails[index] || '',
         duration: video.duration,
         views: video.views,
         relativeDate: video.relativeDate,
         estimatedDate: estimateDateFromRelative(video.relativeDate),
-      };
-    });
+      }
+    })
 
-    return videos;
+    return videos
   } finally {
-    await browser.close();
+    await browser.close()
   }
 }
 
 // Main execution
-(async () => {
+;(async () => {
   try {
-    const videos = await fetchTwitchVideos();
+    const videos = await fetchTwitchVideos()
 
     // Output as formatted JSON
-    console.log(JSON.stringify(videos, null, 2));
+    console.log(JSON.stringify(videos, null, 2))
 
     // Also output a summary to stderr so it doesn't interfere with JSON parsing
-    console.error(
-      `\n✓ Found ${videos.length} video(s) from 1gOfCode channel\n`,
-    );
+    console.error(`\n✓ Found ${videos.length} video(s) from 1gOfCode channel\n`)
   } catch (error) {
-    console.error("Error fetching videos:", error.message);
-    process.exit(1);
+    console.error('Error fetching videos:', error.message)
+    process.exit(1)
   }
-})();
+})()
