@@ -30,7 +30,7 @@ const socialLinks = [
               <li>
                 <a
                   href={link.href}
-                  class="social-link"
+                  class:list={['social-link', `social-link--${link.icon}`]}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Follow us on ${link.name}`}
@@ -146,6 +146,10 @@ const socialLinks = [
   .social-link:hover {
     color: var(--color-primary);
     background-color: var(--color-bg);
+  }
+
+  .social-link--twitch:hover {
+    color: var(--color-twitch);
   }
 
   .social-link:focus-visible {
