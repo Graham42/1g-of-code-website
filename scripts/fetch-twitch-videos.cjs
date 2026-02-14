@@ -41,7 +41,7 @@
  *      date: {estimatedDate}
  *      tags: ["claude-code", "ai"]  # adjust based on title/content
  *      twitchUrl: "{url}"
- *      twitchThumbnail: "{thumbnail}"
+ *      thumbnail: "{localThumbnail}"
  *      ---
  *
  *      ## Episode Notes
@@ -73,6 +73,9 @@
  * - Thumbnails are 320x180 by default; change dimensions in URL if needed
  */
 
+const fs = require('fs')
+const path = require('path')
+const https = require('https')
 const { chromium } = require('@playwright/test')
 
 const CHANNEL_URL = 'https://www.twitch.tv/1gOfCode/videos?filter=all&sort=time'
@@ -290,10 +293,55 @@ async function fetchTwitchVideos() {
   }
 }
 
+/**
+ * Downloads a high-resolution thumbnail from Twitch's CDN
+ * @param {string} url - Original thumbnail URL (any resolution)
+ * @param {string} outputPath - Local file path to save the image
+ * @returns {Promise<void>}
+ */
+function downloadThumbnail(url, outputPath) {
+  const highResUrl = url.replace(/thumb0-\d+x\d+\.jpg/, 'thumb0-1280x720.jpg')
+  return new Promise((resolve, reject) => {
+    https
+      .get(highResUrl, (response) => {
+        if (response.statusCode !== 200) {
+          reject(new Error(`HTTP ${response.statusCode} for ${highResUrl}`))
+          return
+        }
+        const fileStream = fs.createWriteStream(outputPath)
+        response.pipe(fileStream)
+        fileStream.on('finish', () => {
+          fileStream.close()
+          resolve()
+        })
+      })
+      .on('error', reject)
+  })
+}
+
 // Main execution
 ;(async () => {
   try {
     const videos = await fetchTwitchVideos()
+
+    // Download high-res thumbnails locally
+    const assetsDir = path.join(__dirname, '../src/assets/episodes')
+    fs.mkdirSync(assetsDir, { recursive: true })
+
+    for (const video of videos) {
+      if (!video.thumbnail) continue
+      const filename = `${video.estimatedDate}.jpg`
+      const outputPath = path.join(assetsDir, filename)
+
+      if (!fs.existsSync(outputPath)) {
+        await downloadThumbnail(video.thumbnail, outputPath)
+        console.error(`✓ Downloaded ${filename}`)
+      } else {
+        console.error(`• Skipped ${filename} (already exists)`)
+      }
+
+      video.localThumbnail = `../../assets/episodes/${filename}`
+    }
 
     // Output as formatted JSON
     console.log(JSON.stringify(videos, null, 2))
