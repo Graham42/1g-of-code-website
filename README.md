@@ -130,7 +130,7 @@ The site deploys to Netlify automatically. Configuration is in `netlify.toml`:
 
 - Build command: `npm run build`
 - Publish directory: `dist`
-- Node version: 24
+- Node version: see `.nvmrc`
 
 ## Feedback & Contributions
 
