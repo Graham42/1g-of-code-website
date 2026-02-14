@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+.astro/
+
+# Test output
+test-results/
+playwright-report/
+blob-report/
+
+# Misc
+.DS_Store
+*.log
