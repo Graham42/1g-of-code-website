@@ -74,22 +74,28 @@
     <line x1="12" y1="17" x2="12" y2="21"></line>
   </svg>
 
-  <span class="nav-button-text">Toggle Theme</span>
+  <span class="theme-label nav-button-text">Theme</span>
 </button>
 
 <style>
+  /* Mobile: styled to match .nav-button-item in Header.astro.
+     Astro's scoped styles mean the parent's .nav-button-item rules don't
+     reach elements inside child components, so we duplicate them here.
+     If you change mobile nav item sizing in Header.astro, update this too. */
   .theme-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    padding: 0;
+    gap: var(--spacing-md);
+    width: 100%;
+    min-height: 48px;
+    padding: var(--spacing-md);
     background: transparent;
     border: none;
-    border-radius: var(--border-radius-md);
+    border-radius: 0;
     cursor: pointer;
     color: var(--color-text);
+    font-weight: 500;
     transition:
       background-color var(--transition-fast),
       color var(--transition-fast);
@@ -102,29 +108,54 @@
 
   .theme-toggle:focus-visible {
     outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+    outline-offset: -2px;
+  }
+
+  /* Desktop: compact icon button */
+  @media (min-width: 768px) {
+    .theme-toggle {
+      width: 44px;
+      height: 44px;
+      min-height: auto;
+      padding: 0;
+      gap: 0;
+      border-radius: var(--border-radius-md);
+      font-weight: normal;
+    }
+
+    .theme-toggle:focus-visible {
+      outline-offset: 2px;
+    }
   }
 
   .theme-icon {
     display: none;
+    flex-shrink: 0;
   }
 
   /* Show icon based on theme setting */
-  :global([data-theme-setting='light']) .sun-icon {
+  :global(html[data-theme-setting='light']) .sun-icon {
     display: block;
   }
 
-  :global([data-theme-setting='dark']) .moon-icon {
+  :global(html[data-theme-setting='dark']) .moon-icon {
     display: block;
   }
 
-  :global([data-theme-setting='system']) .system-icon {
+  :global(html[data-theme-setting='system']) .system-icon {
     display: block;
   }
 
   /* Fallback when no setting (initial load before JS) */
   :global(html:not([data-theme-setting])) .system-icon {
     display: block;
+  }
+
+  /* Hide text label on desktop (matches Header.astro responsive behavior) */
+  @media (min-width: 768px) {
+    .nav-button-text {
+      display: none;
+    }
   }
 </style>
 
