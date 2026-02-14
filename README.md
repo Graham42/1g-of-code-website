@@ -56,10 +56,12 @@ title: 'Episode Title'
 date: 2026-02-05
 tags: [topic1, topic2]
 twitchUrl: 'https://www.twitch.tv/videos/...'
-twitchThumbnail: 'https://static-cdn.jtvnw.net/...'
+thumbnail: ../../assets/episodes/2026-02-05.jpg
 youtubeUrl: 'https://www.youtube.com/watch?v=...' # optional
 ---
 ```
+
+The `thumbnail` field references a local 1280x720 image downloaded by the fetch script. Astro optimizes it into AVIF/WebP/JPEG at multiple sizes during build. See [docs/episode-content-pipeline.md](docs/episode-content-pipeline.md) for the full architecture.
 
 ### Content Structure
 
