@@ -1,0 +1,2 @@
+- human review of episode context
+- human review of copy text on each page

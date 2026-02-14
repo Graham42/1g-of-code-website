@@ -1,158 +1,167 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro'
 ---
 
 <BaseLayout title="About - 1g of Code">
-	<div class="about-page">
-		<div class="container">
-			<h1>About 1g of Code</h1>
+  <div class="about-page">
+    <div class="container">
+      <h1>About 1g of Code</h1>
 
-			<section class="about-section">
-				<h2>About the Show</h2>
-				<p>
-					<strong>1g of Code</strong> is a Twitch show about coding and building with AI.
-					Aimed at beginners who want to learn how to use AI tools for development,
-					each episode covers practical tips, tricks, and guides to help you get started
-					on your coding journey with the power of AI assistance.
-				</p>
-			</section>
+      <section class="about-section">
+        <h2>About the Show</h2>
+        <p>
+          <strong>1g of Code</strong> is a Twitch show about coding and building with
+          AI. Aimed at beginners who want to learn how to use AI tools for development,
+          each episode covers practical tips, tricks, and guides to help you get started
+          on your coding journey with the power of AI assistance.
+        </p>
+      </section>
 
-			<section class="about-section">
-				<h2>About Graham</h2>
-				<p class="role">Host</p>
-				<p>
-					Graham is an experienced software engineer who guides viewers through AI-assisted
-					development. With years of industry experience, he breaks down complex concepts
-					into approachable lessons for beginners.
-				</p>
-				<p class="placeholder">More bio details coming soon...</p>
-			</section>
+      <section class="about-section">
+        <h2>About Graham</h2>
+        <p class="role">Host</p>
+        <p>
+          Graham is an experienced software engineer who guides viewers through
+          AI-assisted development. With years of industry experience, he breaks
+          down complex concepts into approachable lessons for beginners.
+        </p>
+        <p class="placeholder">More bio details coming soon...</p>
+      </section>
 
-			<section class="about-section">
-				<h2>About the Co-host</h2>
-				<p>
-					Our co-host brings the "common knowledge" perspective to the show, asking the
-					questions that beginners might have. This helps ensure that no assumption goes
-					unexplained and that everyone can follow along, regardless of their experience level.
-				</p>
-				<p class="placeholder">More bio details coming soon...</p>
-			</section>
+      <section class="about-section">
+        <h2>About the Co-host</h2>
+        <p>
+          Our co-host brings the "common knowledge" perspective to the show,
+          asking the questions that beginners might have. This helps ensure that
+          no assumption goes unexplained and that everyone can follow along,
+          regardless of their experience level.
+        </p>
+        <p class="placeholder">More bio details coming soon...</p>
+      </section>
 
-			<section class="about-section">
-				<h2>Get Involved</h2>
-				<ul class="get-involved-list">
-					<li>
-						<strong>Watch live on Twitch:</strong>
-						<a href="https://twitch.tv/1gOfCode" target="_blank" rel="noopener noreferrer">
-							twitch.tv/1gOfCode
-						</a>
-					</li>
-					<li>
-						<strong>Catch up on YouTube:</strong>
-						<span class="placeholder-text">Coming soon</span>
-					</li>
-					<li>
-						<strong>Questions or feedback?</strong>
-						<a href="https://github.com/graham42/1g-of-code-website/issues" target="_blank" rel="noopener noreferrer">Open an issue on GitHub</a>
-					</li>
-				</ul>
-			</section>
-		</div>
-	</div>
+      <section class="about-section">
+        <h2>Get Involved</h2>
+        <ul class="get-involved-list">
+          <li>
+            <strong>Watch live on Twitch:</strong>
+            <a
+              href="https://twitch.tv/1gOfCode"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              twitch.tv/1gOfCode
+            </a>
+          </li>
+          <li>
+            <strong>Catch up on YouTube:</strong>
+            <span class="placeholder-text">Coming soon</span>
+          </li>
+          <li>
+            <strong>Questions or feedback?</strong>
+            <a
+              href="https://github.com/graham42/1g-of-code-website/issues"
+              target="_blank"
+              rel="noopener noreferrer">Open an issue on GitHub</a
+            >
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
 </BaseLayout>
 
 <style>
-	.about-page {
-		padding-block: var(--spacing-2xl);
-	}
+  .about-page {
+    padding-block: var(--spacing-2xl);
+  }
 
-	.container {
-		max-width: var(--max-width-prose);
-	}
+  .container {
+    max-width: var(--max-width-prose);
+  }
 
-	h1 {
-		margin-bottom: var(--spacing-2xl);
-		text-align: center;
-	}
+  h1 {
+    margin-bottom: var(--spacing-2xl);
+    text-align: center;
+  }
 
-	.about-section {
-		margin-bottom: var(--spacing-2xl);
-	}
+  .about-section {
+    margin-bottom: var(--spacing-2xl);
+  }
 
-	.about-section:last-child {
-		margin-bottom: 0;
-	}
+  .about-section:last-child {
+    margin-bottom: 0;
+  }
 
-	h2 {
-		margin-bottom: var(--spacing-md);
-		padding-bottom: var(--spacing-sm);
-		border-bottom: 2px solid var(--color-border);
-	}
+  h2 {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-border);
+  }
 
-	p {
-		margin-bottom: var(--spacing-md);
-		line-height: var(--line-height-base);
-	}
+  p {
+    margin-bottom: var(--spacing-md);
+    line-height: var(--line-height-base);
+  }
 
-	p:last-child {
-		margin-bottom: 0;
-	}
+  p:last-child {
+    margin-bottom: 0;
+  }
 
-	.role {
-		font-size: var(--font-size-sm);
-		color: var(--color-text-muted);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		margin-bottom: var(--spacing-sm);
-	}
+  .role {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-sm);
+  }
 
-	.placeholder {
-		font-style: italic;
-		color: var(--color-text-muted);
-	}
+  .placeholder {
+    font-style: italic;
+    color: var(--color-text-muted);
+  }
 
-	.get-involved-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-	}
+  .get-involved-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
 
-	.get-involved-list li {
-		padding: var(--spacing-md);
-		background-color: var(--color-bg-secondary);
-		border-radius: var(--border-radius-md);
-		border: 1px solid var(--color-border);
-	}
+  .get-involved-list li {
+    padding: var(--spacing-md);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+  }
 
-	.get-involved-list a {
-		text-decoration: underline;
-		text-underline-offset: 2px;
-	}
+  .get-involved-list a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 
-	.get-involved-list a:hover {
-		text-decoration-thickness: 2px;
-	}
+  .get-involved-list a:hover {
+    text-decoration-thickness: 2px;
+  }
 
-	.placeholder-link {
-		color: var(--color-text-muted);
-	}
+  .placeholder-link {
+    color: var(--color-text-muted);
+  }
 
-	.placeholder-link:hover {
-		color: var(--color-link-hover);
-	}
+  .placeholder-link:hover {
+    color: var(--color-link-hover);
+  }
 
-	/* Responsive adjustments */
-	@media (max-width: 640px) {
-		.about-page {
-			padding-block: var(--spacing-xl);
-		}
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .about-page {
+      padding-block: var(--spacing-xl);
+    }
 
-		h1 {
-			font-size: var(--font-size-3xl);
-		}
+    h1 {
+      font-size: var(--font-size-3xl);
+    }
 
-		h2 {
-			font-size: var(--font-size-2xl);
-		}
-	}
+    h2 {
+      font-size: var(--font-size-2xl);
+    }
+  }
 </style>

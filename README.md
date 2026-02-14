@@ -52,12 +52,12 @@ src/content/episodes/2026-02-05.md
 
 ```yaml
 ---
-title: "Episode Title"
+title: 'Episode Title'
 date: 2026-02-05
 tags: [topic1, topic2]
-twitchUrl: "https://www.twitch.tv/videos/..."
-twitchThumbnail: "https://static-cdn.jtvnw.net/..."
-youtubeUrl: "https://www.youtube.com/watch?v=..." # optional
+twitchUrl: 'https://www.twitch.tv/videos/...'
+twitchThumbnail: 'https://static-cdn.jtvnw.net/...'
+youtubeUrl: 'https://www.youtube.com/watch?v=...' # optional
 ---
 ```
 
@@ -74,7 +74,7 @@ Code blocks automatically get syntax highlighting:
 
 ````markdown
 ```typescript
-const greeting: string = "Hello, world!";
+const greeting: string = 'Hello, world!'
 ```
 ````
 
