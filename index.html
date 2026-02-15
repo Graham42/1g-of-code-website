@@ -127,7 +127,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin-bottom: 24px;
+    margin-bottom: 12px;
   }
 
   .preset-btn {
@@ -146,6 +146,36 @@
   .preset-btn.active { border-color: var(--ui-accent); background: rgba(240,165,0,0.08); }
   .preset-btn .preset-name { font-weight: 600; display: block; margin-bottom: 2px; }
   .preset-btn .preset-desc { color: var(--ui-text-dim); font-size: 10px; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--ui-border);
+  }
+  .theme-toggle button {
+    flex: 1;
+    background: var(--ui-bg);
+    border: none;
+    color: var(--ui-text-dim);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .theme-toggle button + button {
+    border-left: 1px solid var(--ui-border);
+  }
+  .theme-toggle button.active {
+    background: var(--ui-accent);
+    color: #000;
+    font-weight: 600;
+  }
 
   /* ─── Preview ─── */
   .preview-area {
@@ -206,12 +236,106 @@
     border-radius: 4px;
     border: 1px solid var(--ui-border);
   }
+
+  /* Contrast indicator */
+  .contrast-info {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 1.5;
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+  }
+  .contrast-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0;
+  }
+  .contrast-row .label { color: var(--ui-text-dim); }
+  .contrast-pass { color: #4caf50; font-weight: 600; }
+  .contrast-fail { color: #f44336; font-weight: 600; }
+  .contrast-warn { color: #ff9800; font-weight: 600; }
+
+  /* ─── Toggle Button ─── */
+  .sidebar-toggle {
+    display: none;
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 200;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--ui-accent);
+    color: #000;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+  }
+
+  /* ─── Overlay ─── */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 49;
+  }
+  .sidebar-overlay.visible {
+    display: block;
+  }
+
+  /* ─── Mobile ─── */
+  @media (max-width: 768px) {
+    body {
+      grid-template-columns: 1fr;
+    }
+
+    .controls {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      max-width: 85vw;
+      height: 100vh;
+      z-index: 50;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+    }
+    .controls.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+      display: flex;
+    }
+
+    .prompt-area {
+      flex-direction: column;
+    }
+    .prompt-text {
+      max-height: 60px;
+    }
+    .copy-btn {
+      align-self: flex-end;
+    }
+  }
 </style>
 </head>
 <body>
 
+<!-- ─── Mobile Toggle + Overlay ─── -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle controls panel">&#9881;</button>
+
 <!-- ─── Controls ─── -->
-<div class="controls">
+<div class="controls" id="controlsPanel">
   <h1>1g of Code — Branding</h1>
 
   <div class="control-group">
@@ -219,15 +343,15 @@
     <div class="presets">
       <button class="preset-btn" onclick="applyPreset('workshop')">
         <span class="preset-name">Workshop</span>
-        <span class="preset-desc">Dark + warm amber</span>
+        <span class="preset-desc">Warm amber, craft feel</span>
       </button>
       <button class="preset-btn" onclick="applyPreset('terminal')">
         <span class="preset-name">Terminal</span>
-        <span class="preset-desc">Dark + green glow</span>
+        <span class="preset-desc">Green glow, hacker</span>
       </button>
       <button class="preset-btn" onclick="applyPreset('blueprint')">
         <span class="preset-name">Blueprint</span>
-        <span class="preset-desc">Deep blue + white lines</span>
+        <span class="preset-desc">Blue + white lines</span>
       </button>
       <button class="preset-btn" onclick="applyPreset('campfire')">
         <span class="preset-name">Campfire</span>
@@ -235,8 +359,14 @@
       </button>
       <button class="preset-btn" onclick="applyPreset('neonCyan')">
         <span class="preset-name">Neon Cyan</span>
-        <span class="preset-desc">Black + electric cyan</span>
+        <span class="preset-desc">Electric cyan glow</span>
       </button>
+    </div>
+
+    <h2 style="margin-top: 16px">Mode</h2>
+    <div class="theme-toggle">
+      <button class="active" onclick="setMode('dark')">Dark</button>
+      <button onclick="setMode('light')">Light</button>
     </div>
   </div>
 
@@ -284,6 +414,7 @@
         <span class="color-hex" id="colorBorderHex"></span>
       </div>
     </div>
+    <div class="contrast-info" id="contrastInfo"></div>
   </div>
 
   <div class="control-group">
@@ -344,47 +475,96 @@
 </div>
 
 <script>
+// Each preset has a dark and light variant.
+// Light variants use darkened accents for text-on-white accessibility (WCAG AA 4.5:1).
 const PRESETS = {
   workshop: {
-    bg: '#0f0f0f', text: '#f5f0e8', textDim: '#9a9080', accent: '#f0a500',
-    surface: '#1a1812', border: '#2e2a22',
+    dark: {
+      bg: '#0f0f0f', text: '#f5f0e8', textDim: '#9a9080', accent: '#f0a500',
+      surface: '#1a1812', border: '#2e2a22',
+    },
+    light: {
+      bg: '#faf8f4', text: '#1a1610', textDim: '#6b6054', accent: '#b07800',
+      surface: '#ffffff', border: '#e0dbd2',
+    },
     display: "'Bricolage Grotesque', sans-serif",
     body: "'IBM Plex Mono', monospace",
     grain: 0.06, radius: 6
   },
   terminal: {
-    bg: '#0a0e0a', text: '#c8e6c9', textDim: '#5a7a5c', accent: '#4caf50',
-    surface: '#0f150f', border: '#1b2e1b',
+    dark: {
+      bg: '#0a0e0a', text: '#c8e6c9', textDim: '#5a7a5c', accent: '#4caf50',
+      surface: '#0f150f', border: '#1b2e1b',
+    },
+    light: {
+      bg: '#f4f9f4', text: '#0e1a0e', textDim: '#4a6a4c', accent: '#2e7d32',
+      surface: '#ffffff', border: '#c8e0ca',
+    },
     display: "'JetBrains Mono', monospace",
     body: "'IBM Plex Mono', monospace",
     grain: 0.04, radius: 2
   },
   blueprint: {
-    bg: '#0d1b2a', text: '#e0e8f0', textDim: '#6889a8', accent: '#48a9fe',
-    surface: '#132238', border: '#1e3654',
+    dark: {
+      bg: '#0d1b2a', text: '#e0e8f0', textDim: '#6889a8', accent: '#48a9fe',
+      surface: '#132238', border: '#1e3654',
+    },
+    light: {
+      bg: '#f0f5fa', text: '#0d1b2a', textDim: '#4a6a88', accent: '#1a73c7',
+      surface: '#ffffff', border: '#c8d8e8',
+    },
     display: "'Syne', sans-serif",
     body: "'IBM Plex Sans', sans-serif",
     grain: 0.03, radius: 4
   },
   campfire: {
-    bg: '#1a1410', text: '#e8ddd0', textDim: '#8a7a68', accent: '#e07830',
-    surface: '#241c14', border: '#3a2e22',
+    dark: {
+      bg: '#1a1410', text: '#e8ddd0', textDim: '#8a7a68', accent: '#e07830',
+      surface: '#241c14', border: '#3a2e22',
+    },
+    light: {
+      bg: '#faf6f0', text: '#1a1410', textDim: '#7a6a58', accent: '#b85a18',
+      surface: '#ffffff', border: '#e0d5c8',
+    },
     display: "'DM Serif Display', Georgia, serif",
     body: "'Literata', Georgia, serif",
     grain: 0.08, radius: 8
   },
   neonCyan: {
-    bg: '#080810', text: '#f0eef5', textDim: '#6a6880', accent: '#00e5ff',
-    surface: '#101020', border: '#2a2840',
+    dark: {
+      bg: '#080810', text: '#f0eef5', textDim: '#6a6880', accent: '#00e5ff',
+      surface: '#101020', border: '#2a2840',
+    },
+    light: {
+      bg: '#f2f2fa', text: '#0a0a18', textDim: '#5a5878', accent: '#0088a3',
+      surface: '#ffffff', border: '#d0cee0',
+    },
     display: "'Unbounded', sans-serif",
     body: "'DM Sans', sans-serif",
     grain: 0.02, radius: 10
   },
 };
 
-const DEFAULTS = PRESETS.workshop;
+let currentPreset = 'workshop';
+let currentMode = 'dark';
 
-const state = { ...DEFAULTS };
+const state = {};
+
+function loadPreset(name, mode) {
+  currentPreset = name;
+  currentMode = mode;
+  const preset = PRESETS[name];
+  const colors = preset[mode];
+  Object.assign(state, colors, {
+    display: preset.display,
+    body: preset.body,
+    grain: preset.grain,
+    radius: preset.radius,
+  });
+}
+
+// Init state
+loadPreset('workshop', 'dark');
 
 function fontName(val) {
   return val.split(',')[0].replace(/'/g, '').trim();
@@ -417,11 +597,22 @@ function onSlider(key, val) {
 }
 
 function applyPreset(name) {
-  Object.assign(state, PRESETS[name]);
+  loadPreset(name, currentMode);
   syncControls();
   updateAll();
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
   event.currentTarget.classList.add('active');
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  loadPreset(currentPreset, mode);
+  syncControls();
+  updateAll();
+  document.querySelectorAll('.theme-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.theme-toggle button').forEach(b => {
+    if (b.textContent.toLowerCase() === mode) b.classList.add('active');
+  });
 }
 
 function syncControls() {
@@ -445,6 +636,61 @@ function syncControls() {
   document.getElementById('radiusVal').textContent = state.radius + 'px';
 }
 
+// ─── Accessibility: WCAG contrast ratio calculation ───
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  return {
+    r: parseInt(hex.substr(0, 2), 16),
+    g: parseInt(hex.substr(2, 2), 16),
+    b: parseInt(hex.substr(4, 2), 16)
+  };
+}
+
+function srgbToLinear(c) {
+  c = c / 255;
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+
+function relativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+}
+
+function contrastRatio(hex1, hex2) {
+  const l1 = relativeLuminance(hex1);
+  const l2 = relativeLuminance(hex2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function contrastLabel(ratio) {
+  if (ratio >= 7) return { text: `${ratio.toFixed(1)} AAA`, cls: 'contrast-pass' };
+  if (ratio >= 4.5) return { text: `${ratio.toFixed(1)} AA`, cls: 'contrast-pass' };
+  if (ratio >= 3) return { text: `${ratio.toFixed(1)} AA-lg`, cls: 'contrast-warn' };
+  return { text: `${ratio.toFixed(1)} Fail`, cls: 'contrast-fail' };
+}
+
+function updateContrastInfo() {
+  const pairs = [
+    { label: 'Text on bg', fg: state.text, bg: state.bg },
+    { label: 'Dimmed on bg', fg: state.textDim, bg: state.bg },
+    { label: 'Accent on bg', fg: state.accent, bg: state.bg },
+    { label: 'Text on surface', fg: state.text, bg: state.surface },
+    { label: 'Dimmed on surface', fg: state.textDim, bg: state.surface },
+    { label: 'Accent on surface', fg: state.accent, bg: state.surface },
+  ];
+
+  const html = pairs.map(p => {
+    const ratio = contrastRatio(p.fg, p.bg);
+    const result = contrastLabel(ratio);
+    return `<div class="contrast-row"><span class="label">${p.label}</span><span class="${result.cls}">${result.text}</span></div>`;
+  }).join('');
+
+  document.getElementById('contrastInfo').innerHTML =
+    '<div style="font-weight:600;margin-bottom:4px;color:var(--ui-text)">Contrast (WCAG)</div>' + html;
+}
+
 function isDark() {
   const hex = state.bg.replace('#','');
   const r = parseInt(hex.substr(0,2),16);
@@ -457,6 +703,7 @@ function renderPreview() {
   const frame = document.getElementById('previewFrame');
   const doc = frame.contentDocument || frame.contentWindow.document;
   const grainSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='${state.grain}'/%3E%3C/svg%3E")`;
+  const ctaBtnColor = isDark() ? '#000' : '#fff';
 
   doc.open();
   doc.write(`<!DOCTYPE html>
@@ -539,7 +786,7 @@ function renderPreview() {
   .hero-cta {
     display: inline-block;
     background: ${state.accent};
-    color: ${isDark() ? '#000' : '#fff'};
+    color: ${ctaBtnColor};
     padding: 12px 28px;
     border-radius: ${state.radius}px;
     text-decoration: none;
@@ -675,9 +922,16 @@ function renderPreview() {
 
 function updatePrompt() {
   const parts = [];
+  const preset = PRESETS[currentPreset];
+  const darkColors = preset.dark;
+  const lightColors = preset.light;
 
-  parts.push(`Use a ${isDark() ? 'dark' : 'light'} theme.`);
-  parts.push(`Background: ${state.bg}, text: ${state.text}, dimmed text: ${state.textDim}, accent: ${state.accent}, surface/cards: ${state.surface}, borders: ${state.border}.`);
+  parts.push(`The site supports both dark and light modes.`);
+  parts.push('');
+  parts.push(`Dark mode — Background: ${darkColors.bg}, text: ${darkColors.text}, dimmed text: ${darkColors.textDim}, accent: ${darkColors.accent}, surface/cards: ${darkColors.surface}, borders: ${darkColors.border}.`);
+  parts.push('');
+  parts.push(`Light mode — Background: ${lightColors.bg}, text: ${lightColors.text}, dimmed text: ${lightColors.textDim}, accent: ${lightColors.accent}, surface/cards: ${lightColors.surface}, borders: ${lightColors.border}.`);
+  parts.push('');
   parts.push(`Display/heading font: ${fontName(state.display)}. Body font: ${fontName(state.body)}.`);
 
   if (state.grain > 0) {
@@ -695,6 +949,7 @@ function updateAll() {
   syncControls();
   renderPreview();
   updatePrompt();
+  updateContrastInfo();
 }
 
 function copyPrompt() {
@@ -706,8 +961,17 @@ function copyPrompt() {
   });
 }
 
+function toggleSidebar() {
+  const panel = document.getElementById('controlsPanel');
+  const overlay = document.getElementById('sidebarOverlay');
+  const isOpen = panel.classList.toggle('open');
+  overlay.classList.toggle('visible', isOpen);
+}
+
 // Init
-applyPreset('workshop');
+loadPreset('workshop', 'dark');
+syncControls();
+updateAll();
 document.querySelector('.preset-btn').classList.add('active');
 </script>
 </body>
