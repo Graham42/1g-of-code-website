@@ -300,7 +300,8 @@ async function fetchTwitchVideos() {
  * @returns {Promise<void>}
  */
 function downloadThumbnail(url, outputPath) {
-  const highResUrl = url.replace(/thumb0-\d+x\d+\.jpg/, 'thumb0-1280x720.jpg')
+  // Upgrade to 1280x720 for both default (thumb0-WxH.jpg) and custom (custom-...-WxH.png) thumbnails
+  const highResUrl = url.replace(/(-|\b)(\d+x\d+)(\.\w+)$/, '$11280x720$3')
   return new Promise((resolve, reject) => {
     https
       .get(highResUrl, (response) => {
@@ -328,16 +329,18 @@ function downloadThumbnail(url, outputPath) {
     const assetsDir = path.join(__dirname, '../src/assets/episodes')
     fs.mkdirSync(assetsDir, { recursive: true })
 
+    const forceDownload = process.argv.includes('--force')
+
     for (const video of videos) {
       if (!video.thumbnail) continue
       const filename = `${video.estimatedDate}.jpg`
       const outputPath = path.join(assetsDir, filename)
 
-      if (!fs.existsSync(outputPath)) {
+      if (forceDownload || !fs.existsSync(outputPath)) {
         await downloadThumbnail(video.thumbnail, outputPath)
         console.error(`✓ Downloaded ${filename}`)
       } else {
-        console.error(`• Skipped ${filename} (already exists)`)
+        console.error(`• Skipped ${filename} (already exists, use --force to re-download)`)
       }
 
       video.localThumbnail = `../../assets/episodes/${filename}`
