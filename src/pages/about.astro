@@ -8,63 +8,74 @@ import BaseLayout from '../layouts/BaseLayout.astro'
       <h1>About 1g of Code</h1>
 
       <section class="about-section">
-        <h2>About the Show</h2>
+        <h2>We Learn in Public So You Can Too.</h2>
         <p>
-          <strong>1g of Code</strong> is a Twitch show about coding and building with
-          AI. Aimed at beginners who want to learn how to use AI tools for development,
-          each episode covers practical tips, tricks, and guides to help you get started
-          on your coding journey with the power of AI assistance.
+          <strong>1g of Code</strong> is a live stream about the magic of building
+          things with AI.
+        </p>
+        <p>
+          We believe the barrier to creating software is disappearing. It is
+          amazing what you can build today with a little bit of curiosity and
+          the right tools.
         </p>
       </section>
 
       <section class="about-section">
-        <h2>About Graham</h2>
-        <p class="role">Host</p>
+        <h2>What Do We Build?</h2>
+        <p><strong>Whatever we are curious about.</strong></p>
         <p>
-          Graham is an experienced software engineer who guides viewers through
-          AI-assisted development. With years of industry experience, he breaks
-          down complex concepts into approachable lessons for beginners.
+          We use AI to handle the heavy lifting so we can focus on the creative
+          parts. We don't follow a rigid script; if a cool question pops up
+          halfway through, <strong>we explore it.</strong>
         </p>
-        <p class="placeholder">More bio details coming soon...</p>
-      </section>
-
-      <section class="about-section">
-        <h2>About the Co-host</h2>
-        <p>
-          Our co-host brings the "common knowledge" perspective to the show,
-          asking the questions that beginners might have. This helps ensure that
-          no assumption goes unexplained and that everyone can follow along,
-          regardless of their experience level.
-        </p>
-        <p class="placeholder">More bio details coming soon...</p>
-      </section>
-
-      <section class="about-section">
-        <h2>Get Involved</h2>
-        <ul class="get-involved-list">
-          <li>
-            <strong>Watch live on Twitch:</strong>
-            <a
-              href="https://twitch.tv/1gOfCode"
+        <p class="indent">
+          <em
+            >Check out the <a
+              href="https://sss-snake-by-claude.netlify.app/"
               target="_blank"
-              rel="noopener noreferrer"
-            >
-              twitch.tv/1gOfCode
-            </a>
-          </li>
-          <li>
-            <strong>Catch up on YouTube:</strong>
-            <span class="placeholder-text">Coming soon</span>
-          </li>
-          <li>
-            <strong>Questions or feedback?</strong>
-            <a
-              href="https://github.com/graham42/1g-of-code-website/issues"
-              target="_blank"
-              rel="noopener noreferrer">Open an issue on GitHub</a
-            >
-          </li>
-        </ul>
+              rel="noopener noreferrer"><strong>simple Snake Game</strong></a
+            > we built live on stream (complete with a global leaderboard).</em
+          >
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>The Team</h2>
+        <p>
+          <strong>Graham</strong> A Senior Software Engineer. He knows the systems
+          and the rules, but <strong
+            >isn't afraid to experiment when the old ways don't work.</strong
+          > He bridges the gap between a &ldquo;big idea&rdquo; and the technical
+          steps to make it happen.
+        </p>
+        <p>
+          <strong>Kipper</strong> The <strong
+            >Professional Question Asker.</strong
+          > He ensures we never get lost in the jargon. He asks the questions you're
+          thinking—poking holes in the logic and learning alongside you as the projects
+          evolve.
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>Join the Chaos!</h2>
+        <p>
+          We stream the whole process—mistakes, tangents, and breakthroughs
+          included.
+        </p>
+        <p class="cta-wrap">
+          <a
+            class="cta-twitch"
+            href="https://twitch.tv/1gOfCode"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"
+              ><path
+                d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"
+              ></path></svg
+            > Follow us on Twitch</a
+          >
+        </p>
       </section>
     </div>
   </div>
@@ -103,51 +114,45 @@ import BaseLayout from '../layouts/BaseLayout.astro'
     line-height: var(--line-height-base);
   }
 
+  .indent {
+    margin-inline: var(--spacing-xl);
+  }
+
   p:last-child {
     margin-bottom: 0;
   }
 
-  .role {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: var(--spacing-sm);
+  .cta-wrap {
+    text-align: center;
   }
 
-  .placeholder {
-    font-style: italic;
-    color: var(--color-text-muted);
-  }
-
-  .get-involved-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-  }
-
-  .get-involved-list li {
-    padding: var(--spacing-md);
-    background-color: var(--color-bg-secondary);
+  .cta-twitch {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-xl);
+    background-color: var(--color-twitch);
+    color: #fff;
+    font-weight: 600;
+    font-size: var(--font-size-lg);
     border-radius: var(--border-radius-md);
-    border: 1px solid var(--color-border);
+    letter-spacing: 0.02em;
+    transition:
+      background-color var(--transition-fast),
+      transform var(--transition-fast),
+      box-shadow var(--transition-fast);
   }
 
-  .get-involved-list a {
-    text-decoration: underline;
-    text-underline-offset: 2px;
+  .cta-twitch:hover {
+    background-color: #7c3aed;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgb(145 70 255 / 0.4);
   }
 
-  .get-involved-list a:hover {
-    text-decoration-thickness: 2px;
-  }
-
-  .placeholder-link {
-    color: var(--color-text-muted);
-  }
-
-  .placeholder-link:hover {
-    color: var(--color-link-hover);
+  .cta-twitch:active {
+    transform: translateY(0);
   }
 
   /* Responsive adjustments */
