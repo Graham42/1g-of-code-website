@@ -45,10 +45,10 @@ test.describe('Home Page', () => {
     const descText = await heroDescription.textContent()
     expect(descText?.length).toBeGreaterThan(50)
 
-    // Check CTA button
-    const ctaButton = heroSection.locator('.cta-button')
-    await expect(ctaButton).toBeVisible()
-    await expect(ctaButton).toContainText('Browse Episodes')
+    // Check Twitch CTA button
+    const ctaTwitch = heroSection.locator('.cta-twitch')
+    await expect(ctaTwitch).toBeVisible()
+    await expect(ctaTwitch).toContainText('Watch Live on Twitch')
   })
 
   test('social links section is present', async ({ page }) => {
@@ -91,15 +91,16 @@ test.describe('Home Page', () => {
     await expect(page).toHaveURL('/episodes/')
   })
 
-  test('CTA button navigates to episodes', async ({ page }) => {
+  test('CTA Twitch link points to Twitch', async ({ page }) => {
     await page.goto('/')
 
-    // Click the CTA button in hero section
-    const ctaButton = page.locator('.cta-button')
-    await ctaButton.click()
-
-    // Verify navigation to episodes page
-    await expect(page).toHaveURL('/episodes/')
+    // Check the Twitch CTA in hero section
+    const ctaTwitch = page.locator('.hero .cta-twitch')
+    await expect(ctaTwitch).toBeVisible()
+    await expect(ctaTwitch).toHaveAttribute(
+      'href',
+      'https://twitch.tv/1gOfCode'
+    )
   })
 
   test('page has proper meta title', async ({ page }) => {
