@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1g of Code — Branding Playground</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ui-bg: #1a1a1a;
+    --ui-surface: #242424;
+    --ui-border: #333;
+    --ui-text: #ccc;
+    --ui-text-dim: #888;
+    --ui-accent: #f0a500;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  /* ─── Controls Panel ─── */
+  .controls {
+    grid-row: 1 / 3;
+    background: var(--ui-surface);
+    border-right: 1px solid var(--ui-border);
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .controls h1 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--ui-text-dim);
+    margin-bottom: 20px;
+  }
+
+  .control-group {
+    margin-bottom: 24px;
+  }
+
+  .control-group h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--ui-text-dim);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--ui-border);
+  }
+
+  .control-row {
+    margin-bottom: 12px;
+  }
+
+  .control-row label {
+    display: block;
+    font-size: 12px;
+    color: var(--ui-text-dim);
+    margin-bottom: 4px;
+  }
+
+  select, input[type="range"] {
+    width: 100%;
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+
+  select:focus, input:focus { outline: 1px solid var(--ui-accent); border-color: var(--ui-accent); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    padding: 0;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--ui-accent);
+    cursor: pointer;
+  }
+
+  .color-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  input[type="color"] {
+    -webkit-appearance: none;
+    border: 1px solid var(--ui-border);
+    border-radius: 4px;
+    width: 36px;
+    height: 30px;
+    padding: 2px;
+    cursor: pointer;
+    background: var(--ui-bg);
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+  input[type="color"]::-webkit-color-swatch { border-radius: 2px; border: none; }
+
+  .color-hex {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: var(--ui-text-dim);
+  }
+
+  /* Presets */
+  .presets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .preset-btn {
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    color: var(--ui-text);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .preset-btn:hover { border-color: var(--ui-accent); }
+  .preset-btn.active { border-color: var(--ui-accent); background: rgba(240,165,0,0.08); }
+  .preset-btn .preset-name { font-weight: 600; display: block; margin-bottom: 2px; }
+  .preset-btn .preset-desc { color: var(--ui-text-dim); font-size: 10px; }
+
+  /* ─── Preview ─── */
+  .preview-area {
+    overflow-y: auto;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-frame {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ─── Prompt Output ─── */
+  .prompt-area {
+    background: var(--ui-surface);
+    border-top: 1px solid var(--ui-border);
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .prompt-text {
+    flex: 1;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ui-text);
+    max-height: 80px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
+  .copy-btn {
+    background: var(--ui-accent);
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .copy-btn:hover { opacity: 0.85; }
+
+  .info-blurb {
+    font-size: 11px;
+    color: var(--ui-text-dim);
+    line-height: 1.5;
+    margin-top: 4px;
+    padding: 8px 10px;
+    background: var(--ui-bg);
+    border-radius: 4px;
+    border: 1px solid var(--ui-border);
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Controls ─── -->
+<div class="controls">
+  <h1>1g of Code — Branding</h1>
+
+  <div class="control-group">
+    <h2>Presets</h2>
+    <div class="presets">
+      <button class="preset-btn" onclick="applyPreset('workshop')">
+        <span class="preset-name">Workshop</span>
+        <span class="preset-desc">Dark + warm amber</span>
+      </button>
+      <button class="preset-btn" onclick="applyPreset('terminal')">
+        <span class="preset-name">Terminal</span>
+        <span class="preset-desc">Dark + green glow</span>
+      </button>
+      <button class="preset-btn" onclick="applyPreset('blueprint')">
+        <span class="preset-name">Blueprint</span>
+        <span class="preset-desc">Deep blue + white lines</span>
+      </button>
+      <button class="preset-btn" onclick="applyPreset('campfire')">
+        <span class="preset-name">Campfire</span>
+        <span class="preset-desc">Warm earth tones</span>
+      </button>
+      <button class="preset-btn" onclick="applyPreset('neonCyan')">
+        <span class="preset-name">Neon Cyan</span>
+        <span class="preset-desc">Black + electric cyan</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h2>Colors</h2>
+    <div class="control-row">
+      <label>Background</label>
+      <div class="color-row">
+        <input type="color" id="colorBg" oninput="onColor('bg', this.value)">
+        <span class="color-hex" id="colorBgHex"></span>
+      </div>
+    </div>
+    <div class="control-row">
+      <label>Text</label>
+      <div class="color-row">
+        <input type="color" id="colorText" oninput="onColor('text', this.value)">
+        <span class="color-hex" id="colorTextHex"></span>
+      </div>
+    </div>
+    <div class="control-row">
+      <label>Text (dimmed)</label>
+      <div class="color-row">
+        <input type="color" id="colorTextDim" oninput="onColor('textDim', this.value)">
+        <span class="color-hex" id="colorTextDimHex"></span>
+      </div>
+    </div>
+    <div class="control-row">
+      <label>Accent</label>
+      <div class="color-row">
+        <input type="color" id="colorAccent" oninput="onColor('accent', this.value)">
+        <span class="color-hex" id="colorAccentHex"></span>
+      </div>
+    </div>
+    <div class="control-row">
+      <label>Surface (cards, nav)</label>
+      <div class="color-row">
+        <input type="color" id="colorSurface" oninput="onColor('surface', this.value)">
+        <span class="color-hex" id="colorSurfaceHex"></span>
+      </div>
+    </div>
+    <div class="control-row">
+      <label>Border</label>
+      <div class="color-row">
+        <input type="color" id="colorBorder" oninput="onColor('border', this.value)">
+        <span class="color-hex" id="colorBorderHex"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h2>Typography</h2>
+    <div class="control-row">
+      <label>Display Font (headings)</label>
+      <select id="fontDisplay" onchange="onFont('display', this.value)">
+        <option value="'Bricolage Grotesque', sans-serif">Bricolage Grotesque</option>
+        <option value="'Syne', sans-serif">Syne</option>
+        <option value="'DM Serif Display', Georgia, serif">DM Serif Display</option>
+        <option value="'Instrument Serif', Georgia, serif">Instrument Serif</option>
+        <option value="'Playfair Display', Georgia, serif">Playfair Display</option>
+        <option value="'Archivo Black', sans-serif">Archivo Black</option>
+        <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+        <option value="'Unbounded', sans-serif">Unbounded</option>
+        <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+        <option value="'Major Mono Display', monospace">Major Mono Display</option>
+      </select>
+    </div>
+    <div class="control-row">
+      <label>Body Font</label>
+      <select id="fontBody" onchange="onFont('body', this.value)">
+        <option value="'IBM Plex Mono', monospace">IBM Plex Mono</option>
+        <option value="'Outfit', sans-serif">Outfit</option>
+        <option value="'DM Sans', sans-serif">DM Sans</option>
+        <option value="'Literata', Georgia, serif">Literata</option>
+        <option value="'IBM Plex Sans', sans-serif">IBM Plex Sans</option>
+        <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+        <option value="'Source Code Pro', monospace">Source Code Pro</option>
+        <option value="'Crimson Pro', Georgia, serif">Crimson Pro</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h2>Texture & Effects</h2>
+    <div class="control-row">
+      <label>Grain Intensity <span id="grainVal"></span></label>
+      <input type="range" id="grain" min="0" max="0.15" step="0.01" oninput="onSlider('grain', this.value)">
+      <div class="info-blurb">Adds a subtle film-grain noise texture over the page. Gives a tactile, analog feel instead of flat digital colors. Set to 0 for a clean look.</div>
+    </div>
+    <div class="control-row">
+      <label>Card Border Radius <span id="radiusVal"></span></label>
+      <input type="range" id="radius" min="0" max="20" step="1" oninput="onSlider('radius', this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- ─── Preview ─── -->
+<div class="preview-area">
+  <iframe id="previewFrame" class="preview-frame" style="width:100%;height:100%;border:none;"></iframe>
+</div>
+
+<!-- ─── Prompt ─── -->
+<div class="prompt-area">
+  <div class="prompt-text" id="promptOutput"></div>
+  <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+</div>
+
+<script>
+const PRESETS = {
+  workshop: {
+    bg: '#0f0f0f', text: '#f5f0e8', textDim: '#9a9080', accent: '#f0a500',
+    surface: '#1a1812', border: '#2e2a22',
+    display: "'Bricolage Grotesque', sans-serif",
+    body: "'IBM Plex Mono', monospace",
+    grain: 0.06, radius: 6
+  },
+  terminal: {
+    bg: '#0a0e0a', text: '#c8e6c9', textDim: '#5a7a5c', accent: '#4caf50',
+    surface: '#0f150f', border: '#1b2e1b',
+    display: "'JetBrains Mono', monospace",
+    body: "'IBM Plex Mono', monospace",
+    grain: 0.04, radius: 2
+  },
+  blueprint: {
+    bg: '#0d1b2a', text: '#e0e8f0', textDim: '#6889a8', accent: '#48a9fe',
+    surface: '#132238', border: '#1e3654',
+    display: "'Syne', sans-serif",
+    body: "'IBM Plex Sans', sans-serif",
+    grain: 0.03, radius: 4
+  },
+  campfire: {
+    bg: '#1a1410', text: '#e8ddd0', textDim: '#8a7a68', accent: '#e07830',
+    surface: '#241c14', border: '#3a2e22',
+    display: "'DM Serif Display', Georgia, serif",
+    body: "'Literata', Georgia, serif",
+    grain: 0.08, radius: 8
+  },
+  neonCyan: {
+    bg: '#080810', text: '#f0eef5', textDim: '#6a6880', accent: '#00e5ff',
+    surface: '#101020', border: '#2a2840',
+    display: "'Unbounded', sans-serif",
+    body: "'DM Sans', sans-serif",
+    grain: 0.02, radius: 10
+  },
+};
+
+const DEFAULTS = PRESETS.workshop;
+
+const state = { ...DEFAULTS };
+
+function fontName(val) {
+  return val.split(',')[0].replace(/'/g, '').trim();
+}
+
+function allFontNames() {
+  const fonts = new Set();
+  document.querySelectorAll('#fontDisplay option, #fontBody option').forEach(o => {
+    fonts.add(fontName(o.value));
+  });
+  return [...fonts];
+}
+
+function googleFontsUrl() {
+  const families = allFontNames().map(f => 'family=' + f.replace(/ /g, '+') + ':wght@400;500;600;700;800;900');
+  return 'https://fonts.googleapis.com/css2?' + families.join('&') + '&display=swap';
+}
+
+function onColor(key, val) {
+  state[key] = val;
+  updateAll();
+}
+function onFont(key, val) {
+  state[key] = val;
+  updateAll();
+}
+function onSlider(key, val) {
+  state[key] = parseFloat(val);
+  updateAll();
+}
+
+function applyPreset(name) {
+  Object.assign(state, PRESETS[name]);
+  syncControls();
+  updateAll();
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function syncControls() {
+  document.getElementById('colorBg').value = state.bg;
+  document.getElementById('colorText').value = state.text;
+  document.getElementById('colorTextDim').value = state.textDim;
+  document.getElementById('colorAccent').value = state.accent;
+  document.getElementById('colorSurface').value = state.surface;
+  document.getElementById('colorBorder').value = state.border;
+  document.getElementById('colorBgHex').textContent = state.bg;
+  document.getElementById('colorTextHex').textContent = state.text;
+  document.getElementById('colorTextDimHex').textContent = state.textDim;
+  document.getElementById('colorAccentHex').textContent = state.accent;
+  document.getElementById('colorSurfaceHex').textContent = state.surface;
+  document.getElementById('colorBorderHex').textContent = state.border;
+  document.getElementById('fontDisplay').value = state.display;
+  document.getElementById('fontBody').value = state.body;
+  document.getElementById('grain').value = state.grain;
+  document.getElementById('radius').value = state.radius;
+  document.getElementById('grainVal').textContent = state.grain.toFixed(2);
+  document.getElementById('radiusVal').textContent = state.radius + 'px';
+}
+
+function isDark() {
+  const hex = state.bg.replace('#','');
+  const r = parseInt(hex.substr(0,2),16);
+  const g = parseInt(hex.substr(2,2),16);
+  const b = parseInt(hex.substr(4,2),16);
+  return (r*0.299 + g*0.587 + b*0.114) < 128;
+}
+
+function renderPreview() {
+  const frame = document.getElementById('previewFrame');
+  const doc = frame.contentDocument || frame.contentWindow.document;
+  const grainSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='${state.grain}'/%3E%3C/svg%3E")`;
+
+  doc.open();
+  doc.write(`<!DOCTYPE html>
+<html>
+<head>
+<link href="${googleFontsUrl()}" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: ${state.body};
+    background: ${state.bg};
+    color: ${state.text};
+    min-height: 100vh;
+    position: relative;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: ${grainSvg};
+    background-size: 256px;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* ─── Nav ─── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: ${state.surface};
+    border-bottom: 1px solid ${state.border};
+  }
+  .logo {
+    font-family: ${state.display};
+    font-size: 22px;
+    font-weight: 700;
+    color: ${state.text};
+    text-decoration: none;
+  }
+  .logo span { color: ${state.accent}; }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 24px;
+  }
+  nav a {
+    color: ${state.textDim};
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: ${state.accent}; }
+
+  /* ─── Hero ─── */
+  .hero {
+    padding: 80px 32px 60px;
+    max-width: 720px;
+  }
+  .hero h1 {
+    font-family: ${state.display};
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    color: ${state.text};
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: ${state.accent};
+  }
+  .hero p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: ${state.textDim};
+    max-width: 560px;
+    margin-bottom: 28px;
+  }
+  .hero-cta {
+    display: inline-block;
+    background: ${state.accent};
+    color: ${isDark() ? '#000' : '#fff'};
+    padding: 12px 28px;
+    border-radius: ${state.radius}px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+  }
+  .hero-cta:hover { opacity: 0.85; }
+
+  /* ─── Episodes Section ─── */
+  .section-label {
+    font-family: ${state.body};
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: ${state.textDim};
+    padding: 0 32px;
+    margin-bottom: 16px;
+  }
+  .episodes {
+    padding: 0 32px 48px;
+    display: grid;
+    gap: 16px;
+    max-width: 720px;
+  }
+  .ep-card {
+    background: ${state.surface};
+    border: 1px solid ${state.border};
+    border-radius: ${state.radius}px;
+    padding: 20px 24px;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+  .ep-card:hover { border-color: ${state.accent}; }
+  .ep-card h3 {
+    font-family: ${state.display};
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .ep-card .ep-meta {
+    font-size: 12px;
+    color: ${state.textDim};
+    margin-bottom: 10px;
+  }
+  .ep-card p {
+    font-size: 14px;
+    color: ${state.textDim};
+    line-height: 1.6;
+  }
+  .ep-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: ${state.accent}18;
+    color: ${state.accent};
+    border: 1px solid ${state.accent}30;
+  }
+
+  /* ─── Footer ─── */
+  footer {
+    padding: 24px 32px;
+    border-top: 1px solid ${state.border};
+    font-size: 12px;
+    color: ${state.textDim};
+    display: flex;
+    justify-content: space-between;
+  }
+  footer a { color: ${state.accent}; text-decoration: none; }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="#" class="logo"><span>1g</span> of Code</a>
+    <ul>
+      <li><a href="#">Episodes</a></li>
+      <li><a href="#">About</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero">
+    <h1>We Learn in Public<br>So <em>You</em> Can Too.</h1>
+    <p>A live stream about the magic of building things with AI. We believe the barrier to creating software is disappearing.</p>
+    <a href="#" class="hero-cta">Follow us on Twitch</a>
+  </div>
+
+  <div class="section-label">Latest Episodes</div>
+  <div class="episodes">
+    <div class="ep-card">
+      <h3>Building a Snake Game with AI</h3>
+      <div class="ep-meta">Episode 3 &middot; Jan 12, 2025</div>
+      <p>We built a full Snake game with a global leaderboard, completely live on stream using Claude Code.</p>
+      <div class="ep-tags">
+        <span class="tag">game-dev</span>
+        <span class="tag">claude-code</span>
+        <span class="tag">javascript</span>
+      </div>
+    </div>
+    <div class="ep-card">
+      <h3>From Idea to Deployed App in 45 Minutes</h3>
+      <div class="ep-meta">Episode 2 &middot; Jan 5, 2025</div>
+      <p>Kipper had an idea for a tool to track side projects. We went from napkin sketch to live on the internet.</p>
+      <div class="ep-tags">
+        <span class="tag">full-stack</span>
+        <span class="tag">deployment</span>
+      </div>
+    </div>
+    <div class="ep-card">
+      <h3>What Can AI Actually Build?</h3>
+      <div class="ep-meta">Episode 1 &middot; Dec 29, 2024</div>
+      <p>Our first stream. We explored what's possible when you pair curiosity with modern AI coding tools.</p>
+      <div class="ep-tags">
+        <span class="tag">intro</span>
+        <span class="tag">ai-tools</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>&copy; 2025 1g of Code</span>
+    <a href="#">Twitch</a>
+  </footer>
+</body>
+</html>`);
+  doc.close();
+}
+
+function updatePrompt() {
+  const parts = [];
+
+  parts.push(`Use a ${isDark() ? 'dark' : 'light'} theme.`);
+  parts.push(`Background: ${state.bg}, text: ${state.text}, dimmed text: ${state.textDim}, accent: ${state.accent}, surface/cards: ${state.surface}, borders: ${state.border}.`);
+  parts.push(`Display/heading font: ${fontName(state.display)}. Body font: ${fontName(state.body)}.`);
+
+  if (state.grain > 0) {
+    const intensity = state.grain > 0.08 ? 'noticeable' : state.grain > 0.03 ? 'subtle' : 'very faint';
+    parts.push(`Add a ${intensity} noise/grain texture overlay (opacity ~${state.grain.toFixed(2)}).`);
+  }
+
+  parts.push(`Border radius: ${state.radius}px.`);
+
+  const prompt = `Website branding for "1g of Code":\n\n${parts.join('\n')}`;
+  document.getElementById('promptOutput').textContent = prompt;
+}
+
+function updateAll() {
+  syncControls();
+  renderPreview();
+  updatePrompt();
+}
+
+function copyPrompt() {
+  const text = document.getElementById('promptOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// Init
+applyPreset('workshop');
+document.querySelector('.preset-btn').classList.add('active');
+</script>
+</body>
+</html>
