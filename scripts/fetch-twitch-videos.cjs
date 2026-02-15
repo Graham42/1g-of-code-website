@@ -340,7 +340,9 @@ function downloadThumbnail(url, outputPath) {
         await downloadThumbnail(video.thumbnail, outputPath)
         console.error(`✓ Downloaded ${filename}`)
       } else {
-        console.error(`• Skipped ${filename} (already exists, use --force to re-download)`)
+        console.error(
+          `• Skipped ${filename} (already exists, use --force to re-download)`
+        )
       }
 
       video.localThumbnail = `../../assets/episodes/${filename}`
