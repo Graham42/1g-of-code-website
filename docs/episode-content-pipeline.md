@@ -55,11 +55,13 @@ thumbnail: ../../assets/episodes/2026-01-26.jpg
 Components use Astro's `<Picture>` instead of `<img>`. At build time, Astro generates multiple format/size variants from each 1280x720 source JPEG. No runtime cost.
 
 **EpisodeCard** (`src/components/EpisodeCard.astro`):
+
 - Widths: 320, 640, 960
 - Sizes: `(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw`
 - Matches the 1/2/3-column grid breakpoints in the episodes grid
 
 **Episode detail page** (`src/pages/episodes/[slug].astro`):
+
 - Widths: 640, 960, 1280
 - Sizes: `(max-width: 800px) 100vw, 800px`
 - `loading="eager"` since it's above the fold
