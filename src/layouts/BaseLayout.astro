@@ -51,12 +51,21 @@ const {
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
 
+    <!-- Google Fonts: Bricolage Grotesque (display) + IBM Plex Mono (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
   <body>
+    <div class="noise-overlay" aria-hidden="true"></div>
     <a href="#main-content" class="skip-link" data-testid="skip-link"
       >Skip to main content</a
     >
@@ -73,26 +82,24 @@ const {
 <style is:global>
   /* CSS Custom Properties for Theming */
   :root {
-    /* Colors - Light Mode (default) */
-    --color-bg: #ffffff;
-    --color-bg-secondary: #f8f9fa;
-    --color-text: #212529;
-    --color-text-muted: #696d71;
-    --color-primary: #4f46e5;
-    --color-primary-hover: #4338ca;
-    --color-accent: #8b5cf6;
-    --color-border: #dee2e6;
+    /* Colors - Light Mode (default) — warm cream palette derived from dark theme */
+    --color-bg: #faf6f0;
+    --color-bg-secondary: #f0ebe3;
+    --color-text: #1a1610;
+    --color-text-muted: #7a7060;
+    --color-primary: #d49000;
+    --color-primary-hover: #b87c00;
+    --color-accent: #f0a500;
+    --color-border: #ddd5c8;
     --color-twitch: #9146ff;
-    --color-link: #4f46e5;
-    --color-link-hover: #4338ca;
+    --color-link: #c48500;
+    --color-link-hover: #a06d00;
+    --color-surface: #f0ebe3;
 
     /* Typography */
-    --font-family-base:
-      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-      'Helvetica Neue', Arial, sans-serif;
-    --font-family-mono:
-      ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
-      'Liberation Mono', monospace;
+    --font-family-display: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-family-base: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-family-mono: 'IBM Plex Mono', ui-monospace, monospace;
     --font-size-base: 1rem;
     --font-size-sm: 0.875rem;
     --font-size-lg: 1.125rem;
@@ -117,14 +124,14 @@ const {
     --max-width-prose: 75ch;
 
     /* Borders & Shadows */
-    --border-radius-sm: 0.25rem;
-    --border-radius-md: 0.5rem;
-    --border-radius-lg: 1rem;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --border-radius-sm: 4px;
+    --border-radius-md: 6px;
+    --border-radius-lg: 6px;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
     --shadow-md:
-      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
     --shadow-lg:
-      0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.06);
 
     /* Transitions */
     --transition-fast: 150ms ease;
@@ -133,50 +140,39 @@ const {
 
   /* Dark Mode - via data-theme attribute (JS-enabled) */
   [data-theme='dark'] {
-    --color-bg: #1a1a2e;
-    --color-bg-secondary: #16213e;
-    --color-text: #e4e4e7;
-    --color-text-muted: #a1a1aa;
-    --color-primary: #c7d2fe;
-    --color-primary-hover: #e0e7ff;
-    --color-accent: #a78bfa;
-    --color-border: #3f3f46;
-    --color-link: #c7d2fe;
-    --color-link-hover: #e0e7ff;
+    --color-bg: #0f0f0f;
+    --color-bg-secondary: #1a1812;
+    --color-text: #f5f0e8;
+    --color-text-muted: #9a9080;
+    --color-primary: #f0a500;
+    --color-primary-hover: #ffb824;
+    --color-accent: #f0a500;
+    --color-border: #2e2a22;
+    --color-link: #f0a500;
+    --color-link-hover: #ffb824;
+    --color-surface: #1a1812;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md:
+      0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
   }
 
   /* Dark Mode Fallback - for when JS is disabled */
   @media (prefers-color-scheme: dark) {
     html:not([data-theme]) {
-      --color-bg: #1a1a2e;
-      --color-bg-secondary: #16213e;
-      --color-text: #e4e4e7;
-      --color-text-muted: #a1a1aa;
-      --color-primary: #c7d2fe;
-      --color-primary-hover: #e0e7ff;
-      --color-accent: #a78bfa;
-      --color-border: #3f3f46;
-      --color-link: #c7d2fe;
-      --color-link-hover: #e0e7ff;
+      --color-bg: #0f0f0f;
+      --color-bg-secondary: #1a1812;
+      --color-text: #f5f0e8;
+      --color-text-muted: #9a9080;
+      --color-primary: #f0a500;
+      --color-primary-hover: #ffb824;
+      --color-accent: #f0a500;
+      --color-border: #2e2a22;
+      --color-link: #f0a500;
+      --color-link-hover: #ffb824;
+      --color-surface: #1a1812;
     }
-  }
-
-  /* Dark Mode Button Contrast Fixes */
-  [data-theme='dark'] .cta-button,
-  [data-theme='dark'] .home-link,
-  [data-theme='dark'] .watch-label {
-    background-color: #6366f1 !important;
-  }
-
-  [data-theme='dark'] .cta-button:hover,
-  [data-theme='dark'] .home-link:hover {
-    background-color: #4f46e5 !important;
-  }
-
-  /* Enhanced Episode Link Focus in Dark Mode */
-  [data-theme='dark'] .episode-link:focus-visible {
-    outline-color: #a5b4fc !important;
-    box-shadow: 0 0 0 6px rgba(165, 180, 252, 0.15) !important;
   }
 
   /* CSS Reset */
@@ -198,6 +194,7 @@ const {
   }
 
   body {
+    position: relative;
     min-height: 100vh;
     font-family: var(--font-family-base);
     font-size: var(--font-size-base);
@@ -209,6 +206,18 @@ const {
     transition:
       background-color var(--transition-base),
       color var(--transition-base);
+  }
+
+  /* Noise/grain texture overlay */
+  .noise-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
   }
 
   img,
@@ -244,8 +253,9 @@ const {
   h4,
   h5,
   h6 {
+    font-family: var(--font-family-display);
     line-height: var(--line-height-tight);
-    font-weight: 600;
+    font-weight: 700;
     color: var(--color-text);
   }
 
@@ -276,7 +286,7 @@ const {
   }
 
   a:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
     border-radius: var(--border-radius-sm);
   }
@@ -296,8 +306,9 @@ const {
     position: absolute;
     top: -40px;
     left: 0;
-    background: #4f46e5;
-    color: white;
+    background: var(--color-accent);
+    color: #0f0f0f;
+    font-weight: 600;
     padding: var(--spacing-sm) var(--spacing-md);
     z-index: 100;
     transition: top var(--transition-fast);
@@ -305,7 +316,7 @@ const {
 
   .skip-link:focus {
     top: 0;
-    background: #4338ca;
+    color: #0f0f0f;
   }
 
   /* Layout */

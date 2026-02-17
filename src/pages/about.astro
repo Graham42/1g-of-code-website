@@ -106,7 +106,7 @@ import BaseLayout from '../layouts/BaseLayout.astro'
   h2 {
     margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-sm);
-    border-bottom: 2px solid var(--color-border);
+    border-bottom: 2px solid var(--color-accent);
   }
 
   p {
@@ -132,8 +132,8 @@ import BaseLayout from '../layouts/BaseLayout.astro'
     gap: var(--spacing-sm);
     margin-top: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-xl);
-    background-color: var(--color-twitch);
-    color: #fff;
+    background-color: var(--color-accent);
+    color: #0f0f0f;
     font-weight: 600;
     font-size: var(--font-size-lg);
     border-radius: var(--border-radius-md);
@@ -145,10 +145,10 @@ import BaseLayout from '../layouts/BaseLayout.astro'
   }
 
   .cta-twitch:hover {
-    background-color: #7c3aed;
-    color: #fff;
+    background-color: var(--color-primary-hover);
+    color: #0f0f0f;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgb(145 70 255 / 0.4);
+    box-shadow: 0 4px 12px rgb(240 165 0 / 0.3);
   }
 
   .cta-twitch:active {
