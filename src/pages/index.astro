@@ -1,0 +1,352 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import EpisodeCard from '../components/EpisodeCard.astro'
+
+// Fetch all episodes and sort by date descending
+const allEpisodes = await getCollection('episodes')
+const latestEpisodes = allEpisodes
+  .sort(
+    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+  )
+  .slice(0, 5)
+---
+
+<BaseLayout title="1g of Code - You Can Build Anything">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">1g of Code</h1>
+        <p class="hero-tagline">You Can Build Anything</p>
+        <p class="hero-description">
+          You don't need years of study or to be a wizard to turn an idea into
+          reality anymore. Join Graham and Kipper as we explore how to build
+          websites, tools, and apps using AI—figuring out the steps live on
+          stream.
+        </p>
+        <a
+          class="cta-twitch"
+          href="https://twitch.tv/1gOfCode"
+          target="_blank"
+          rel="noopener noreferrer"
+          ><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"
+            ><path
+              d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"
+            ></path></svg
+          > Watch Live on Twitch</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <!-- Latest Episodes Section -->
+  <section class="latest-episodes">
+    <div class="container">
+      <div class="section-header">
+        <h2>Latest Episodes</h2>
+        <a href="/episodes/" class="view-all-link">View All Episodes</a>
+      </div>
+      <div class="episodes-grid">
+        {
+          latestEpisodes.map((episode) => (
+            <EpisodeCard
+              title={episode.data.title}
+              date={episode.data.date}
+              tags={episode.data.tags}
+              thumbnail={episode.data.thumbnail}
+              slug={episode.slug}
+            />
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Links Section -->
+  <section class="social-links">
+    <div class="container">
+      <h2>Connect With Us</h2>
+      <p class="social-description">Follow along on your favorite platform</p>
+      <div class="social-grid">
+        <a
+          href="https://twitch.tv/1gOfCode"
+          class="social-card"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg
+            class="social-icon"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"
+            ></path>
+          </svg>
+          <span class="social-name">Twitch</span>
+          <span class="social-handle">twitch.tv/1gOfCode</span>
+        </a>
+        <div class="social-card social-card-disabled">
+          <svg
+            class="social-icon"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+            ></path>
+          </svg>
+          <span class="social-name">YouTube</span>
+          <span class="social-handle">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero Section */
+  .hero {
+    padding: var(--spacing-3xl) 0;
+    background: linear-gradient(
+      135deg,
+      var(--color-bg-secondary) 0%,
+      var(--color-bg) 100%
+    );
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .hero-content {
+    max-width: var(--max-width-prose);
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .hero-tagline {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .hero-description {
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    line-height: var(--line-height-base);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .cta-twitch {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-xl);
+    background-color: var(--color-twitch);
+    color: #fff;
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    border-radius: var(--border-radius-md);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition:
+      background-color var(--transition-fast),
+      transform var(--transition-fast),
+      box-shadow var(--transition-fast);
+  }
+
+  .cta-twitch:hover {
+    background-color: #7c3aed;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgb(145 70 255 / 0.4);
+  }
+
+  .cta-twitch:active {
+    transform: translateY(0);
+  }
+
+  .cta-twitch:focus-visible {
+    outline: 2px solid var(--color-twitch);
+    outline-offset: 2px;
+  }
+
+  /* Latest Episodes Section */
+  .latest-episodes {
+    padding: var(--spacing-3xl) 0;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+
+  .section-header h2 {
+    margin: 0;
+  }
+
+  .view-all-link {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-link);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+  }
+
+  .view-all-link:hover {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+
+  .view-all-link::after {
+    content: '\2192';
+  }
+
+  .episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+  }
+
+  /* Social Links Section */
+  .social-links {
+    padding: var(--spacing-3xl) 0;
+    background-color: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+  }
+
+  .social-links h2 {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .social-description {
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .social-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .social-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-xl);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    text-decoration: none;
+    color: var(--color-text);
+    transition:
+      box-shadow var(--transition-base),
+      transform var(--transition-base),
+      border-color var(--transition-base);
+  }
+
+  .social-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--color-primary);
+    color: var(--color-text);
+  }
+
+  .social-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .social-card-disabled {
+    cursor: default;
+    border-style: dashed;
+  }
+
+  .social-card-disabled .social-icon {
+    opacity: 0.5;
+  }
+
+  .social-card-disabled:hover {
+    box-shadow: none;
+    transform: none;
+    border-color: var(--color-border);
+  }
+
+  .social-card-disabled:hover .social-icon {
+    transform: none;
+  }
+
+  .social-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+    transition: transform var(--transition-base);
+  }
+
+  .social-card:hover .social-icon {
+    transform: scale(1.1);
+  }
+
+  .social-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .social-handle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 640px) {
+    .hero {
+      padding: var(--spacing-2xl) 0;
+    }
+
+    .hero-tagline {
+      font-size: var(--font-size-lg);
+    }
+
+    .hero-description {
+      font-size: var(--font-size-base);
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .episodes-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .social-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .latest-episodes,
+    .social-links {
+      padding: var(--spacing-2xl) 0;
+    }
+  }
+</style>

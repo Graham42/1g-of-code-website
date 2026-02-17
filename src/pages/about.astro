@@ -1,0 +1,172 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout title="About - 1g of Code">
+  <div class="about-page">
+    <div class="container">
+      <h1>About 1g of Code</h1>
+
+      <section class="about-section">
+        <h2>We Learn in Public So You Can Too.</h2>
+        <p>
+          <strong>1g of Code</strong> is a live stream about the magic of building
+          things with AI.
+        </p>
+        <p>
+          We believe the barrier to creating software is disappearing. It is
+          amazing what you can build today with a little bit of curiosity and
+          the right tools.
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>What Do We Build?</h2>
+        <p><strong>Whatever we are curious about.</strong></p>
+        <p>
+          We use AI to handle the heavy lifting so we can focus on the creative
+          parts. We don't follow a rigid script; if a cool question pops up
+          halfway through, <strong>we explore it.</strong>
+        </p>
+        <p class="indent">
+          <em
+            >Check out the <a
+              href="https://sss-snake-by-claude.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"><strong>simple Snake Game</strong></a
+            > we built live on stream (complete with a global leaderboard).</em
+          >
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>The Team</h2>
+        <p>
+          <strong>Graham</strong> A Senior Software Engineer. He knows the systems
+          and the rules, but <strong
+            >isn't afraid to experiment when the old ways don't work.</strong
+          > He bridges the gap between a &ldquo;big idea&rdquo; and the technical
+          steps to make it happen.
+        </p>
+        <p>
+          <strong>Kipper</strong> The <strong
+            >Professional Question Asker.</strong
+          > He ensures we never get lost in the jargon. He asks the questions you're
+          thinking—poking holes in the logic and learning alongside you as the projects
+          evolve.
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>Join the Chaos!</h2>
+        <p>
+          We stream the whole process—mistakes, tangents, and breakthroughs
+          included.
+        </p>
+        <p class="cta-wrap">
+          <a
+            class="cta-twitch"
+            href="https://twitch.tv/1gOfCode"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"
+              ><path
+                d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"
+              ></path></svg
+            > Follow us on Twitch</a
+          >
+        </p>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-page {
+    padding-block: var(--spacing-2xl);
+  }
+
+  .container {
+    max-width: var(--max-width-prose);
+  }
+
+  h1 {
+    margin-bottom: var(--spacing-2xl);
+    text-align: center;
+  }
+
+  .about-section {
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .about-section:last-child {
+    margin-bottom: 0;
+  }
+
+  h2 {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  p {
+    margin-bottom: var(--spacing-md);
+    line-height: var(--line-height-base);
+  }
+
+  .indent {
+    margin-inline: var(--spacing-xl);
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  .cta-wrap {
+    text-align: center;
+  }
+
+  .cta-twitch {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-xl);
+    background-color: var(--color-twitch);
+    color: #fff;
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    border-radius: var(--border-radius-md);
+    letter-spacing: 0.02em;
+    transition:
+      background-color var(--transition-fast),
+      transform var(--transition-fast),
+      box-shadow var(--transition-fast);
+  }
+
+  .cta-twitch:hover {
+    background-color: #7c3aed;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgb(145 70 255 / 0.4);
+  }
+
+  .cta-twitch:active {
+    transform: translateY(0);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .about-page {
+      padding-block: var(--spacing-xl);
+    }
+
+    h1 {
+      font-size: var(--font-size-3xl);
+    }
+
+    h2 {
+      font-size: var(--font-size-2xl);
+    }
+  }
+</style>

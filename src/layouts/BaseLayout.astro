@@ -1,0 +1,341 @@
+---
+interface Props {
+  title: string
+  description?: string
+}
+
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+
+const {
+  title,
+  description = '1g of Code - A companion website for twitch.tv/1gOfCode. Learn about coding and building with AI for beginners.',
+} = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Inline script to prevent flash of wrong theme - must run before page renders -->
+    <script is:inline>
+      ;(function () {
+        var setting = localStorage.getItem('theme-setting')
+        // Legacy fallback
+        if (!setting) {
+          var legacy = localStorage.getItem('theme')
+          if (legacy === 'light' || legacy === 'dark') setting = legacy
+        }
+        if (!setting) setting = 'system'
+        var prefersDark = window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        ).matches
+        var theme =
+          setting === 'system' ? (prefersDark ? 'dark' : 'light') : setting
+        document.documentElement.setAttribute('data-theme', theme)
+        document.documentElement.setAttribute('data-theme-setting', setting)
+      })()
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="author" content="1g of Code" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="1g of Code" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link" data-testid="skip-link"
+      >Skip to main content</a
+    >
+    <div class="site-wrapper" data-testid="site-wrapper">
+      <Header />
+      <main id="main-content" tabindex="-1" data-testid="main-content">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  /* CSS Custom Properties for Theming */
+  :root {
+    /* Colors - Light Mode (default) */
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f8f9fa;
+    --color-text: #212529;
+    --color-text-muted: #696d71;
+    --color-primary: #4f46e5;
+    --color-primary-hover: #4338ca;
+    --color-accent: #8b5cf6;
+    --color-border: #dee2e6;
+    --color-twitch: #9146ff;
+    --color-link: #4f46e5;
+    --color-link-hover: #4338ca;
+
+    /* Typography */
+    --font-family-base:
+      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, sans-serif;
+    --font-family-mono:
+      ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+      'Liberation Mono', monospace;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.875rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --line-height-base: 1.6;
+    --line-height-tight: 1.25;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+
+    /* Layout */
+    --max-width-content: 1200px;
+    --max-width-prose: 75ch;
+
+    /* Borders & Shadows */
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 1rem;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md:
+      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 200ms ease;
+  }
+
+  /* Dark Mode - via data-theme attribute (JS-enabled) */
+  [data-theme='dark'] {
+    --color-bg: #1a1a2e;
+    --color-bg-secondary: #16213e;
+    --color-text: #e4e4e7;
+    --color-text-muted: #a1a1aa;
+    --color-primary: #c7d2fe;
+    --color-primary-hover: #e0e7ff;
+    --color-accent: #a78bfa;
+    --color-border: #3f3f46;
+    --color-link: #c7d2fe;
+    --color-link-hover: #e0e7ff;
+  }
+
+  /* Dark Mode Fallback - for when JS is disabled */
+  @media (prefers-color-scheme: dark) {
+    html:not([data-theme]) {
+      --color-bg: #1a1a2e;
+      --color-bg-secondary: #16213e;
+      --color-text: #e4e4e7;
+      --color-text-muted: #a1a1aa;
+      --color-primary: #c7d2fe;
+      --color-primary-hover: #e0e7ff;
+      --color-accent: #a78bfa;
+      --color-border: #3f3f46;
+      --color-link: #c7d2fe;
+      --color-link-hover: #e0e7ff;
+    }
+  }
+
+  /* Dark Mode Button Contrast Fixes */
+  [data-theme='dark'] .cta-button,
+  [data-theme='dark'] .home-link,
+  [data-theme='dark'] .watch-label {
+    background-color: #6366f1 !important;
+  }
+
+  [data-theme='dark'] .cta-button:hover,
+  [data-theme='dark'] .home-link:hover {
+    background-color: #4f46e5 !important;
+  }
+
+  /* Enhanced Episode Link Focus in Dark Mode */
+  [data-theme='dark'] .episode-link:focus-visible {
+    outline-color: #a5b4fc !important;
+    box-shadow: 0 0 0 6px rgba(165, 180, 252, 0.15) !important;
+  }
+
+  /* CSS Reset */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition:
+      background-color var(--transition-base),
+      color var(--transition-base);
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+  }
+
+  /* Typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: var(--line-height-tight);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  h1 {
+    font-size: var(--font-size-4xl);
+  }
+
+  h2 {
+    font-size: var(--font-size-3xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-2xl);
+  }
+
+  h4 {
+    font-size: var(--font-size-xl);
+  }
+
+  a {
+    color: var(--color-link);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  a:hover {
+    color: var(--color-link-hover);
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--border-radius-sm);
+  }
+
+  ul,
+  ol {
+    list-style: none;
+  }
+
+  code,
+  pre {
+    font-family: var(--font-family-mono);
+  }
+
+  /* Skip to main content link for accessibility */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #4f46e5;
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    z-index: 100;
+    transition: top var(--transition-fast);
+  }
+
+  .skip-link:focus {
+    top: 0;
+    background: #4338ca;
+  }
+
+  /* Layout */
+  .site-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  main {
+    flex: 1;
+  }
+
+  /* Utility classes */
+  .container {
+    width: 100%;
+    max-width: var(--max-width-content);
+    margin-inline: auto;
+    padding-inline: var(--spacing-md);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

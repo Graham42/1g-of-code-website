@@ -1,0 +1,92 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import EpisodeCard from '../../components/EpisodeCard.astro'
+
+const episodes = await getCollection('episodes')
+
+// Sort episodes by date descending (newest first)
+const sortedEpisodes = episodes.sort((a, b) => {
+  return new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+})
+---
+
+<BaseLayout title="All Episodes - 1g of Code">
+  <div class="episodes-page container">
+    <header class="page-header">
+      <h1>All Episodes</h1>
+      <p class="page-description">
+        Browse all episodes from the 1g of Code stream. Learn coding and
+        building with AI!
+      </p>
+    </header>
+
+    <div class="episodes-grid">
+      {
+        sortedEpisodes.map((episode) => (
+          <EpisodeCard
+            title={episode.data.title}
+            date={episode.data.date}
+            tags={episode.data.tags}
+            thumbnail={episode.data.thumbnail}
+            slug={episode.slug}
+          />
+        ))
+      }
+    </div>
+
+    {
+      sortedEpisodes.length === 0 && (
+        <p class="no-episodes">No episodes available yet. Check back soon!</p>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .episodes-page {
+    padding-block: var(--spacing-2xl);
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .page-header h1 {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .page-description {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-lg);
+    max-width: var(--max-width-prose);
+    margin-inline: auto;
+  }
+
+  .episodes-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  /* 2 columns on tablets */
+  @media (min-width: 640px) {
+    .episodes-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* 3 columns on desktop */
+  @media (min-width: 1024px) {
+    .episodes-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .no-episodes {
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: var(--spacing-2xl);
+  }
+</style>

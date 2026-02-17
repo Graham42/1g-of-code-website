@@ -1,0 +1,38 @@
+{
+  "name": "home-graham-github-graham42-1g-of-code",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "typecheck": "astro check",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:a11y": "playwright test tests/accessibility",
+    "test:a11y:ui": "playwright test tests/accessibility --ui",
+    "test:a11y:axe": "playwright test tests/accessibility/axe-scans.spec.ts",
+    "test:a11y:keyboard": "playwright test tests/accessibility/keyboard-navigation.spec.ts",
+    "test:a11y:focus": "playwright test tests/accessibility/episode-focus-regression.spec.ts",
+    "fetch-videos": "node scripts/fetch-twitch-videos.cjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate": "npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "astro": "^5.17.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.58.1",
+    "@types/node": "^25.2.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.9.3"
+  }
+}
