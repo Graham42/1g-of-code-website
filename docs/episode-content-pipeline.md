@@ -5,8 +5,8 @@ How episodes go from Twitch VODs to optimized pages on the site.
 ## Data Flow
 
 ```
-Twitch channel page
-  -> scripts/fetch-twitch-videos.cjs (Playwright scrape + thumbnail download)
+Twitch Helix API
+  -> scripts/fetch-twitch-videos.cjs (API fetch + thumbnail download + episode file sync)
   -> src/content/episodes/{date}.md (frontmatter + notes)
   -> src/assets/episodes/{date}.jpg (1280x720 source image)
   -> Astro build (generates AVIF/WebP/JPEG at multiple widths)
@@ -15,21 +15,55 @@ Twitch channel page
 
 ## Fetching Videos
 
-`scripts/fetch-twitch-videos.cjs` scrapes the Twitch channel videos page using Playwright (Twitch is fully JS-rendered, no API used). It:
+`scripts/fetch-twitch-videos.cjs` fetches VOD data from the Twitch Helix API. It:
 
-1. Navigates to the channel's videos page and scrolls to load all entries
-2. Extracts metadata (title, duration, views, relative date) by walking the DOM
-3. Converts relative dates ("5 days ago") to ISO dates — these are estimates, not exact
-4. Downloads 1280x720 thumbnails to `src/assets/episodes/` (skips if file exists)
-5. Outputs JSON to stdout with a `localThumbnail` path for each video
+1. Authenticates with the Twitch API using client credentials (from `.env`)
+2. Looks up the channel's user ID via `GET /helix/users`
+3. Fetches past broadcast VODs via `GET /helix/videos`, paginating until complete
+4. Converts dates to Eastern Time (America/New_York, handles EST/EDT automatically)
+5. Downloads 1280x720 thumbnails to `src/assets/episodes/` (skips if file exists)
+6. Creates `src/content/episodes/{date}.md` for any video without an existing file
+7. Updates the frontmatter of existing episode files where API data has changed
 
-Output goes to stdout (JSON), progress/diagnostics to stderr. Run with:
+All progress and diagnostics go to stderr. Run with:
 
 ```bash
 node scripts/fetch-twitch-videos.cjs
 ```
 
-Requires Playwright + Chromium: `npm install && npx playwright install chromium`
+Optional flags:
+
+- `--after YYYY-MM-DD` — only process videos created after this date (exclusive); stops paginating early since the API returns newest-first
+- `--before YYYY-MM-DD` — only process videos created before this date (exclusive)
+- `--force` — re-download thumbnails even if the file already exists
+
+### Requirements
+
+- `.env` file in project root:
+  ```
+  TWITCH_CLIENT_ID=your_client_id_here
+  TWITCH_CLIENT_SECRET=your_client_secret_here
+  ```
+- Register an app at https://dev.twitch.tv/console — set OAuth Redirect URL to `http://localhost`
+- Node.js (no version constraint for credential loading)
+
+## Episode Files
+
+Episode markdown files live in `src/content/episodes/{date}.md` where `date` is the Eastern Time date of the stream (YYYY-MM-DD).
+
+The script creates new files with a `Show notes coming soon!` placeholder body and syncs these frontmatter fields on every run:
+
+- `title` — stream title from Twitch
+- `date` — stream start time as a full ISO 8601 datetime in Eastern Time (e.g. `'2026-01-26T17:00:00-05:00'`)
+- `twitchUrl` — VOD URL
+- `thumbnail` — relative path to the local 1280x720 JPEG
+
+These fields are never touched by the script and can be freely edited:
+
+- `tags` — topic tags for the episode
+- `youtubeUrl` — YouTube mirror URL (optional)
+- The markdown body (show notes, resources, etc.)
+- Any other custom frontmatter fields
 
 ## Content Schema
 
@@ -42,12 +76,6 @@ tags: string[]
 twitchUrl: string
 thumbnail: image()       # relative path to src/assets/episodes/{date}.jpg
 youtubeUrl?: string
-```
-
-Episode frontmatter references the local image by relative path:
-
-```yaml
-thumbnail: ../../assets/episodes/2026-01-26.jpg
 ```
 
 ## Responsive Image Optimization
@@ -70,7 +98,6 @@ Both emit `<picture>` elements with `<source>` tags for AVIF, WebP, and JPEG fal
 
 ## Adding a New Episode
 
-1. Run `node scripts/fetch-twitch-videos.cjs` — thumbnail is downloaded automatically
-2. Create `src/content/episodes/{date}.md` using the frontmatter template in the script's doc comment
-3. Set `thumbnail` to the `localThumbnail` value from the script output
-4. `npm run build` generates all optimized image variants
+1. Run `node scripts/fetch-twitch-videos.cjs` — the episode file and thumbnail are created automatically
+2. Edit `src/content/episodes/{date}.md` to add show notes, adjust tags, etc.
+3. `npm run build` generates all optimized image variants
