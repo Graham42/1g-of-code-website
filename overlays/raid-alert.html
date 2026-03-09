@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Raid Alert</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;900&display=swap" rel="stylesheet">
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: transparent;
+}
+
+/* ── STATUS DOT ─────────────────────────────────────── */
+#status-dot {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #444;
+  z-index: 1000;
+  transition: background 0.3s, box-shadow 0.3s, opacity 1s;
+}
+#status-dot.connecting { background: #ffaa00; box-shadow: 0 0 8px #ffaa00; }
+#status-dot.connected  { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+#status-dot.error      { background: #ff4040; box-shadow: 0 0 8px #ff4040; opacity: 1 !important; }
+
+/* ── SCENE ──────────────────────────────────────────── */
+#scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── BACKGROUND ─────────────────────────────────────── */
+#bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 15%, #0e2445 0%, #07111f 55%, #040912 100%);
+}
+
+/* ── WAVE CANVAS ────────────────────────────────────── */
+#wave-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── LIGHTNING FLASH ────────────────────────────────── */
+#lightning {
+  position: absolute;
+  inset: 0;
+  background: #ddeeff;
+  opacity: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── CONTENT ────────────────────────────────────────── */
+#content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 0 120px 100px;
+  text-align: center;
+  gap: 0;
+}
+
+#skull {
+  font-size: 180px;
+  line-height: 1;
+  margin-bottom: 24px;
+  display: block;
+  opacity: 0;
+  filter:
+    drop-shadow(0 0 40px rgba(200, 148, 44, 0.85))
+    drop-shadow(0 0 90px rgba(200, 148, 44, 0.35));
+}
+
+#badge {
+  font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #c8942c;
+  opacity: 0;
+  margin-bottom: 20px;
+  text-shadow:
+    0 0 40px rgba(200, 148, 44, 0.7),
+    0 0 90px rgba(200, 148, 44, 0.25);
+}
+
+.divider {
+  width: 720px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c8942c 18%, #f0c055 50%, #c8942c 82%, transparent);
+  box-shadow: 0 0 14px rgba(200, 148, 44, 0.45);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  margin: 16px 0;
+}
+
+#username {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 112px;
+  font-weight: 900;
+  color: #f2e8c4;
+  line-height: 1.05;
+  opacity: 0;
+  margin-bottom: 18px;
+  text-shadow:
+    0 0 60px rgba(200, 148, 44, 0.5),
+    0 0 130px rgba(200, 148, 44, 0.2),
+    0 6px 30px rgba(0, 0, 0, 0.95);
+  word-break: break-word;
+  max-width: 1650px;
+}
+
+#crew {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 38px;
+  font-weight: 600;
+  color: #c8942c;
+  letter-spacing: 0.09em;
+  opacity: 0;
+  margin-bottom: 12px;
+  text-shadow: 0 0 30px rgba(200, 148, 44, 0.45);
+}
+
+#message {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: rgba(242, 232, 196, 0.5);
+  letter-spacing: 0.12em;
+  font-style: italic;
+  opacity: 0;
+}
+
+/* ── ANIMATIONS ─────────────────────────────────────── */
+@keyframes skullDrop {
+  0%   { opacity: 0; transform: scale(0.15) translateY(-100px) rotate(-20deg); filter: blur(16px) brightness(4); }
+  35%  { opacity: 1; transform: scale(1.14) translateY(8px) rotate(5deg);      filter: blur(1px)  brightness(1.5); }
+  60%  { transform: scale(0.94) translateY(-4px) rotate(-1deg); filter: none; }
+  80%  { transform: scale(1.04) translateY(3px); }
+  100% { opacity: 1; transform: scale(1) translateY(0) rotate(0); filter: none; }
+}
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-28px); letter-spacing: 0.6em; }
+  to   { opacity: 1; transform: translateY(0);     letter-spacing: 0.42em; }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(70px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dividerOpen {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes lightningFlash {
+  0%   { opacity: 0; }
+  7%   { opacity: 0.6; }
+  14%  { opacity: 0.08; }
+  24%  { opacity: 0.5; }
+  38%  { opacity: 0.04; }
+  52%  { opacity: 0.35; }
+  70%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes dividerClose {
+  from { opacity: 1; transform: scaleX(1); }
+  to   { opacity: 0; transform: scaleX(0); }
+}
+</style>
+</head>
+<body>
+
+<div id="status-dot"></div>
+
+<div id="scene">
+  <div id="bg"></div>
+  <canvas id="wave-canvas" width="1920" height="1080"></canvas>
+  <div id="lightning"></div>
+  <div id="content">
+    <div id="skull">☠️</div>
+    <div id="badge">Prepare to be Raided</div>
+    <div class="divider" id="div-top"></div>
+    <div id="username">StreamCaptain</div>
+    <div id="crew">brings 42 pirates to your shores</div>
+    <div class="divider" id="div-bot"></div>
+    <div id="message">Batten down the hatches!</div>
+  </div>
+</div>
+
+<script>
+
+// ─── STATUS ────────────────────────────────────────────────────
+const dot = document.getElementById('status-dot');
+function setStatus(s) { dot.className = s; }
+
+// ─── CANVAS: WAVES + FOG + RAIN ───────────────────────────────
+const canvas = document.getElementById('wave-canvas');
+const ctx    = canvas.getContext('2d');
+let animRaf = null, animT = 0;
+
+const WAVES = [
+  { baseY: 808, freq: 0.007, spd: 0.55, amp: 26, color: 'rgba(9, 30, 60, 0.93)' },
+  { baseY: 842, freq: 0.011, spd: 0.82, amp: 18, color: 'rgba(6, 22, 48, 0.96)' },
+  { baseY: 874, freq: 0.006, spd: 0.38, amp: 32, color: 'rgba(5, 15, 36, 1.0)'  },
+  { baseY: 912, freq: 0.016, spd: 1.1,  amp: 14, color: 'rgba(3, 10, 24, 1.0)'  },
+  { baseY: 955, freq: 0.004, spd: 0.2,  amp: 22, color: 'rgba(2, 6, 16, 1.0)'   },
+];
+
+const FOG = Array.from({ length: 14 }, () => ({
+  x:    Math.random() * 2200 - 100,
+  y:    Math.random() * 620  + 60,
+  rx:   300 + Math.random() * 500,
+  ry:   75  + Math.random() * 140,
+  spd:  0.11 + Math.random() * 0.22,
+  alpha: 0.035 + Math.random() * 0.065,
+}));
+
+const RAIN = Array.from({ length: 140 }, () => ({
+  x:    Math.random() * 1920,
+  y:    Math.random() * 1080,
+  len:  14 + Math.random() * 26,
+  spd:  13  + Math.random() * 10,
+  alpha: 0.06 + Math.random() * 0.1,
+}));
+
+function drawFrame(t) {
+  ctx.clearRect(0, 0, 1920, 1080);
+
+  // Rain (angled streaks)
+  ctx.save();
+  ctx.lineWidth = 1;
+  for (const r of RAIN) {
+    ctx.globalAlpha = r.alpha;
+    ctx.strokeStyle = 'rgba(180, 210, 240, 0.9)';
+    ctx.beginPath();
+    ctx.moveTo(r.x, r.y);
+    ctx.lineTo(r.x - 3, r.y + r.len);
+    ctx.stroke();
+    r.y += r.spd;
+    r.x -= 2;
+    if (r.y > 1080) { r.y = -30; r.x = Math.random() * 1940; }
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // Fog puffs
+  for (const f of FOG) {
+    const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.rx);
+    g.addColorStop(0, `rgba(145, 170, 205, ${f.alpha})`);
+    g.addColorStop(1, 'rgba(145, 170, 205, 0)');
+    ctx.save();
+    ctx.scale(1, f.ry / f.rx);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y * (f.rx / f.ry), f.rx, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    f.x -= f.spd;
+    if (f.x + f.rx < -50) f.x = 2050 + Math.random() * 300;
+  }
+
+  // Ocean waves
+  for (const w of WAVES) {
+    ctx.beginPath();
+    ctx.moveTo(0, 1080);
+    for (let x = 0; x <= 1920; x += 3) {
+      const y = w.baseY + Math.sin(x * w.freq + t * w.spd) * w.amp;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(1920, 1080);
+    ctx.closePath();
+    ctx.fillStyle = w.color;
+    ctx.fill();
+  }
+}
+
+function startAnim() {
+  if (animRaf) return;
+  function loop() {
+    animT += 0.016;
+    drawFrame(animT);
+    animRaf = requestAnimationFrame(loop);
+  }
+  animRaf = requestAnimationFrame(loop);
+}
+
+function stopAnim() {
+  if (animRaf) { cancelAnimationFrame(animRaf); animRaf = null; }
+  ctx.clearRect(0, 0, 1920, 1080);
+}
+
+// ─── ELEMENTS ──────────────────────────────────────────────────
+const scene   = document.getElementById('scene');
+const lgEl    = document.getElementById('lightning');
+const skullEl = document.getElementById('skull');
+const badgeEl = document.getElementById('badge');
+const divTop  = document.getElementById('div-top');
+const divBot  = document.getElementById('div-bot');
+const usernEl = document.getElementById('username');
+const crewEl  = document.getElementById('crew');
+const msgEl   = document.getElementById('message');
+
+const thunder = new Audio('/sounds/49053354-thunder-307513.mp3');
+let hideTimer = null, outTimer = null;
+
+function resetEl(el) {
+  el.style.cssText = '';
+  el.style.opacity = '0';
+  void el.offsetWidth;
+}
+
+function anim(el, name, dur, delay = 0, extra = '') {
+  el.style.animation = `${name} ${dur}ms ease-out ${delay}ms both${extra ? ', ' + extra : ''}`;
+}
+
+function showRaid(username, viewers, holdMs = 7000) {
+  clearTimeout(hideTimer);
+  clearTimeout(outTimer);
+  stopAnim();
+
+  // Reset all
+  [skullEl, badgeEl, divTop, divBot, usernEl, crewEl, msgEl].forEach(resetEl);
+  scene.style.cssText = 'opacity: 0;';
+  lgEl.style.cssText  = 'opacity: 0;';
+  void scene.offsetWidth;
+
+  // Set content
+  usernEl.textContent = username;
+  crewEl.textContent  = viewers === 1
+    ? 'brings 1 pirate to your shores'
+    : `brings ${viewers.toLocaleString()} pirates to your shores`;
+
+  // Adapt font size to username length
+  const len = username.length;
+  usernEl.style.fontSize = len > 22 ? '70px' : len > 16 ? '86px' : len > 11 ? '100px' : '112px';
+
+  // Fade scene in
+  scene.style.transition = 'opacity 0.45s ease-in';
+  scene.style.opacity = '1';
+  startAnim();
+  thunder.currentTime = 0;
+  thunder.play().catch(() => {});
+
+  // Choreographed reveal
+  setTimeout(() => { anim(lgEl, 'lightningFlash', 700); }, 150);
+  setTimeout(() => { anim(skullEl, 'skullDrop', 850, 0, 'fadeIn 0ms 0ms both'); }, 380);
+  setTimeout(() => { anim(badgeEl, 'fadeSlideDown', 580); }, 900);
+  setTimeout(() => { anim(divTop, 'dividerOpen', 480); }, 1100);
+  setTimeout(() => { anim(usernEl, 'fadeSlideUp', 680); }, 1160);
+  setTimeout(() => { anim(crewEl, 'fadeIn', 520); }, 1460);
+  setTimeout(() => { anim(divBot, 'dividerOpen', 480); }, 1620);
+  setTimeout(() => { anim(msgEl, 'fadeIn', 500); }, 1750);
+
+  // Second lightning for drama
+  setTimeout(() => {
+    lgEl.style.animation = 'none';
+    void lgEl.offsetWidth;
+    anim(lgEl, 'lightningFlash', 550);
+  }, 2600);
+
+  // Exit
+  hideTimer = setTimeout(() => {
+    const OUT_DUR = 600;
+    [skullEl, badgeEl, usernEl, crewEl, msgEl].forEach(el => {
+      anim(el, 'fadeOut', OUT_DUR);
+    });
+    anim(divTop, 'dividerClose', 400);
+    anim(divBot, 'dividerClose', 400);
+    outTimer = setTimeout(() => {
+      scene.style.transition = 'opacity 0.8s ease-in';
+      scene.style.opacity = '0';
+      setTimeout(stopAnim, 800);
+    }, 450);
+  }, holdMs);
+}
+
+// ─── SSE ───────────────────────────────────────────────────────
+function connectSSE() {
+  setStatus('connecting');
+  const es = new EventSource('/raid-events');
+  es.onopen = () => {
+    setStatus('connected');
+    setTimeout(() => { dot.style.opacity = '0'; }, 3000);
+  };
+  es.onerror = () => setStatus('error');
+  es.onmessage = (ev) => {
+    let d;
+    try { d = JSON.parse(ev.data); } catch { return; }
+    if (d.type === 'raid') showRaid(d.username, d.viewers ?? 1);
+  };
+}
+
+// ─── INIT ──────────────────────────────────────────────────────
+dot.style.transition = 'background 0.3s, box-shadow 0.3s, opacity 1s';
+connectSSE();
+
+</script>
+</body>
+</html>

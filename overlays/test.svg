@@ -1,0 +1,43 @@
+<svg width="500" height="140" viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="0" y="0" width="500" height="140" fill="#050810" rx="10" ry="10" />
+
+  <!-- Glowing border -->
+  <rect x="4" y="4" width="492" height="132" fill="none" stroke="#00ff88" stroke-width="2">
+    <animate attributeName="stroke-opacity"
+             values="0.4;1;0.4"
+             dur="2s"
+             repeatCount="indefinite" />
+  </rect>
+
+  <!-- Left side "hacker" brackets -->
+  <text x="30" y="75" fill="#00ff88" font-family="Consolas, 'Fira Code', monospace" font-size="32">
+    &lt;/
+  </text>
+  <text x="70" y="75" fill="#00ff88" font-family="Consolas, 'Fira Code', monospace" font-size="32">
+    &gt;
+  </text>
+
+  <!-- Top label: NEW FOLLOWER -->
+  <text x="120" y="50" fill="#00ff88" font-family="Consolas, 'Fira Code', monospace" font-size="20">
+    NEW FOLLOWER
+  </text>
+
+  <!-- Main hacker-style text -->
+  <text x="120" y="90" fill="#00ffcc" font-family="Consolas, 'Fira Code', monospace" font-size="26">
+    ACCESS GRANTED
+  </text>
+
+  <!-- Blinking cursor -->
+  <rect x="355" y="70" width="14" height="26" fill="#00ff88">
+    <animate attributeName="opacity"
+             values="1;0;1"
+             dur="0.8s"
+             repeatCount="indefinite" />
+  </rect>
+
+  <!-- Subtext -->
+  <text x="120" y="115" fill="#00aa66" font-family="Consolas, 'Fira Code', monospace" font-size="14">
+    new user added to watchlist_
+  </text>
+</svg>

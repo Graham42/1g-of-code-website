@@ -1,0 +1,245 @@
+<!doctype html>
+<!--
+  1g of Code — OBS Live Overlay Receiver
+  ───────────────────────────────────────
+  OBS Browser Source setup:
+    URL    : http://localhost:3000/overlay
+    Width  : 1920
+    Height : 1080
+    Custom CSS: body { background-color: rgba(0,0,0,0); }
+    ☑ Allow transparency (if available)
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>1g of Code — Overlay</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..60,400;12..60,600;12..60,700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: transparent;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      #overlay-root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      /* Grain texture — same SVG noise as builder */
+      #overlay-root::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9000;
+        opacity: 0.055;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      /* Outer border */
+      #ov-border {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 8000;
+        display: none;
+      }
+
+      /* Boxes */
+      .ov-box {
+        position: absolute;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .ov-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        pointer-events: none;
+        white-space: nowrap;
+        text-align: center;
+        letter-spacing: 0.03em;
+      }
+
+      .ov-sublabel {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        font-size: 14px;
+        color: rgba(154, 144, 128, 0.5);
+        pointer-events: none;
+        white-space: nowrap;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* "Waiting for signal" screen */
+      #waiting {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        z-index: 10000;
+      }
+
+      #waiting-text {
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        font-size: 18px;
+        color: rgba(154, 144, 128, 0.6);
+        letter-spacing: 0.08em;
+      }
+
+      #waiting-hint {
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        font-size: 11px;
+        color: rgba(154, 144, 128, 0.35);
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay-root">
+      <div id="ov-border"></div>
+
+      <!-- Shown until first SSE state arrives -->
+      <div id="waiting">
+        <div id="waiting-text">Waiting for signal…</div>
+        <div id="waiting-hint">
+          node overlays/server.js → open builder at http://localhost:3000
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const CW = 1920,
+        CH = 1080
+      const ROOT = document.getElementById('overlay-root')
+      const BORDER_EL = document.getElementById('ov-border')
+      const WAITING = document.getElementById('waiting')
+
+      const BOX_ORDER = ['main', 'info', 'cam1', 'cam2']
+
+      const BOX_SUBLABELS = {
+        cam1: 'webcam',
+        cam2: 'webcam',
+        info: 'ep. title · timer · alerts',
+      }
+
+      function getOrCreate(id) {
+        let el = document.getElementById(`ovr-${id}`)
+        if (!el) {
+          el = document.createElement('div')
+          el.id = `ovr-${id}`
+          el.className = 'ov-box'
+
+          const lbl = document.createElement('div')
+          lbl.className = 'ov-label'
+          el.appendChild(lbl)
+
+          if (BOX_SUBLABELS[id]) {
+            const sub = document.createElement('div')
+            sub.className = 'ov-sublabel'
+            sub.textContent = BOX_SUBLABELS[id]
+            el.appendChild(sub)
+          }
+
+          ROOT.appendChild(el)
+        }
+        return el
+      }
+
+      // ── Render ─────────────────────────────────────────────────
+      function applyState(state) {
+        // Hide waiting screen after first state
+        WAITING.style.display = 'none'
+
+        // Outer border
+        const b = state.outerBorder
+        if (b && b.visible && b.width > 0) {
+          BORDER_EL.style.display = 'block'
+          BORDER_EL.style.border = `${b.width}px solid ${b.color}`
+          BORDER_EL.style.opacity = b.opacity
+        } else {
+          BORDER_EL.style.display = 'none'
+        }
+
+        // Boxes
+        for (const id of BOX_ORDER) {
+          const box = state.boxes && state.boxes[id]
+          const el = getOrCreate(id)
+
+          if (!box || !box.visible) {
+            el.style.display = 'none'
+            continue
+          }
+
+          el.style.display = 'block'
+          el.style.left = Math.round(box.x) + 'px'
+          el.style.top = Math.round(box.y) + 'px'
+          el.style.width = Math.round(box.w) + 'px'
+          el.style.height = Math.round(box.h) + 'px'
+          el.style.background = 'transparent'
+          el.style.border = `${box.borderWidth}px solid ${box.borderColor}`
+          el.style.opacity = box.opacity
+
+          const lbl = el.querySelector('.ov-label')
+          if (state.showLabels && box.label) {
+            lbl.textContent = box.label
+            const fs = Math.max(16, Math.min(28, box.h / 5))
+            lbl.style.fontSize = fs + 'px'
+            lbl.style.color = 'rgba(245,240,232,0.45)'
+          } else {
+            lbl.textContent = ''
+          }
+
+          const sub = el.querySelector('.ov-sublabel')
+          if (sub) {
+            sub.style.display = state.showLabels ? 'block' : 'none'
+          }
+        }
+      }
+
+      // ── SSE connection ─────────────────────────────────────────
+      function connect() {
+        const es = new EventSource('/events')
+
+        es.onmessage = (e) => {
+          try {
+            applyState(JSON.parse(e.data))
+          } catch {}
+        }
+
+        es.onerror = () => {
+          es.close()
+          // Reconnect after 3 seconds
+          setTimeout(connect, 3000)
+        }
+      }
+
+      connect()
+    </script>
+  </body>
+</html>

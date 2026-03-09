@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Overlay Admin — 1g of Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0f0f0f;
+  --surface: #1a1812;
+  --border:  #2e2a22;
+  --text:    #f5f0e8;
+  --dim:     #9a9080;
+  --accent:  #f0a500;
+  --radius:  6px;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  min-height: 100vh;
+  padding: 40px 24px 80px;
+}
+
+/* grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+h1 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+h1 span { color: var(--accent); }
+
+.subtitle {
+  color: var(--dim);
+  margin-top: 4px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── CARD ─────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-title .tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(240, 165, 0, 0.12);
+  border: 1px solid rgba(240, 165, 0, 0.25);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+/* ── FORM ROWS ────────────────────────────── */
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+input[type="text"] {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  padding: 9px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input[type="text"]:focus {
+  border-color: var(--accent);
+}
+input[type="text"]::placeholder {
+  color: var(--dim);
+}
+
+button {
+  background: var(--accent);
+  color: #0f0f0f;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+button:hover  { opacity: 0.88; }
+button:active { transform: scale(0.97); }
+button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── FEEDBACK ─────────────────────────────── */
+.feedback {
+  font-size: 12px;
+  min-height: 18px;
+  color: var(--dim);
+  transition: color 0.3s;
+}
+.feedback.ok  { color: #00cc88; }
+.feedback.err { color: #ff5555; }
+
+/* ── STATE VIEWER ─────────────────────────── */
+#state-display {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 12px;
+  color: var(--dim);
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 60px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* ── LINKS ────────────────────────────────── */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.link-chip {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--dim);
+  font-size: 12px;
+  padding: 6px 14px;
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+.link-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── DIVIDER ──────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1><span>1g</span> Overlay Admin</h1>
+    <p class="subtitle">Local test &amp; simulation panel</p>
+  </header>
+
+  <!-- Follow Alert Simulator -->
+  <section class="card">
+    <div class="card-title">
+      Follow Alert
+      <span class="tag">follow-events SSE</span>
+    </div>
+    <p style="color:var(--dim);font-size:12px;">Fires a follow event to all connected <code>/follow-alert</code> overlays.</p>
+    <div class="row">
+      <input id="follow-username" type="text" placeholder="Username (default: TestUser)" maxlength="80">
+      <button id="follow-btn" onclick="simulateFollow()">Fire Alert</button>
+    </div>
+    <div class="feedback" id="follow-feedback"></div>
+  </section>
+
+  <!-- Subscribe Alert Simulator -->
+  <section class="card">
+    <div class="card-title">
+      Subscribe Alert
+      <span class="tag">subscribe-events SSE</span>
+    </div>
+    <p style="color:var(--dim);font-size:12px;">Fires a subscribe event to all connected <code>/subscribe-alert</code> overlays.</p>
+    <div class="row">
+      <input id="subscribe-username" type="text" placeholder="Username (default: TestUser)" maxlength="80">
+      <button id="subscribe-btn" onclick="simulateSubscribe()">Fire Alert</button>
+    </div>
+    <div class="feedback" id="subscribe-feedback"></div>
+  </section>
+
+  <!-- Raid Alert Simulator -->
+  <section class="card">
+    <div class="card-title">
+      Raid Alert
+      <span class="tag">raid-events SSE</span>
+    </div>
+    <p style="color:var(--dim);font-size:12px;">Fires a raid event to all connected <code>/raid</code> overlays (full-screen, 1920×1080).</p>
+    <div class="row">
+      <input id="raid-username" type="text" placeholder="Raider username (default: TestRaider)" maxlength="80">
+      <input id="raid-viewers" type="text" placeholder="Viewers (default: 42)" maxlength="6" style="flex:0 0 160px;">
+      <button id="raid-btn" onclick="simulateRaid()">Fire Alert</button>
+    </div>
+    <div class="feedback" id="raid-feedback"></div>
+  </section>
+
+  <!-- State / Overlay Builder -->
+  <section class="card">
+    <div class="card-title">
+      Overlay State
+      <span class="tag">events SSE</span>
+    </div>
+    <p style="color:var(--dim);font-size:12px;">Send arbitrary JSON to all connected <code>/overlay</code> clients.</p>
+    <div class="row">
+      <input id="state-json" type="text" placeholder='{"key":"value"}' style="font-size:12px;">
+      <button onclick="postState()">Push State</button>
+    </div>
+    <div class="feedback" id="state-feedback"></div>
+    <hr>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:4px;">Current server state</div>
+    <pre id="state-display">—</pre>
+    <button onclick="fetchState()" style="align-self:flex-start;background:transparent;border:1px solid var(--border);color:var(--dim);font-size:12px;padding:6px 14px;">Refresh</button>
+  </section>
+
+  <!-- Quick links -->
+  <section class="card">
+    <div class="card-title">Quick Links</div>
+    <div class="links">
+      <a class="link-chip" href="/" target="_blank">Overlay Builder</a>
+      <a class="link-chip" href="/overlay" target="_blank">OBS Overlay</a>
+      <a class="link-chip" href="/alert" target="_blank">Alert (combined)</a>
+      <a class="link-chip" href="/follow-alert" target="_blank">Follow Alert</a>
+      <a class="link-chip" href="/subscribe-alert" target="_blank">Subscribe Alert</a>
+      <a class="link-chip" href="/events" target="_blank">/events SSE</a>
+      <a class="link-chip" href="/alert-events" target="_blank">/alert-events SSE</a>
+      <a class="link-chip" href="/follow-events" target="_blank">/follow-events SSE</a>
+      <a class="link-chip" href="/subscribe-events" target="_blank">/subscribe-events SSE</a>
+      <a class="link-chip" href="/raid" target="_blank">Raid Alert</a>
+      <a class="link-chip" href="/raid-playground" target="_blank">Raid Playground</a>
+      <a class="link-chip" href="/raid-events" target="_blank">/raid-events SSE</a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function feedback(id, msg, type) {
+  const el = document.getElementById(id)
+  el.textContent = msg
+  el.className = 'feedback ' + (type || '')
+}
+
+async function simulateFollow() {
+  const username = document.getElementById('follow-username').value.trim() || 'TestUser'
+  const btn = document.getElementById('follow-btn')
+  btn.disabled = true
+  feedback('follow-feedback', 'Sending…', '')
+  try {
+    const res = await fetch('/simulate/follow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    })
+    if (res.ok) {
+      feedback('follow-feedback', `✓ Fired follow for "${username}"`, 'ok')
+    } else {
+      feedback('follow-feedback', `Error ${res.status}`, 'err')
+    }
+  } catch (e) {
+    feedback('follow-feedback', `Network error: ${e.message}`, 'err')
+  } finally {
+    btn.disabled = false
+  }
+}
+
+async function simulateSubscribe() {
+  const username = document.getElementById('subscribe-username').value.trim() || 'TestUser'
+  const btn = document.getElementById('subscribe-btn')
+  btn.disabled = true
+  feedback('subscribe-feedback', 'Sending…', '')
+  try {
+    const res = await fetch('/simulate/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    })
+    if (res.ok) {
+      feedback('subscribe-feedback', `✓ Fired subscribe for "${username}"`, 'ok')
+    } else {
+      feedback('subscribe-feedback', `Error ${res.status}`, 'err')
+    }
+  } catch (e) {
+    feedback('subscribe-feedback', `Network error: ${e.message}`, 'err')
+  } finally {
+    btn.disabled = false
+  }
+}
+
+async function simulateRaid() {
+  const username = document.getElementById('raid-username').value.trim() || 'TestRaider'
+  const viewers  = parseInt(document.getElementById('raid-viewers').value.trim()) || 42
+  const btn = document.getElementById('raid-btn')
+  btn.disabled = true
+  feedback('raid-feedback', 'Sending…', '')
+  try {
+    const res = await fetch('/simulate/raid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, viewers }),
+    })
+    if (res.ok) {
+      feedback('raid-feedback', `✓ Fired raid for "${username}" (${viewers} viewers)`, 'ok')
+    } else {
+      feedback('raid-feedback', `Error ${res.status}`, 'err')
+    }
+  } catch (e) {
+    feedback('raid-feedback', `Network error: ${e.message}`, 'err')
+  } finally {
+    btn.disabled = false
+  }
+}
+
+async function postState() {
+  const raw = document.getElementById('state-json').value.trim()
+  if (!raw) { feedback('state-feedback', 'Enter JSON first', 'err'); return }
+  let parsed
+  try { parsed = JSON.parse(raw) } catch {
+    feedback('state-feedback', 'Invalid JSON', 'err')
+    return
+  }
+  feedback('state-feedback', 'Sending…', '')
+  try {
+    const res = await fetch('/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(parsed),
+    })
+    if (res.ok) {
+      feedback('state-feedback', '✓ State pushed', 'ok')
+      fetchState()
+    } else {
+      feedback('state-feedback', `Error ${res.status}`, 'err')
+    }
+  } catch (e) {
+    feedback('state-feedback', `Network error: ${e.message}`, 'err')
+  }
+}
+
+async function fetchState() {
+  const el = document.getElementById('state-display')
+  try {
+    const res = await fetch('/state')
+    if (res.status === 204) { el.textContent = '(none)'; return }
+    const data = await res.json()
+    el.textContent = JSON.stringify(data, null, 2)
+  } catch (e) {
+    el.textContent = `Error: ${e.message}`
+  }
+}
+
+// Allow Enter key in follow username field
+document.getElementById('follow-username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') simulateFollow()
+})
+
+// Allow Enter key in subscribe username field
+document.getElementById('subscribe-username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') simulateSubscribe()
+})
+
+// Allow Enter key in raid fields
+document.getElementById('raid-username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') simulateRaid()
+})
+document.getElementById('raid-viewers').addEventListener('keydown', e => {
+  if (e.key === 'Enter') simulateRaid()
+})
+
+// Allow Enter key in state JSON field
+document.getElementById('state-json').addEventListener('keydown', e => {
+  if (e.key === 'Enter') postState()
+})
+
+fetchState()
+</script>
+</body>
+</html>

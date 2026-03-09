@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Follow Alert Playground — Twitch EventSub</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0c0c0c;
+  --surface: #161616;
+  --border: #252525;
+  --text: #d4d4d4;
+  --muted: #999;
+  --accent: #9146ff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* === HEADER === */
+.header {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.header-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.twitch-badge {
+  background: #9146ff18;
+  border: 1px solid #9146ff44;
+  color: #9146ff;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.header-hint {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+/* === MAIN LAYOUT === */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* === CONTROLS === */
+.controls {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.section { display: flex; flex-direction: column; gap: 7px; }
+.section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.row { display: flex; align-items: center; gap: 8px; }
+.row-label { color: var(--muted); min-width: 82px; font-size: 12px; flex-shrink: 0; }
+
+select {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+select:focus { border-color: var(--accent); }
+
+input[type="color"] {
+  width: 28px; height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  padding: 1px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+input[type="text"] {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 7px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  outline: none;
+}
+input[type="text"]:focus { border-color: var(--accent); }
+input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+  height: 16px;
+}
+.val {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.color-pair { display: flex; gap: 4px; }
+
+.toggle-wrap { display: flex; align-items: center; justify-content: space-between; }
+.toggle {
+  width: 28px; height: 16px;
+  background: var(--border);
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  background: white;
+  border-radius: 50%;
+  top: 2px; left: 2px;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(12px); }
+
+/* Presets */
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.preset-btn {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.preset-btn:hover { border-color: var(--accent); color: var(--text); }
+.preset-btn.active { border-color: var(--accent); background: #9146ff22; color: var(--accent); }
+
+/* === PREVIEW PANEL === */
+.preview-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  /* Gradient stream-like background so glass effect is visible */
+  background:
+    radial-gradient(ellipse at 25% 35%, #1e3a8a28 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 65%, #7c3aed1a 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, #0f172a 0%, #0c0c0c 100%);
+}
+.preview-labels {
+  position: absolute;
+  top: 10px;
+  left: 0; right: 0;
+  padding: 0 14px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.preview-labels span:last-child { font-family: monospace; }
+
+/* The 410×450 overlay canvas */
+#overlay-preview {
+  width: 410px;
+  height: 450px;
+  position: relative;
+  overflow: hidden;
+  /* background, border, etc. set dynamically */
+  transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.scanline-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 0, 0.04) 0px,
+    rgba(0, 255, 0, 0.04) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+.scanline-overlay::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, rgba(0,255,65,0.07), transparent);
+  animation: scanMove 3s linear infinite;
+}
+@keyframes scanMove {
+  from { transform: translateY(-60px); }
+  to   { transform: translateY(450px); }
+}
+
+/* Particle canvas */
+#particle-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Alert content */
+#alert {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  padding: 24px;
+  gap: 6px;
+}
+.alert-icon {
+  font-size: 72px;
+  line-height: 1;
+  margin-bottom: 8px;
+  display: block;
+  transition: color 0.3s, text-shadow 0.3s;
+}
+.alert-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  transition: color 0.3s;
+}
+.alert-username {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  transition: color 0.3s, font-family 0.3s;
+  word-break: break-all;
+}
+.alert-msg {
+  font-size: 15px;
+  margin-top: 4px;
+  opacity: 0.7;
+  text-align: center;
+  transition: color 0.3s;
+}
+
+/* Trigger button */
+.trigger-btn {
+  background: #9146ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.trigger-btn:hover { background: #7b2fff; }
+.trigger-btn:active { transform: scale(0.97); }
+.trigger-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+/* === FOOTER === */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+.prompt-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 3px;
+  flex-shrink: 0;
+}
+#prompt-output {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  resize: none;
+  height: 44px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  cursor: text;
+}
+.copy-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.copy-btn:hover { background: #222; }
+.copy-btn.copied { color: #4ade80; border-color: #4ade80; }
+
+/* === ALERT ANIMATIONS === */
+@keyframes anim-slideRight {
+  from { transform: translateX(120%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes anim-slideLeft {
+  from { transform: translateX(-120%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes anim-slideUp {
+  from { transform: translateY(80px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes anim-bounceIn {
+  0%   { transform: scale(0.3);    opacity: 0; }
+  55%  { transform: scale(1.08);   opacity: 1; }
+  75%  { transform: scale(0.96); }
+  90%  { transform: scale(1.02); }
+  100% { transform: scale(1);      opacity: 1; }
+}
+@keyframes anim-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes anim-glitchIn {
+  0%   { transform: translateX(100%) skewX(-15deg); opacity: 0;   filter: hue-rotate(90deg)  blur(4px); }
+  25%  { transform: translateX(-8px)  skewX(6deg);  opacity: 1;   filter: hue-rotate(200deg) blur(1px); }
+  50%  { transform: translateX(4px)   skewX(-3deg);              filter: hue-rotate(45deg)  blur(0px); }
+  75%  { transform: translateX(-2px)  skewX(1deg);               filter: hue-rotate(10deg); }
+  100% { transform: translateX(0)     skewX(0deg);               filter: hue-rotate(0deg); opacity: 1; }
+}
+@keyframes anim-fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">Follow Alert Playground</span>
+  <span class="twitch-badge">Twitch EventSub</span>
+  <span class="header-hint">Adjust controls → Copy prompt → Build your overlay</span>
+</div>
+
+<div class="main">
+
+  <!-- CONTROLS -->
+  <div class="controls">
+
+    <div class="section">
+      <div class="section-label">Presets</div>
+      <div class="presets">
+        <button class="preset-btn active" data-preset="neon">Neon</button>
+        <button class="preset-btn" data-preset="lofi">Lo-Fi</button>
+        <button class="preset-btn" data-preset="glass">Glass</button>
+        <button class="preset-btn" data-preset="retro">Retro</button>
+        <button class="preset-btn" data-preset="clean">Clean</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Background</div>
+      <div class="row">
+        <span class="row-label">Style</span>
+        <select id="bgType">
+          <option value="solid">Solid color</option>
+          <option value="gradient">Gradient</option>
+          <option value="glass">Glassmorphism</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="row-label">Color(s)</span>
+        <div class="color-pair">
+          <input type="color" id="bgColor1" value="#0d0d1a">
+          <input type="color" id="bgColor2" value="#1a0a2e">
+        </div>
+        <span class="row-label" style="min-width:50px; margin-left:4px;">Opacity</span>
+        <input type="range" id="bgOpacity" min="10" max="100" value="97">
+        <span class="val" id="bgOpacityVal">97%</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Accent & Border</div>
+      <div class="row">
+        <span class="row-label">Accent</span>
+        <input type="color" id="accentColor" value="#00ffcc">
+      </div>
+      <div class="row">
+        <span class="row-label">Border</span>
+        <select id="borderStyle">
+          <option value="none">None</option>
+          <option value="solid">Solid</option>
+          <option value="glow" selected>Glow</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="row-label">Corners</span>
+        <select id="roundness">
+          <option value="0">Sharp</option>
+          <option value="8" selected>Subtle</option>
+          <option value="16">Rounded</option>
+          <option value="32">Very round</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Typography</div>
+      <div class="row">
+        <span class="row-label">Font</span>
+        <select id="fontStyle">
+          <option value="sans">Sans-serif</option>
+          <option value="mono" selected>Monospace</option>
+          <option value="serif">Serif</option>
+          <option value="impact">Impact / Heavy</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="row-label">Text color</span>
+        <input type="color" id="textColor" value="#ffffff">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Content</div>
+      <div class="row">
+        <span class="row-label">Icon</span>
+        <select id="iconChoice">
+          <option value="♥">♥  Heart</option>
+          <option value="★">★  Star</option>
+          <option value="⚡" selected>⚡  Lightning</option>
+          <option value="🎮">🎮  Controller</option>
+          <option value="🔔">🔔  Bell</option>
+          <option value="✦">✦  Sparkle</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="row-label">Badge text</span>
+        <input type="text" id="badgeText" value="NEW FOLLOWER">
+      </div>
+      <div class="row">
+        <span class="row-label">Message</span>
+        <input type="text" id="msgText" value="Welcome to the stream!">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Animation</div>
+      <div class="row">
+        <span class="row-label">Style</span>
+        <select id="animStyle">
+          <option value="slideRight">Slide from right</option>
+          <option value="slideLeft">Slide from left</option>
+          <option value="slideUp">Slide up</option>
+          <option value="bounceIn">Bounce in</option>
+          <option value="fadeIn">Fade in</option>
+          <option value="glitchIn" selected>Glitch in</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="row-label">Display for</span>
+        <input type="range" id="animDuration" min="2" max="10" value="5" step="0.5">
+        <span class="val" id="animDurationVal">5s</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Effects</div>
+      <div class="toggle-wrap row">
+        <span class="row-label">Particles</span>
+        <div class="toggle on" id="toggleParticles" onclick="toggleFx('particles')"></div>
+      </div>
+      <div class="toggle-wrap row">
+        <span class="row-label">CRT scanlines</span>
+        <div class="toggle" id="toggleScanlines" onclick="toggleFx('scanlines')"></div>
+      </div>
+    </div>
+
+  </div><!-- end controls -->
+
+  <!-- PREVIEW -->
+  <div class="preview-panel">
+    <div class="preview-labels">
+      <span>Live Preview</span>
+      <span>410 × 450 px</span>
+    </div>
+
+    <div id="overlay-preview">
+      <div class="scanline-overlay" id="scanlineEl"></div>
+      <canvas id="particle-canvas" width="410" height="450"></canvas>
+      <div id="alert">
+        <span class="alert-icon" id="alertIcon">⚡</span>
+        <div class="alert-badge" id="alertBadge">NEW FOLLOWER</div>
+        <div class="alert-username" id="alertUsername">StreamViewer42</div>
+        <div class="alert-msg" id="alertMsg">Welcome to the stream!</div>
+      </div>
+    </div>
+
+    <button class="trigger-btn" id="triggerBtn" onclick="triggerAlert()">▶ Trigger Test Alert</button>
+  </div>
+
+</div><!-- end main -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <span class="prompt-label">Prompt</span>
+  <textarea id="prompt-output" readonly></textarea>
+  <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const DEFAULTS = {
+  bgType: 'solid',
+  bgColor1: '#0d0d1a',
+  bgColor2: '#1a0a2e',
+  bgOpacity: 97,
+  accentColor: '#00ffcc',
+  borderStyle: 'glow',
+  roundness: '8',
+  fontStyle: 'mono',
+  textColor: '#ffffff',
+  iconChoice: '⚡',
+  badgeText: 'NEW FOLLOWER',
+  msgText: 'Welcome to the stream!',
+  animStyle: 'glitchIn',
+  animDuration: 5,
+  particles: true,
+  scanlines: false,
+};
+
+const state = { ...DEFAULTS };
+
+const PRESETS = {
+  neon: {
+    bgType: 'solid', bgColor1: '#0d0d1a', bgColor2: '#1a0a2e', bgOpacity: 97,
+    accentColor: '#00ffcc', borderStyle: 'glow', roundness: '8',
+    fontStyle: 'mono', textColor: '#ffffff',
+    iconChoice: '⚡', badgeText: 'NEW FOLLOWER', msgText: 'Welcome to the stream!',
+    animStyle: 'glitchIn', animDuration: 5,
+    particles: true, scanlines: false,
+  },
+  lofi: {
+    bgType: 'gradient', bgColor1: '#2a1a0e', bgColor2: '#3d2510', bgOpacity: 96,
+    accentColor: '#ff9f43', borderStyle: 'solid', roundness: '16',
+    fontStyle: 'serif', textColor: '#ffecd2',
+    iconChoice: '♥', badgeText: 'new follower', msgText: 'thanks for the follow ♡',
+    animStyle: 'bounceIn', animDuration: 5,
+    particles: false, scanlines: false,
+  },
+  glass: {
+    bgType: 'glass', bgColor1: '#6366f1', bgColor2: '#8b5cf6', bgOpacity: 35,
+    accentColor: '#c4b5fd', borderStyle: 'glow', roundness: '16',
+    fontStyle: 'sans', textColor: '#f0f0ff',
+    iconChoice: '★', badgeText: 'NEW FOLLOWER', msgText: 'Welcome to the stream!',
+    animStyle: 'fadeIn', animDuration: 5,
+    particles: true, scanlines: false,
+  },
+  retro: {
+    bgType: 'solid', bgColor1: '#000800', bgColor2: '#001000', bgOpacity: 100,
+    accentColor: '#00ff41', borderStyle: 'solid', roundness: '0',
+    fontStyle: 'mono', textColor: '#00ff41',
+    iconChoice: '★', badgeText: '>>> FOLLOWER DETECTED', msgText: 'SIGNAL LOCKED IN',
+    animStyle: 'slideRight', animDuration: 6,
+    particles: false, scanlines: true,
+  },
+  clean: {
+    bgType: 'solid', bgColor1: '#ffffff', bgColor2: '#f5f5f5', bgOpacity: 100,
+    accentColor: '#9146ff', borderStyle: 'solid', roundness: '16',
+    fontStyle: 'sans', textColor: '#111111',
+    iconChoice: '♥', badgeText: 'NEW FOLLOWER', msgText: 'Welcome to the stream!',
+    animStyle: 'slideUp', animDuration: 4,
+    particles: false, scanlines: false,
+  },
+};
+
+// ============================================================
+// RENDER
+// ============================================================
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `${r},${g},${b}`;
+}
+
+function renderAll() {
+  const preview = document.getElementById('overlay-preview');
+  const alertEl = document.getElementById('alert');
+
+  // --- Background ---
+  const op = state.bgOpacity / 100;
+  const rgb1 = hexToRgb(state.bgColor1);
+  const rgb2 = hexToRgb(state.bgColor2);
+
+  if (state.bgType === 'solid') {
+    preview.style.background = `rgba(${rgb1},${op})`;
+    preview.style.backdropFilter = '';
+  } else if (state.bgType === 'gradient') {
+    preview.style.background = `linear-gradient(145deg, rgba(${rgb1},${op}), rgba(${rgb2},${op}))`;
+    preview.style.backdropFilter = '';
+  } else if (state.bgType === 'glass') {
+    const glassOp = state.bgOpacity * 0.003; // 0-0.3 range
+    preview.style.background = `linear-gradient(145deg, rgba(${rgb1},${glassOp}), rgba(${rgb2},${glassOp * 0.6}))`;
+    preview.style.backdropFilter = 'blur(18px) saturate(160%)';
+  }
+
+  // --- Border & glow ---
+  const r = state.roundness;
+  preview.style.borderRadius = r + 'px';
+  const ac = state.accentColor;
+
+  if (state.borderStyle === 'none') {
+    preview.style.border = '1px solid #2a2a2a';
+    preview.style.boxShadow = '';
+  } else if (state.borderStyle === 'solid') {
+    preview.style.border = `2px solid ${ac}`;
+    preview.style.boxShadow = '';
+  } else if (state.borderStyle === 'glow') {
+    preview.style.border = `1px solid ${ac}55`;
+    preview.style.boxShadow = `0 0 24px ${ac}40, 0 0 70px ${ac}18, inset 0 0 40px ${ac}0a`;
+  }
+
+  // --- Scanlines ---
+  document.getElementById('scanlineEl').style.display = state.scanlines ? 'block' : 'none';
+
+  // --- Typography ---
+  const fonts = {
+    sans:   'system-ui, -apple-system, sans-serif',
+    mono:   '"Courier New", "Lucida Console", Courier, monospace',
+    serif:  'Georgia, "Times New Roman", Times, serif',
+    impact: 'Impact, "Arial Black", "Arial Bold", Gadget, sans-serif',
+  };
+  alertEl.style.fontFamily = fonts[state.fontStyle] || fonts.sans;
+  alertEl.style.color = state.textColor;
+
+  // --- Icon ---
+  const iconEl = document.getElementById('alertIcon');
+  iconEl.textContent = state.iconChoice;
+  iconEl.style.color = ac;
+  iconEl.style.textShadow = `0 0 30px ${ac}88, 0 0 60px ${ac}44`;
+
+  // --- Badge ---
+  const badgeEl = document.getElementById('alertBadge');
+  badgeEl.textContent = state.badgeText;
+  badgeEl.style.color = ac;
+
+  // --- Message ---
+  document.getElementById('alertMsg').textContent = state.msgText;
+
+  updatePrompt();
+}
+
+function applyStateToControls() {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  set('bgType', state.bgType);
+  set('bgColor1', state.bgColor1);
+  set('bgColor2', state.bgColor2);
+  set('bgOpacity', state.bgOpacity);
+  set('accentColor', state.accentColor);
+  set('borderStyle', state.borderStyle);
+  set('roundness', state.roundness);
+  set('fontStyle', state.fontStyle);
+  set('textColor', state.textColor);
+  set('iconChoice', state.iconChoice);
+  set('badgeText', state.badgeText);
+  set('msgText', state.msgText);
+  set('animStyle', state.animStyle);
+  set('animDuration', state.animDuration);
+  document.getElementById('bgOpacityVal').textContent = state.bgOpacity + '%';
+  document.getElementById('animDurationVal').textContent = state.animDuration + 's';
+  document.getElementById('toggleParticles').classList.toggle('on', state.particles);
+  document.getElementById('toggleScanlines').classList.toggle('on', state.scanlines);
+}
+
+// ============================================================
+// ALERT ANIMATION
+// ============================================================
+let hideTimer = null, outTimer = null;
+const FAKE_NAMES = ['CoolStreamer99', 'xXx_Gamer_xXx', 'VibeCoder', 'TwitchFan42', 'NightOwl_', 'PixelWitch', 'CodeNinja404'];
+
+function triggerAlert() {
+  const alertEl = document.getElementById('alert');
+  const btn = document.getElementById('triggerBtn');
+
+  // Randomize username
+  document.getElementById('alertUsername').textContent =
+    FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+
+  // Cancel any running sequence
+  clearTimeout(hideTimer);
+  clearTimeout(outTimer);
+  stopParticles();
+
+  // Reset animation
+  alertEl.style.animation = 'none';
+  alertEl.style.opacity = '0';
+  void alertEl.offsetWidth; // reflow
+
+  // Animate in
+  const enterDur = state.animStyle === 'glitchIn' ? 0.7 : 0.5;
+  alertEl.style.animation = `anim-${state.animStyle} ${enterDur}s ease-out forwards`;
+  alertEl.style.opacity = '';
+
+  if (state.particles) startParticles();
+
+  btn.disabled = true;
+
+  // Schedule hide
+  hideTimer = setTimeout(() => {
+    alertEl.style.animation = 'anim-fadeOut 0.4s ease-in forwards';
+    outTimer = setTimeout(() => {
+      alertEl.style.animation = 'none';
+      alertEl.style.opacity = '1';
+      stopParticles();
+      btn.disabled = false;
+    }, 400);
+  }, (state.animDuration * 1000));
+}
+
+// ============================================================
+// PARTICLES
+// ============================================================
+let particleRaf = null;
+let particleList = [];
+
+function startParticles() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  particleList = [];
+  let spawned = 0;
+
+  function spawnBurst() {
+    for (let i = 0; i < 5; i++) {
+      particleList.push({
+        x: 100 + Math.random() * 210,
+        y: 200 + Math.random() * 100,
+        vx: (Math.random() - 0.5) * 4,
+        vy: -(Math.random() * 5 + 1.5),
+        size: Math.random() * 5 + 2,
+        life: 1,
+        decay: Math.random() * 0.012 + 0.006,
+        color: state.accentColor,
+      });
+    }
+    spawned++;
+    if (spawned < 8) setTimeout(spawnBurst, 120);
+  }
+  spawnBurst();
+
+  function loop() {
+    ctx.clearRect(0, 0, 410, 450);
+    particleList = particleList.filter(p => p.life > 0.01);
+    for (const p of particleList) {
+      ctx.globalAlpha = p.life * 0.85;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.12;
+      p.life -= p.decay;
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    if (particleList.length > 0) particleRaf = requestAnimationFrame(loop);
+  }
+
+  if (particleRaf) cancelAnimationFrame(particleRaf);
+  particleRaf = requestAnimationFrame(loop);
+}
+
+function stopParticles() {
+  if (particleRaf) { cancelAnimationFrame(particleRaf); particleRaf = null; }
+  const canvas = document.getElementById('particle-canvas');
+  canvas.getContext('2d').clearRect(0, 0, 410, 450);
+  particleList = [];
+}
+
+// ============================================================
+// PROMPT GENERATION
+// ============================================================
+function updatePrompt() {
+  const bgDesc = {
+    solid:    `solid dark background (${state.bgColor1})`,
+    gradient: `dark gradient background (${state.bgColor1} → ${state.bgColor2})`,
+    glass:    `glassmorphism background with backdrop blur`,
+  };
+  const borderDesc = {
+    none:  'no border',
+    solid: `solid ${state.accentColor} border`,
+    glow:  `neon glow border in ${state.accentColor}`,
+  };
+  const cornerDesc = { '0':'sharp corners','8':'subtly rounded corners','16':'rounded corners','32':'very rounded corners' };
+  const fontDesc = { sans:'clean sans-serif', mono:'monospace terminal', serif:'elegant serif', impact:'heavy impact-style' };
+  const animDesc = {
+    slideRight: 'slides in from the right',
+    slideLeft:  'slides in from the left',
+    slideUp:    'slides up from the bottom',
+    bounceIn:   'bounces in from center',
+    fadeIn:     'fades in',
+    glitchIn:   'glitches in with a digital distortion effect',
+  };
+
+  const fx = [];
+  if (state.particles) fx.push('accent-colored particle burst');
+  if (state.scanlines) fx.push('CRT scanlines overlay');
+
+  const prompt = [
+    `Build a Twitch follow alert overlay sized exactly 410×450px.`,
+    ` Use a ${bgDesc[state.bgType]} at ${state.bgOpacity}% opacity,`,
+    ` ${borderDesc[state.borderStyle]},`,
+    ` ${cornerDesc[state.roundness] || 'rounded corners'},`,
+    ` ${fontDesc[state.fontStyle] || 'sans-serif'} typography in ${state.textColor}.`,
+    ` The alert shows a "${state.iconChoice}" icon in ${state.accentColor} with glow,`,
+    ` the badge label "${state.badgeText}",`,
+    ` the follower's username in large bold text,`,
+    ` and the message "${state.msgText}".`,
+    ` When a follow event fires, the alert ${animDesc[state.animStyle] || 'fades in'} and stays visible for ${state.animDuration} seconds.`,
+    fx.length ? ` Include: ${fx.join(', ')}.` : '',
+    ` Connect to Twitch EventSub WebSocket (wss://eventsub.wss.twitch.tv/ws) and subscribe to channel.follow (v2) to trigger the alert in real time.`,
+  ].join('');
+
+  document.getElementById('prompt-output').value = prompt;
+}
+
+// ============================================================
+// CONTROL BINDINGS
+// ============================================================
+function clearActivePreset() {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+}
+
+function bindInput(id, key) {
+  document.getElementById(id).addEventListener('input', e => {
+    state[key] = e.target.value;
+    clearActivePreset();
+    renderAll();
+  });
+}
+function bindRange(id, key, valId, unit) {
+  document.getElementById(id).addEventListener('input', e => {
+    state[key] = parseFloat(e.target.value);
+    document.getElementById(valId).textContent = e.target.value + unit;
+    clearActivePreset();
+    renderAll();
+  });
+}
+
+bindInput('bgType',      'bgType');
+bindInput('bgColor1',    'bgColor1');
+bindInput('bgColor2',    'bgColor2');
+bindRange('bgOpacity',   'bgOpacity',   'bgOpacityVal',    '%');
+bindInput('accentColor', 'accentColor');
+bindInput('borderStyle', 'borderStyle');
+bindInput('roundness',   'roundness');
+bindInput('fontStyle',   'fontStyle');
+bindInput('textColor',   'textColor');
+bindInput('iconChoice',  'iconChoice');
+bindInput('badgeText',   'badgeText');
+bindInput('msgText',     'msgText');
+bindInput('animStyle',   'animStyle');
+bindRange('animDuration','animDuration','animDurationVal', 's');
+
+function toggleFx(key) {
+  state[key] = !state[key];
+  document.getElementById('toggle' + key.charAt(0).toUpperCase() + key.slice(1))
+    .classList.toggle('on', state[key]);
+  clearActivePreset();
+  renderAll();
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = PRESETS[btn.dataset.preset];
+    if (!p) return;
+    Object.assign(state, p);
+    applyStateToControls();
+    renderAll();
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ============================================================
+// COPY
+// ============================================================
+function copyPrompt() {
+  navigator.clipboard.writeText(document.getElementById('prompt-output').value).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+applyStateToControls();
+renderAll();
+setTimeout(() => triggerAlert(), 600);
+</script>
+</body>
+</html>

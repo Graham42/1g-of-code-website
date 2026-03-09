@@ -1,0 +1,1864 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>1g of Code — Stream Overlay Builder</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..60,400;12..60,600;12..60,700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0f0f0f;
+        --text: #f5f0e8;
+        --dimmed: #9a9080;
+        --accent: #f0a500;
+        --surface: #1a1812;
+        --border: #2e2a22;
+        --radius: 6px;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4a4540;
+      }
+
+      /* ── Sidebar ─────────────────────────────────────────── */
+      #sidebar {
+        width: 290px;
+        min-width: 290px;
+        background: #090907;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      #sidebar-header {
+        padding: 14px 16px 11px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      #sidebar-header h1 {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--accent);
+        letter-spacing: -0.02em;
+      }
+      #sidebar-header p {
+        color: var(--dimmed);
+        font-size: 10px;
+        margin-top: 2px;
+      }
+      #sidebar-body {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* ── Presets ─────────────────────────────────────────── */
+      #presets-area {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      #presets-label {
+        color: var(--dimmed);
+        font-size: 10px;
+        width: 100%;
+        margin-bottom: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .preset-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        padding: 4px 9px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .preset-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* ── Sections ────────────────────────────────────────── */
+      .section {
+        border-bottom: 1px solid var(--border);
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 14px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.1s;
+      }
+      .section-header:hover {
+        background: rgba(255, 255, 255, 0.025);
+      }
+      .section-title {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--text);
+        flex: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .section-chevron {
+        color: var(--dimmed);
+        font-size: 9px;
+        transition: transform 0.15s;
+      }
+      .section.collapsed .section-chevron {
+        transform: rotate(-90deg);
+      }
+      .section-body {
+        padding: 0 14px 13px;
+      }
+      .section.collapsed .section-body {
+        display: none;
+      }
+
+      /* ── Controls ────────────────────────────────────────── */
+      .ctrl-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .ctrl-row label {
+        color: var(--dimmed);
+        font-size: 10px;
+        min-width: 66px;
+        flex-shrink: 0;
+      }
+      .ctrl-row input[type='text'],
+      .ctrl-row input[type='number'] {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        padding: 4px 7px;
+        outline: none;
+        min-width: 0;
+      }
+      .ctrl-row input[type='text']:focus,
+      .ctrl-row input[type='number']:focus {
+        border-color: var(--accent);
+      }
+      .ctrl-row input[type='range'] {
+        flex: 1;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+      .ctrl-row input[type='color'] {
+        width: 32px;
+        height: 24px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        padding: 2px;
+        flex-shrink: 0;
+      }
+      .val-disp {
+        color: var(--dimmed);
+        font-size: 10px;
+        min-width: 38px;
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .pos-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+        margin-top: 8px;
+      }
+      .pos-field {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .pos-field label {
+        color: var(--dimmed);
+        font-size: 10px;
+      }
+      .pos-field input {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        padding: 4px 6px;
+        outline: none;
+        width: 100%;
+      }
+      .pos-field input:focus {
+        border-color: var(--accent);
+      }
+
+      /* Toggle switch */
+      .tog-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .tog-row > label:first-child {
+        color: var(--dimmed);
+        font-size: 10px;
+        flex: 1;
+      }
+      .tog-wrap {
+        position: relative;
+        width: 32px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+      .tog-wrap input {
+        display: none;
+      }
+      .tog-track {
+        position: absolute;
+        inset: 0;
+        background: var(--border);
+        border-radius: 9px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .tog-wrap input:checked + .tog-track {
+        background: var(--accent);
+      }
+      .tog-thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 12px;
+        height: 12px;
+        background: var(--text);
+        border-radius: 50%;
+        transition: left 0.15s;
+        pointer-events: none;
+      }
+      .tog-wrap input:checked ~ .tog-thumb {
+        left: 17px;
+      }
+
+      /* Box dot */
+      .box-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      /* Visibility button */
+      .vis-btn {
+        background: none;
+        border: none;
+        color: var(--dimmed);
+        cursor: pointer;
+        font-size: 13px;
+        padding: 1px 3px;
+        border-radius: 3px;
+        line-height: 1;
+        transition: color 0.1s;
+      }
+      .vis-btn:hover {
+        color: var(--text);
+      }
+      .vis-btn.off {
+        color: var(--border);
+      }
+
+      /* Swatches */
+      .swatches {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition:
+          transform 0.1s,
+          border-color 0.1s;
+        flex-shrink: 0;
+      }
+      .swatch:hover {
+        transform: scale(1.25);
+        border-color: var(--accent);
+      }
+
+      /* Section divider label */
+      .ctrl-divider {
+        color: var(--dimmed);
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-top: 12px;
+        margin-bottom: 0;
+      }
+
+      /* ── Main area ───────────────────────────────────────── */
+      #main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      /* Toolbar */
+      #toolbar {
+        background: #090907;
+        border-bottom: 1px solid var(--border);
+        padding: 7px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+      .tb-label {
+        color: var(--dimmed);
+        font-size: 10px;
+      }
+      .tb-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        padding: 4px 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .tb-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .tb-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #0f0f0f;
+        font-weight: 600;
+        font-size: 11px;
+        padding: 5px 14px;
+      }
+      .tb-primary:hover {
+        background: #e09800;
+        border-color: #e09800;
+        color: #0f0f0f;
+      }
+      .tb-divider {
+        width: 1px;
+        height: 18px;
+        background: var(--border);
+      }
+      .tb-spacer {
+        flex: 1;
+      }
+      #scale-disp {
+        color: var(--dimmed);
+        font-size: 10px;
+      }
+      #conn-status {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+      }
+      #conn-dot {
+        font-size: 9px;
+        color: var(--dimmed);
+      }
+      #conn-dot.live {
+        color: #2ea043;
+      }
+      #conn-dot.error {
+        color: #f85149;
+      }
+
+      /* Preview area */
+      #preview-area {
+        flex: 1;
+        overflow: auto;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        background: #070705;
+      }
+      #preview-wrapper {
+        position: relative;
+        flex-shrink: 0;
+        box-shadow:
+          0 4px 60px rgba(0, 0, 0, 0.9),
+          0 0 0 1px rgba(240, 165, 0, 0.1);
+      }
+      #overlay-canvas {
+        position: relative;
+        transform-origin: top left;
+        background: #0f0f0f;
+      }
+      #overlay-canvas::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9000;
+        opacity: 0.055;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      /* Overlay boxes */
+      .ov-box {
+        position: absolute;
+        cursor: move;
+        user-select: none;
+      }
+      .ov-box-inner {
+        position: absolute;
+        inset: 0;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .ov-box.selected .ov-box-inner {
+        outline: 2px dashed #f0a500;
+        outline-offset: -2px;
+      }
+      .ov-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'IBM Plex Mono', monospace;
+        pointer-events: none;
+        white-space: nowrap;
+        text-align: center;
+        letter-spacing: 0.03em;
+      }
+      .ov-sublabel {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 14px;
+        color: rgba(154, 144, 128, 0.5);
+        pointer-events: none;
+        white-space: nowrap;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* Resize handles */
+      .rh {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: #f0a500;
+        border: 2px solid #090907;
+        border-radius: 3px;
+        z-index: 200;
+      }
+      .rh:hover {
+        background: #ffc133;
+      }
+      .rh.nw {
+        top: -10px;
+        left: -10px;
+        cursor: nw-resize;
+      }
+      .rh.n {
+        top: -10px;
+        left: calc(50% - 10px);
+        cursor: n-resize;
+      }
+      .rh.ne {
+        top: -10px;
+        right: -10px;
+        cursor: ne-resize;
+      }
+      .rh.e {
+        top: calc(50% - 10px);
+        right: -10px;
+        cursor: e-resize;
+      }
+      .rh.se {
+        bottom: -10px;
+        right: -10px;
+        cursor: se-resize;
+      }
+      .rh.s {
+        bottom: -10px;
+        left: calc(50% - 10px);
+        cursor: s-resize;
+      }
+      .rh.sw {
+        bottom: -10px;
+        left: -10px;
+        cursor: sw-resize;
+      }
+      .rh.w {
+        top: calc(50% - 10px);
+        left: -10px;
+        cursor: w-resize;
+      }
+
+      /* Outer border element */
+      #ov-border {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 8000;
+      }
+
+      /* Grid canvas */
+      #grid-canvas {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 50;
+        display: none;
+      }
+
+      /* ── Export Panel ────────────────────────────────────── */
+      #export-panel {
+        border-top: 1px solid var(--border);
+        background: #090907;
+        flex-shrink: 0;
+        height: 160px;
+        display: flex;
+        flex-direction: column;
+      }
+      #export-header {
+        padding: 7px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      #export-header span {
+        color: var(--dimmed);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        flex: 1;
+      }
+      .ex-tab {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--dimmed);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        padding: 3px 8px;
+        cursor: pointer;
+        transition: all 0.1s;
+      }
+      .ex-tab.active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      #copy-btn {
+        background: var(--accent);
+        border: none;
+        border-radius: var(--radius);
+        color: #0f0f0f;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 5px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      #copy-btn:hover {
+        background: #e09800;
+      }
+      #copy-btn.copied {
+        background: #2ea043;
+        color: #fff;
+      }
+      .ex-dl-btn {
+        font-size: 10px;
+        padding: 4px 9px;
+      }
+      .ex-all-btn {
+        font-size: 10px;
+        padding: 4px 9px;
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .ex-all-btn:hover {
+        background: rgba(240, 165, 0, 0.1);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      #export-output {
+        flex: 1;
+        overflow: auto;
+        padding: 8px 14px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        color: var(--text);
+        white-space: pre;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════ SIDEBAR ═══ -->
+    <div id="sidebar">
+      <div id="sidebar-header">
+        <h1>1g of Code</h1>
+        <p>Stream Overlay Builder &middot; 1920&times;1080</p>
+      </div>
+
+      <div id="presets-area">
+        <div id="presets-label">Presets</div>
+        <button class="preset-btn" onclick="applyPreset('default')">
+          Default
+        </button>
+        <button class="preset-btn" onclick="applyPreset('wide')">
+          Wide Main
+        </button>
+        <button class="preset-btn" onclick="applyPreset('cams')">
+          Cam Focus
+        </button>
+        <button class="preset-btn" onclick="applyPreset('minimal')">
+          Minimal
+        </button>
+      </div>
+
+      <div id="sidebar-body">
+        <!-- Global -->
+        <div class="section" id="sec-global">
+          <div class="section-header" onclick="toggleSec('global')">
+            <span class="section-title">Global</span>
+            <span class="section-chevron">▼</span>
+          </div>
+          <div class="section-body">
+            <div class="tog-row">
+              <label>Snap to grid</label>
+              <label class="tog-wrap">
+                <input
+                  type="checkbox"
+                  id="snap-tog"
+                  onchange="onSnapChange()"
+                />
+                <div class="tog-track"></div>
+                <div class="tog-thumb"></div>
+              </label>
+            </div>
+            <div class="ctrl-row" id="grid-size-row" style="display: none">
+              <label>Grid size</label>
+              <input
+                type="range"
+                id="grid-size"
+                min="10"
+                max="80"
+                value="20"
+                oninput="onGridSizeChange(this.value)"
+              />
+              <span class="val-disp" id="grid-size-val">20px</span>
+            </div>
+            <div class="tog-row">
+              <label>Show labels</label>
+              <label class="tog-wrap">
+                <input
+                  type="checkbox"
+                  id="labels-tog"
+                  checked
+                  onchange="onLabelsChange()"
+                />
+                <div class="tog-track"></div>
+                <div class="tog-thumb"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outer border -->
+        <div class="section" id="sec-border">
+          <div class="section-header" onclick="toggleSec('border')">
+            <div
+              class="box-dot"
+              id="border-dot"
+              style="background: #f0a500"
+            ></div>
+            <span class="section-title">Outer Border</span>
+            <button
+              class="vis-btn"
+              id="vis-border"
+              title="Toggle visibility"
+              onclick="
+                event.stopPropagation()
+                toggleVis('border')
+              "
+            >
+              ◉
+            </button>
+            <span class="section-chevron">▼</span>
+          </div>
+          <div class="section-body">
+            <div class="ctrl-row">
+              <label>Color</label>
+              <input
+                type="color"
+                id="border-color"
+                value="#f0a500"
+                oninput="onBorderChange()"
+              />
+              <span class="val-disp" id="border-color-val">#f0a500</span>
+            </div>
+            <div class="ctrl-row">
+              <label>H Width</label>
+              <input
+                type="range"
+                id="border-width-h"
+                min="0"
+                max="40"
+                value="8"
+                oninput="onBorderChange()"
+              />
+              <span class="val-disp" id="border-width-h-val">8px</span>
+            </div>
+            <div class="ctrl-row">
+              <label>V Width</label>
+              <input
+                type="range"
+                id="border-width-v"
+                min="0"
+                max="40"
+                value="8"
+                oninput="onBorderChange()"
+              />
+              <span class="val-disp" id="border-width-v-val">8px</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Opacity</label>
+              <input
+                type="range"
+                id="border-opacity"
+                min="0"
+                max="1"
+                step="0.05"
+                value="1"
+                oninput="onBorderChange()"
+              />
+              <span class="val-disp" id="border-opacity-val">100%</span>
+            </div>
+            <div class="ctrl-row" style="margin-top: 10px">
+              <label>Swatches</label>
+              <div class="swatches">
+                <div
+                  class="swatch"
+                  style="background: #f0a500"
+                  onclick="setBorderColor('#f0a500')"
+                  title="#f0a500"
+                ></div>
+                <div
+                  class="swatch"
+                  style="background: #2e2a22"
+                  onclick="setBorderColor('#2e2a22')"
+                  title="#2e2a22"
+                ></div>
+                <div
+                  class="swatch"
+                  style="background: #f5f0e8"
+                  onclick="setBorderColor('#f5f0e8')"
+                  title="#f5f0e8"
+                ></div>
+                <div
+                  class="swatch"
+                  style="background: #9a9080"
+                  onclick="setBorderColor('#9a9080')"
+                  title="#9a9080"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Box sections built by JS -->
+        <div id="box-sections"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ MAIN ══════ -->
+    <div id="main">
+      <div id="toolbar">
+        <span class="tb-label">View:</span>
+        <button class="tb-btn" onclick="fitPreview()">Fit</button>
+        <button class="tb-btn" onclick="setScale(0.5)">50%</button>
+        <button class="tb-btn" onclick="setScale(0.3)">30%</button>
+        <div class="tb-divider"></div>
+        <span id="scale-disp">—</span>
+        <div class="tb-spacer"></div>
+        <div id="conn-status" title="Run: node overlays/server.js">
+          <span id="conn-dot">○</span>
+          <span id="conn-txt">server offline</span>
+        </div>
+        <a
+          href="/overlay"
+          target="_blank"
+          class="tb-btn"
+          style="text-decoration: none"
+          >Overlay ↗</a
+        >
+        <button class="tb-btn" onclick="importLayout()">↑ Import JSON</button>
+        <button class="tb-btn tb-primary" onclick="downloadLayout()">
+          ↓ Export JSON
+        </button>
+      </div>
+
+      <div id="preview-area">
+        <div id="preview-wrapper">
+          <div id="overlay-canvas">
+            <div id="ov-border"></div>
+            <canvas id="grid-canvas"></canvas>
+            <!-- boxes injected by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div id="export-panel">
+        <div id="export-header">
+          <span>Export</span>
+          <button class="ex-tab active" onclick="switchTab('css')" id="tab-css">
+            CSS
+          </button>
+          <button class="ex-tab" onclick="switchTab('json')" id="tab-json">
+            JSON
+          </button>
+          <button class="ex-tab" onclick="switchTab('obs')" id="tab-obs">
+            OBS CSS
+          </button>
+          <button class="tb-btn ex-dl-btn" onclick="downloadCurrentTab()">↓ File</button>
+          <button class="tb-btn ex-all-btn" onclick="downloadAll()">↓ All</button>
+          <button id="copy-btn" onclick="copyExport()">Copy</button>
+        </div>
+        <div id="export-output"></div>
+      </div>
+    </div>
+
+    <script>
+      // ═══════════════════════════════════════════════════════════
+      // CONSTANTS & STATE
+      // ═══════════════════════════════════════════════════════════
+      const CW = 1920,
+        CH = 1080
+      const MIN_W = 80,
+        MIN_H = 60
+
+      const BOX_META = {
+        main: { dot: '#f0a500', defaultLabel: 'Main Content' },
+        info: { dot: '#c87800', defaultLabel: 'Info Panel' },
+        cam1: { dot: '#4a9eff', defaultLabel: 'Host 1' },
+        cam2: { dot: '#7b6fff', defaultLabel: 'Host 2' },
+      }
+      const BOX_ORDER = ['main', 'info', 'cam1', 'cam2']
+
+      const FILL_SWATCHES = [
+        '#1a1812',
+        '#0f0f0f',
+        '#0d0d0b',
+        '#f0a500',
+        '#2e2a22',
+        '#000000',
+        '#1a1a2e',
+      ]
+      const BORDER_SWATCHES = [
+        '#f0a500',
+        '#2e2a22',
+        '#f5f0e8',
+        '#9a9080',
+        '#000000',
+        '#4a9eff',
+      ]
+
+      const state = {
+        scale: 0.5,
+        snapGrid: false,
+        gridSize: 20,
+        showLabels: true,
+        selectedBox: null,
+        exportTab: 'css',
+        outerBorder: { visible: true, color: '#f0a500', widthH: 8, widthV: 8, opacity: 1 },
+        boxes: {
+          main: {
+            label: 'Main Content',
+            x: 8,
+            y: 8,
+            w: 1260,
+            h: 1064,
+            color: '#1a1812',
+            borderColor: '#f0a500',
+            borderWidth: 2,
+            opacity: 1,
+            visible: true,
+          },
+          info: {
+            label: 'Info Panel',
+            x: 1276,
+            y: 8,
+            w: 636,
+            h: 300,
+            color: '#1a1812',
+            borderColor: '#f0a500',
+            borderWidth: 2,
+            opacity: 1,
+            visible: true,
+          },
+          cam1: {
+            label: 'Host 1',
+            x: 1276,
+            y: 316,
+            w: 636,
+            h: 374,
+            color: '#0d0d0b',
+            borderColor: '#2e2a22',
+            borderWidth: 2,
+            opacity: 1,
+            visible: true,
+          },
+          cam2: {
+            label: 'Host 2',
+            x: 1276,
+            y: 698,
+            w: 636,
+            h: 374,
+            color: '#0d0d0b',
+            borderColor: '#2e2a22',
+            borderWidth: 2,
+            opacity: 1,
+            visible: true,
+          },
+        },
+      }
+
+      const PRESETS = {
+        default: {
+          outerBorder: {
+            visible: true,
+            color: '#f0a500',
+            widthH: 8,
+            widthV: 8,
+            opacity: 1,
+          },
+          boxes: {
+            main: { x: 8, y: 8, w: 1260, h: 1064 },
+            info: { x: 1276, y: 8, w: 636, h: 300 },
+            cam1: { x: 1276, y: 316, w: 636, h: 374 },
+            cam2: { x: 1276, y: 698, w: 636, h: 374 },
+          },
+        },
+        wide: {
+          outerBorder: {
+            visible: true,
+            color: '#f0a500',
+            widthH: 6,
+            widthV: 6,
+            opacity: 1,
+          },
+          boxes: {
+            main: { x: 8, y: 8, w: 1410, h: 1064 },
+            info: { x: 1426, y: 8, w: 486, h: 210 },
+            cam1: { x: 1426, y: 226, w: 486, h: 427 },
+            cam2: { x: 1426, y: 661, w: 486, h: 411 },
+          },
+        },
+        cams: {
+          outerBorder: {
+            visible: true,
+            color: '#f0a500',
+            widthH: 8,
+            widthV: 8,
+            opacity: 0.8,
+          },
+          boxes: {
+            main: { x: 8, y: 8, w: 1050, h: 1064 },
+            info: { x: 1066, y: 8, w: 846, h: 160 },
+            cam1: { x: 1066, y: 176, w: 846, h: 452 },
+            cam2: { x: 1066, y: 636, w: 846, h: 436 },
+          },
+        },
+        minimal: {
+          outerBorder: {
+            visible: true,
+            color: '#2e2a22',
+            widthH: 4,
+            widthV: 4,
+            opacity: 1,
+          },
+          boxes: {
+            main: { x: 4, y: 4, w: 1282, h: 1072 },
+            info: { x: 1294, y: 4, w: 622, h: 240 },
+            cam1: { x: 1294, y: 252, w: 622, h: 412 },
+            cam2: { x: 1294, y: 672, w: 622, h: 404 },
+          },
+        },
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // DRAG & RESIZE
+      // ═══════════════════════════════════════════════════════════
+      let dragState = null
+
+      function canvasMouseCoords(e) {
+        const rect = document
+          .getElementById('overlay-canvas')
+          .getBoundingClientRect()
+        return {
+          x: (e.clientX - rect.left) / state.scale,
+          y: (e.clientY - rect.top) / state.scale,
+        }
+      }
+
+      function snap(v) {
+        return state.snapGrid
+          ? Math.round(v / state.gridSize) * state.gridSize
+          : v
+      }
+
+      function clampBox(b) {
+        b.x = Math.max(0, Math.min(CW - MIN_W, b.x))
+        b.y = Math.max(0, Math.min(CH - MIN_H, b.y))
+        b.w = Math.max(MIN_W, Math.min(CW - b.x, b.w))
+        b.h = Math.max(MIN_H, Math.min(CH - b.y, b.h))
+      }
+
+      document.addEventListener('mousemove', (e) => {
+        if (!dragState) return
+        const { type, id, sx, sy, bx, by, bw, bh, dir } = dragState
+        const dx = (e.clientX - sx) / state.scale
+        const dy = (e.clientY - sy) / state.scale
+        const box = state.boxes[id]
+
+        if (type === 'drag') {
+          box.x = snap(bx + dx)
+          box.y = snap(by + dy)
+        } else {
+          let nx = bx,
+            ny = by,
+            nw = bw,
+            nh = bh
+          if (dir.includes('e')) nw = bw + dx
+          if (dir.includes('s')) nh = bh + dy
+          if (dir.includes('w')) {
+            nx = bx + dx
+            nw = bw - dx
+          }
+          if (dir.includes('n')) {
+            ny = by + dy
+            nh = bh - dy
+          }
+          box.x = snap(nx)
+          box.y = snap(ny)
+          box.w = snap(nw)
+          box.h = snap(nh)
+        }
+        clampBox(box)
+        renderBoxEl(id)
+        syncPosFields(id)
+        updateExport()
+      })
+
+      document.addEventListener('mouseup', () => {
+        if (dragState) {
+          dragState = null
+          document.body.style.cursor = ''
+          document.body.style.userSelect = ''
+        }
+      })
+
+      // ═══════════════════════════════════════════════════════════
+      // RENDER
+      // ═══════════════════════════════════════════════════════════
+      function render() {
+        renderBorder()
+        renderGrid()
+        for (const id of BOX_ORDER) renderBoxEl(id)
+        updateExport()
+        updateScaleDisp()
+      }
+
+      function renderBorder() {
+        const b = state.outerBorder
+        const el = document.getElementById('ov-border')
+        el.style.display = b.visible && (b.widthH > 0 || b.widthV > 0) ? 'block' : 'none'
+        el.style.borderStyle = 'solid'
+        el.style.borderColor = b.color
+        el.style.borderTopWidth = b.widthH + 'px'
+        el.style.borderBottomWidth = b.widthH + 'px'
+        el.style.borderLeftWidth = b.widthV + 'px'
+        el.style.borderRightWidth = b.widthV + 'px'
+        el.style.opacity = b.opacity
+        const dot = document.getElementById('border-dot')
+        if (dot) dot.style.background = b.color
+      }
+
+      function renderGrid() {
+        const gc = document.getElementById('grid-canvas')
+        if (!state.snapGrid) {
+          gc.style.display = 'none'
+          return
+        }
+        gc.width = CW
+        gc.height = CH
+        gc.style.width = CW + 'px'
+        gc.style.height = CH + 'px'
+        gc.style.display = 'block'
+        const ctx = gc.getContext('2d')
+        ctx.clearRect(0, 0, CW, CH)
+        ctx.strokeStyle = 'rgba(240,165,0,0.07)'
+        ctx.lineWidth = 1
+        for (let x = 0; x <= CW; x += state.gridSize) {
+          ctx.beginPath()
+          ctx.moveTo(x, 0)
+          ctx.lineTo(x, CH)
+          ctx.stroke()
+        }
+        for (let y = 0; y <= CH; y += state.gridSize) {
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(CW, y)
+          ctx.stroke()
+        }
+      }
+
+      function getOrCreateBoxEl(id) {
+        let el = document.getElementById(`ov-${id}`)
+        if (!el) {
+          el = document.createElement('div')
+          el.id = `ov-${id}`
+          el.className = 'ov-box'
+
+          const inner = document.createElement('div')
+          inner.className = 'ov-box-inner'
+
+          const lbl = document.createElement('div')
+          lbl.className = 'ov-label'
+          inner.appendChild(lbl)
+
+          if (id === 'cam1' || id === 'cam2') {
+            const sub = document.createElement('div')
+            sub.className = 'ov-sublabel'
+            sub.textContent = 'webcam'
+            inner.appendChild(sub)
+          }
+          if (id === 'info') {
+            const sub = document.createElement('div')
+            sub.className = 'ov-sublabel'
+            sub.textContent = 'ep. title · timer · alerts'
+            inner.appendChild(sub)
+          }
+
+          el.appendChild(inner)
+
+          // Resize handles
+          for (const dir of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) {
+            const rh = document.createElement('div')
+            rh.className = `rh ${dir}`
+            rh.addEventListener('mousedown', (e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              const box = state.boxes[id]
+              dragState = {
+                type: 'resize',
+                id,
+                sx: e.clientX,
+                sy: e.clientY,
+                bx: box.x,
+                by: box.y,
+                bw: box.w,
+                bh: box.h,
+                dir,
+              }
+              document.body.style.cursor = `${dir}-resize`
+              document.body.style.userSelect = 'none'
+              selectBox(id)
+            })
+            el.appendChild(rh)
+          }
+
+          // Drag
+          el.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('rh')) return
+            e.preventDefault()
+            const box = state.boxes[id]
+            dragState = {
+              type: 'drag',
+              id,
+              sx: e.clientX,
+              sy: e.clientY,
+              bx: box.x,
+              by: box.y,
+            }
+            document.body.style.cursor = 'grabbing'
+            document.body.style.userSelect = 'none'
+            selectBox(id)
+          })
+
+          document.getElementById('overlay-canvas').appendChild(el)
+        }
+        return el
+      }
+
+      function renderBoxEl(id) {
+        const box = state.boxes[id]
+        const el = getOrCreateBoxEl(id)
+        if (!box.visible) {
+          el.style.display = 'none'
+          return
+        }
+        el.style.display = 'block'
+        el.style.left = box.x + 'px'
+        el.style.top = box.y + 'px'
+        el.style.width = box.w + 'px'
+        el.style.height = box.h + 'px'
+        el.style.opacity = box.opacity
+        el.classList.toggle('selected', state.selectedBox === id)
+
+        const inner = el.querySelector('.ov-box-inner')
+        inner.style.background = box.color
+        inner.style.border = `${box.borderWidth}px solid ${box.borderColor}`
+
+        const lbl = el.querySelector('.ov-label')
+        if (state.showLabels) {
+          lbl.textContent = box.label
+          const fs = Math.max(16, Math.min(28, box.h / 5))
+          lbl.style.fontSize = fs + 'px'
+          lbl.style.color = isDark(box.color)
+            ? 'rgba(245,240,232,0.45)'
+            : 'rgba(26,22,16,0.5)'
+        } else {
+          lbl.textContent = ''
+        }
+      }
+
+      function isDark(hex) {
+        const r = parseInt(hex.slice(1, 3), 16),
+          g = parseInt(hex.slice(3, 5), 16),
+          b = parseInt(hex.slice(5, 7), 16)
+        return (r * 299 + g * 587 + b * 114) / 1000 < 128
+      }
+
+      function selectBox(id) {
+        state.selectedBox = id
+        for (const bid of BOX_ORDER) {
+          const el = document.getElementById(`ov-${bid}`)
+          if (el) el.classList.toggle('selected', bid === id)
+        }
+        const sec = document.getElementById(`sec-box-${id}`)
+        if (sec) {
+          sec.classList.remove('collapsed')
+          sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // SIDEBAR: BOX SECTIONS
+      // ═══════════════════════════════════════════════════════════
+      function buildBoxSections() {
+        const container = document.getElementById('box-sections')
+        for (const id of BOX_ORDER) {
+          const box = state.boxes[id]
+          const meta = BOX_META[id]
+          const sec = document.createElement('div')
+          sec.className = 'section'
+          sec.id = `sec-box-${id}`
+
+          const fillSwatches = FILL_SWATCHES.map(
+            (c) =>
+              `<div class="swatch" style="background:${c}" onclick="applyFill('${id}','${c}')" title="${c}"></div>`
+          ).join('')
+          const bdrSwatches = BORDER_SWATCHES.map(
+            (c) =>
+              `<div class="swatch" style="background:${c}" onclick="applyBorderCol('${id}','${c}')" title="${c}"></div>`
+          ).join('')
+
+          sec.innerHTML = `
+      <div class="section-header" onclick="toggleSec('box-${id}')">
+        <div class="box-dot" style="background:${meta.dot}"></div>
+        <span class="section-title">${meta.defaultLabel}</span>
+        <button class="vis-btn" id="vis-${id}" title="Toggle visibility"
+          onclick="event.stopPropagation(); toggleVis('${id}')">◉</button>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Label</label>
+          <input type="text" id="${id}-lbl" value="${box.label}" oninput="onBoxChange('${id}')">
+        </div>
+
+        <div class="ctrl-divider">Fill</div>
+        <div class="ctrl-row" style="margin-top:6px">
+          <label>Color</label>
+          <input type="color" id="${id}-color" value="${box.color}" oninput="onBoxChange('${id}')">
+          <span class="val-disp" id="${id}-color-val">${box.color}</span>
+        </div>
+        <div class="ctrl-row" style="margin-top:6px">
+          <label>Swatches</label>
+          <div class="swatches">${fillSwatches}</div>
+        </div>
+        <div class="ctrl-row">
+          <label>Opacity</label>
+          <input type="range" id="${id}-opacity" min="0" max="1" step="0.05" value="${box.opacity}" oninput="onBoxChange('${id}')">
+          <span class="val-disp" id="${id}-opacity-val">${Math.round(box.opacity * 100)}%</span>
+        </div>
+
+        <div class="ctrl-divider">Border</div>
+        <div class="ctrl-row" style="margin-top:6px">
+          <label>Color</label>
+          <input type="color" id="${id}-bc" value="${box.borderColor}" oninput="onBoxChange('${id}')">
+          <span class="val-disp" id="${id}-bc-val">${box.borderColor}</span>
+        </div>
+        <div class="ctrl-row" style="margin-top:6px">
+          <label>Swatches</label>
+          <div class="swatches">${bdrSwatches}</div>
+        </div>
+        <div class="ctrl-row">
+          <label>Width</label>
+          <input type="range" id="${id}-bw" min="0" max="20" value="${box.borderWidth}" oninput="onBoxChange('${id}')">
+          <span class="val-disp" id="${id}-bw-val">${box.borderWidth}px</span>
+        </div>
+
+        <div class="ctrl-divider">Position &amp; Size</div>
+        <div class="pos-grid">
+          <div class="pos-field"><label>X</label><input type="number" id="${id}-x" value="${Math.round(box.x)}" oninput="onBoxPos('${id}')"></div>
+          <div class="pos-field"><label>Y</label><input type="number" id="${id}-y" value="${Math.round(box.y)}" oninput="onBoxPos('${id}')"></div>
+          <div class="pos-field"><label>W</label><input type="number" id="${id}-w" value="${Math.round(box.w)}" oninput="onBoxPos('${id}')"></div>
+          <div class="pos-field"><label>H</label><input type="number" id="${id}-h" value="${Math.round(box.h)}" oninput="onBoxPos('${id}')"></div>
+        </div>
+      </div>
+    `
+          container.appendChild(sec)
+        }
+      }
+
+      function onBoxChange(id) {
+        const box = state.boxes[id]
+        const get = (s) => document.getElementById(s)
+        const lbl = get(`${id}-lbl`)
+        if (lbl) box.label = lbl.value
+        const color = get(`${id}-color`)
+        if (color) {
+          box.color = color.value
+          const v = get(`${id}-color-val`)
+          if (v) v.textContent = color.value
+        }
+        const bc = get(`${id}-bc`)
+        if (bc) {
+          box.borderColor = bc.value
+          const v = get(`${id}-bc-val`)
+          if (v) v.textContent = bc.value
+        }
+        const bw = get(`${id}-bw`)
+        if (bw) {
+          box.borderWidth = +bw.value
+          const v = get(`${id}-bw-val`)
+          if (v) v.textContent = bw.value + 'px'
+        }
+        const op = get(`${id}-opacity`)
+        if (op) {
+          box.opacity = +op.value
+          const v = get(`${id}-opacity-val`)
+          if (v) v.textContent = Math.round(+op.value * 100) + '%'
+        }
+        renderBoxEl(id)
+        updateExport()
+      }
+
+      function onBoxPos(id) {
+        const box = state.boxes[id]
+        const x = +document.getElementById(`${id}-x`).value
+        const y = +document.getElementById(`${id}-y`).value
+        const w = +document.getElementById(`${id}-w`).value
+        const h = +document.getElementById(`${id}-h`).value
+        box.x = x || 0
+        box.y = y || 0
+        box.w = w || MIN_W
+        box.h = h || MIN_H
+        clampBox(box)
+        renderBoxEl(id)
+        updateExport()
+      }
+
+      function syncPosFields(id) {
+        const box = state.boxes[id]
+        for (const f of ['x', 'y', 'w', 'h']) {
+          const el = document.getElementById(`${id}-${f}`)
+          if (el) el.value = Math.round(box[f])
+        }
+      }
+
+      function applyFill(id, color) {
+        state.boxes[id].color = color
+        const el = document.getElementById(`${id}-color`)
+        if (el) el.value = color
+        const val = document.getElementById(`${id}-color-val`)
+        if (val) val.textContent = color
+        renderBoxEl(id)
+        updateExport()
+      }
+
+      function applyBorderCol(id, color) {
+        state.boxes[id].borderColor = color
+        const el = document.getElementById(`${id}-bc`)
+        if (el) el.value = color
+        const val = document.getElementById(`${id}-bc-val`)
+        if (val) val.textContent = color
+        renderBoxEl(id)
+        updateExport()
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // BORDER & GLOBAL
+      // ═══════════════════════════════════════════════════════════
+      function onBorderChange() {
+        const b = state.outerBorder
+        b.color = document.getElementById('border-color').value
+        b.widthH = +document.getElementById('border-width-h').value
+        b.widthV = +document.getElementById('border-width-v').value
+        b.opacity = +document.getElementById('border-opacity').value
+        document.getElementById('border-color-val').textContent = b.color
+        document.getElementById('border-width-h-val').textContent = b.widthH + 'px'
+        document.getElementById('border-width-v-val').textContent = b.widthV + 'px'
+        document.getElementById('border-opacity-val').textContent =
+          Math.round(b.opacity * 100) + '%'
+        renderBorder()
+        updateExport()
+      }
+
+      function setBorderColor(c) {
+        state.outerBorder.color = c
+        document.getElementById('border-color').value = c
+        document.getElementById('border-color-val').textContent = c
+        renderBorder()
+        updateExport()
+      }
+
+      function syncBorderControls() {
+        const b = state.outerBorder
+        document.getElementById('border-color').value = b.color
+        document.getElementById('border-width-h').value = b.widthH
+        document.getElementById('border-width-v').value = b.widthV
+        document.getElementById('border-opacity').value = b.opacity
+        document.getElementById('border-color-val').textContent = b.color
+        document.getElementById('border-width-h-val').textContent = b.widthH + 'px'
+        document.getElementById('border-width-v-val').textContent = b.widthV + 'px'
+        document.getElementById('border-opacity-val').textContent =
+          Math.round(b.opacity * 100) + '%'
+      }
+
+      function toggleVis(id) {
+        if (id === 'border') {
+          state.outerBorder.visible = !state.outerBorder.visible
+          document
+            .getElementById('vis-border')
+            .classList.toggle('off', !state.outerBorder.visible)
+          renderBorder()
+        } else {
+          state.boxes[id].visible = !state.boxes[id].visible
+          document
+            .getElementById(`vis-${id}`)
+            .classList.toggle('off', !state.boxes[id].visible)
+          renderBoxEl(id)
+        }
+        updateExport()
+      }
+
+      function onSnapChange() {
+        state.snapGrid = document.getElementById('snap-tog').checked
+        document.getElementById('grid-size-row').style.display = state.snapGrid
+          ? 'flex'
+          : 'none'
+        renderGrid()
+      }
+      function onGridSizeChange(v) {
+        state.gridSize = +v
+        document.getElementById('grid-size-val').textContent = v + 'px'
+        if (state.snapGrid) renderGrid()
+      }
+      function onLabelsChange() {
+        state.showLabels = document.getElementById('labels-tog').checked
+        render()
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // PRESETS
+      // ═══════════════════════════════════════════════════════════
+      function applyPreset(name) {
+        const p = PRESETS[name]
+        if (!p) return
+        Object.assign(state.outerBorder, p.outerBorder)
+        for (const [id, vals] of Object.entries(p.boxes))
+          Object.assign(state.boxes[id], vals)
+        syncBorderControls()
+        for (const id of BOX_ORDER) syncPosFields(id)
+        render()
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // SECTIONS
+      // ═══════════════════════════════════════════════════════════
+      function toggleSec(id) {
+        const sec = document.getElementById(`sec-${id}`)
+        if (sec) sec.classList.toggle('collapsed')
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // SCALE & FIT
+      // ═══════════════════════════════════════════════════════════
+      function fitPreview() {
+        const area = document.getElementById('preview-area')
+        const aw = area.clientWidth - 40,
+          ah = area.clientHeight - 40
+        setScale(Math.min(aw / CW, ah / CH))
+      }
+      function setScale(s) {
+        state.scale = Math.max(0.1, Math.min(1, s))
+        const canvas = document.getElementById('overlay-canvas')
+        const wrapper = document.getElementById('preview-wrapper')
+        canvas.style.width = CW + 'px'
+        canvas.style.height = CH + 'px'
+        canvas.style.transform = `scale(${state.scale})`
+        wrapper.style.width = Math.round(CW * state.scale) + 'px'
+        wrapper.style.height = Math.round(CH * state.scale) + 'px'
+        updateScaleDisp()
+      }
+      function updateScaleDisp() {
+        document.getElementById('scale-disp').textContent =
+          Math.round(state.scale * 100) + '%'
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // EXPORT
+      // ═══════════════════════════════════════════════════════════
+      function switchTab(t) {
+        state.exportTab = t
+        document
+          .querySelectorAll('.ex-tab')
+          .forEach((el) => el.classList.remove('active'))
+        document.getElementById(`tab-${t}`).classList.add('active')
+        updateExport()
+      }
+
+      function updateExport() {
+        document.getElementById('export-output').textContent = genExport(
+          state.exportTab
+        )
+        syncToServer()
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // LIVE SYNC TO SERVER
+      // ═══════════════════════════════════════════════════════════
+      let syncTimer = null
+      function syncToServer() {
+        clearTimeout(syncTimer)
+        syncTimer = setTimeout(() => {
+          fetch('/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              showLabels: state.showLabels,
+              outerBorder: state.outerBorder,
+              boxes: state.boxes,
+            }),
+          })
+            .then((r) => setConnStatus(r.ok ? 'live' : 'error'))
+            .catch(() => setConnStatus('offline'))
+        }, 50)
+      }
+
+      function setConnStatus(s) {
+        const dot = document.getElementById('conn-dot')
+        const txt = document.getElementById('conn-txt')
+        if (!dot || !txt) return
+        dot.className = ''
+        if (s === 'live') {
+          dot.classList.add('live')
+          dot.textContent = '●'
+          txt.textContent = 'live'
+        } else if (s === 'error') {
+          dot.classList.add('error')
+          dot.textContent = '●'
+          txt.textContent = 'server error'
+        } else {
+          dot.textContent = '○'
+          txt.textContent = 'server offline'
+        }
+      }
+
+      function genExport(tab) {
+        if (tab === 'css') return genCSS()
+        if (tab === 'json') return genJSON()
+        if (tab === 'obs') return genOBS()
+        return ''
+      }
+
+      function genCSS() {
+        const b = state.outerBorder
+        let css = `/* 1g of Code — Stream Overlay\n   Canvas: ${CW}×${CH} */\n\n`
+        css += `.overlay {\n  position: relative;\n  width: ${CW}px; height: ${CH}px;\n  background: #0f0f0f;\n`
+        if (b.visible && (b.widthH > 0 || b.widthV > 0))
+          css += `  border: solid ${b.color};\n  border-width: ${b.widthH}px ${b.widthV}px; /* opacity: ${Math.round(b.opacity * 100)}% */\n`
+        css += `}\n`
+        for (const [id, box] of Object.entries(state.boxes)) {
+          if (!box.visible) {
+            css += `\n/* .box-${id} — hidden */\n`
+            continue
+          }
+          css += `\n.box-${id} { /* ${box.label} */\n`
+          css += `  position: absolute;\n`
+          css += `  left: ${Math.round(box.x)}px; top: ${Math.round(box.y)}px;\n`
+          css += `  width: ${Math.round(box.w)}px; height: ${Math.round(box.h)}px;\n`
+          css += `  background: ${box.color};\n`
+          if (box.borderWidth > 0)
+            css += `  border: ${box.borderWidth}px solid ${box.borderColor};\n`
+          css += `  border-radius: 6px;\n`
+          if (box.opacity < 1) css += `  opacity: ${box.opacity};\n`
+          css += `}\n`
+        }
+        return css
+      }
+
+      function genJSON() {
+        return JSON.stringify(
+          {
+            canvas: { width: CW, height: CH },
+            outerBorder: state.outerBorder,
+            boxes: Object.fromEntries(
+              Object.entries(state.boxes).map(([id, b]) => [
+                id,
+                {
+                  ...b,
+                  x: Math.round(b.x),
+                  y: Math.round(b.y),
+                  w: Math.round(b.w),
+                  h: Math.round(b.h),
+                },
+              ])
+            ),
+          },
+          null,
+          2
+        )
+      }
+
+      function genOBS() {
+        const b = state.outerBorder
+        let css = `/* OBS Browser Source Custom CSS\n   1g of Code Stream Overlay */\n\nbody { margin: 0; overflow: hidden; background: transparent; }\n\n`
+        css += `.overlay {\n  position: fixed; inset: 0;\n  width: ${CW}px; height: ${CH}px;\n`
+        if (b.visible && (b.widthH > 0 || b.widthV > 0))
+          css += `  box-shadow: inset 0 ${b.widthH}px 0 0 ${b.color}, inset 0 -${b.widthH}px 0 0 ${b.color}, inset ${b.widthV}px 0 0 0 ${b.color}, inset -${b.widthV}px 0 0 0 ${b.color};\n`
+        css += `}\n`
+        for (const [id, box] of Object.entries(state.boxes)) {
+          css += `\n/* ${box.label} */\n`
+          css += `[data-zone="${id}"] {\n`
+          css += `  position: absolute;\n  left: ${Math.round(box.x)}px; top: ${Math.round(box.y)}px;\n`
+          css += `  width: ${Math.round(box.w)}px; height: ${Math.round(box.h)}px;\n`
+          css += `  background: ${box.color};\n`
+          if (box.borderWidth > 0)
+            css += `  border: ${box.borderWidth}px solid ${box.borderColor};\n`
+          css += `  border-radius: 6px;\n`
+          if (!box.visible) css += `  display: none;\n`
+          css += `}\n`
+        }
+        return css
+      }
+
+      function copyExport() {
+        navigator.clipboard.writeText(genExport(state.exportTab)).then(() => {
+          const btn = document.getElementById('copy-btn')
+          btn.textContent = 'Copied!'
+          btn.classList.add('copied')
+          setTimeout(() => {
+            btn.textContent = 'Copy'
+            btn.classList.remove('copied')
+          }, 1600)
+        })
+      }
+
+      function downloadLayout() {
+        const json = genJSON()
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(
+          new Blob([json], { type: 'application/json' })
+        )
+        a.download = '1g-overlay-layout.json'
+        a.click()
+      }
+
+      function downloadCurrentTab() {
+        const names = {
+          css: '1g-overlay.css',
+          json: '1g-overlay-layout.json',
+          obs: '1g-overlay-obs.css',
+        }
+        const types = {
+          css: 'text/css',
+          json: 'application/json',
+          obs: 'text/css',
+        }
+        const t = state.exportTab
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(
+          new Blob([genExport(t)], { type: types[t] })
+        )
+        a.download = names[t]
+        a.click()
+      }
+
+      function downloadAll() {
+        const files = [
+          { name: '1g-overlay.css', content: genCSS(), type: 'text/css' },
+          {
+            name: '1g-overlay-layout.json',
+            content: genJSON(),
+            type: 'application/json',
+          },
+          {
+            name: '1g-overlay-obs.css',
+            content: genOBS(),
+            type: 'text/css',
+          },
+        ]
+        files.forEach((f, i) => {
+          setTimeout(() => {
+            const a = document.createElement('a')
+            a.href = URL.createObjectURL(
+              new Blob([f.content], { type: f.type })
+            )
+            a.download = f.name
+            a.click()
+          }, i * 250)
+        })
+      }
+
+      function importLayout() {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = '.json'
+        input.onchange = (e) => {
+          const file = e.target.files[0]
+          if (!file) return
+          const reader = new FileReader()
+          reader.onload = (ev) => {
+            try {
+              const data = JSON.parse(ev.target.result)
+              restoreFromServer(data)
+              render()
+            } catch {
+              alert('Invalid JSON file — expected a 1g overlay layout export.')
+            }
+          }
+          reader.readAsText(file)
+        }
+        input.click()
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // INIT
+      // ═══════════════════════════════════════════════════════════
+      function restoreFromServer(saved) {
+        if (saved.showLabels !== undefined) {
+          state.showLabels = saved.showLabels
+          const tog = document.getElementById('labels-tog')
+          if (tog) tog.checked = saved.showLabels
+        }
+        if (saved.outerBorder) {
+          const ob = saved.outerBorder
+          // Backward compat: old exports used a single `width` field
+          if (ob.width !== undefined && ob.widthH === undefined) {
+            ob.widthH = ob.width
+            ob.widthV = ob.width
+          }
+          Object.assign(state.outerBorder, ob)
+          syncBorderControls()
+        }
+        if (saved.boxes) {
+          for (const [id, vals] of Object.entries(saved.boxes)) {
+            if (state.boxes[id]) Object.assign(state.boxes[id], vals)
+          }
+          for (const id of BOX_ORDER) syncPosFields(id)
+        }
+      }
+
+      function init() {
+        buildBoxSections()
+        fitPreview()
+
+        // Try to restore state from server; fall back to defaults if offline
+        fetch('/state')
+          .then((r) => (r.ok && r.status !== 204 ? r.json() : null))
+          .then((saved) => {
+            if (saved) restoreFromServer(saved)
+          })
+          .catch(() => {})
+          .finally(() => render())
+
+        // Deselect on canvas background click
+        document
+          .getElementById('overlay-canvas')
+          .addEventListener('mousedown', (e) => {
+            if (e.target === e.currentTarget || e.target.id === 'ov-border') {
+              state.selectedBox = null
+              for (const id of BOX_ORDER) {
+                const el = document.getElementById(`ov-${id}`)
+                if (el) el.classList.remove('selected')
+              }
+            }
+          })
+
+        window.addEventListener('resize', fitPreview)
+      }
+
+      init()
+    </script>
+  </body>
+</html>
