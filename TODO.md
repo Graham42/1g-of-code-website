@@ -1,4 +1,5 @@
 - human review of episode context
 - human review of copy text on each page
+  - revise tone of copy text to flow better
 - use twitch word logo vs icon - or consult AI on this.
 - reconsider home layout with single latest episode first, them older below.
