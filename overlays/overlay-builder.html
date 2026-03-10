@@ -710,8 +710,19 @@
                 <input
                   type="checkbox"
                   id="labels-tog"
-                  checked
                   onchange="onLabelsChange()"
+                />
+                <div class="tog-track"></div>
+                <div class="tog-thumb"></div>
+              </label>
+            </div>
+            <div class="tog-row">
+              <label>Mask gaps</label>
+              <label class="tog-wrap">
+                <input
+                  type="checkbox"
+                  id="mask-tog"
+                  onchange="onMaskChange()"
                 />
                 <div class="tog-track"></div>
                 <div class="tog-thumb"></div>
@@ -760,10 +771,10 @@
                 id="border-width-h"
                 min="0"
                 max="40"
-                value="8"
+                value="14"
                 oninput="onBorderChange()"
               />
-              <span class="val-disp" id="border-width-h-val">8px</span>
+              <span class="val-disp" id="border-width-h-val">14px</span>
             </div>
             <div class="ctrl-row">
               <label>V Width</label>
@@ -772,10 +783,10 @@
                 id="border-width-v"
                 min="0"
                 max="40"
-                value="8"
+                value="14"
                 oninput="onBorderChange()"
               />
-              <span class="val-disp" id="border-width-v-val">8px</span>
+              <span class="val-disp" id="border-width-v-val">14px</span>
             </div>
             <div class="ctrl-row">
               <label>Opacity</label>
@@ -859,6 +870,14 @@
           <div id="overlay-canvas">
             <div id="ov-border"></div>
             <canvas id="grid-canvas"></canvas>
+            <svg id="gap-mask-svg" style="position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none;z-index:500;display:none">
+              <defs>
+                <mask id="gap-mask">
+                  <rect width="1920" height="1080" fill="white"/>
+                </mask>
+              </defs>
+              <rect width="1920" height="1080" fill="rgba(0,0,0,0.78)" mask="url(#gap-mask)"/>
+            </svg>
             <!-- boxes injected by JS -->
           </div>
         </div>
@@ -923,56 +942,61 @@
         scale: 0.5,
         snapGrid: false,
         gridSize: 20,
-        showLabels: true,
+        showLabels: false,
+        showMask: false,
         selectedBox: null,
         exportTab: 'css',
-        outerBorder: { visible: true, color: '#f0a500', widthH: 8, widthV: 8, opacity: 1 },
+        outerBorder: { visible: true, color: '#f0a500', widthH: 14, widthV: 14, opacity: 1 },
         boxes: {
           main: {
             label: 'Main Content',
-            x: 8,
-            y: 8,
-            w: 1260,
-            h: 1064,
+            x: 27,
+            y: 43,
+            w: 1439,
+            h: 997,
             color: '#1a1812',
-            borderColor: '#f0a500',
-            borderWidth: 2,
+            borderColor: '#9a9080',
+            borderWidth: 4,
+            borderRadius: 0,
             opacity: 1,
             visible: true,
           },
           info: {
             label: 'Info Panel',
-            x: 1276,
-            y: 8,
-            w: 636,
-            h: 300,
+            x: 1468,
+            y: 41,
+            w: 410,
+            h: 453,
             color: '#1a1812',
-            borderColor: '#f0a500',
-            borderWidth: 2,
+            borderColor: '#2e2a22',
+            borderWidth: 4,
+            borderRadius: 0,
             opacity: 1,
             visible: true,
           },
           cam1: {
             label: 'Host 1',
-            x: 1276,
-            y: 316,
-            w: 636,
-            h: 374,
+            x: 1468,
+            y: 496,
+            w: 410,
+            h: 268,
             color: '#0d0d0b',
-            borderColor: '#2e2a22',
-            borderWidth: 2,
+            borderColor: '#f0a500',
+            borderWidth: 4,
+            borderRadius: 0,
             opacity: 1,
             visible: true,
           },
           cam2: {
             label: 'Host 2',
-            x: 1276,
-            y: 698,
-            w: 636,
-            h: 374,
-            color: '#0d0d0b',
-            borderColor: '#2e2a22',
-            borderWidth: 2,
+            x: 1468,
+            y: 765,
+            w: 410,
+            h: 274,
+            color: '#1a1812',
+            borderColor: '#4a9eff',
+            borderWidth: 4,
+            borderRadius: 0,
             opacity: 1,
             visible: true,
           },
@@ -1102,6 +1126,7 @@
         }
         clampBox(box)
         renderBoxEl(id)
+        renderMask()
         syncPosFields(id)
         updateExport()
       })
@@ -1121,8 +1146,31 @@
         renderBorder()
         renderGrid()
         for (const id of BOX_ORDER) renderBoxEl(id)
+        renderMask()
         updateExport()
         updateScaleDisp()
+      }
+
+      function renderMask() {
+        const svg = document.getElementById('gap-mask-svg')
+        if (!svg) return
+        svg.style.display = state.showMask ? 'block' : 'none'
+        if (!state.showMask) return
+        const mask = document.getElementById('gap-mask')
+        // Remove previous box cutouts (keep the first white rect)
+        while (mask.children.length > 1) mask.removeChild(mask.lastChild)
+        for (const id of BOX_ORDER) {
+          const box = state.boxes[id]
+          if (!box.visible) continue
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+          rect.setAttribute('x', Math.round(box.x))
+          rect.setAttribute('y', Math.round(box.y))
+          rect.setAttribute('width', Math.round(box.w))
+          rect.setAttribute('height', Math.round(box.h))
+          rect.setAttribute('rx', box.borderRadius)
+          rect.setAttribute('fill', 'black')
+          mask.appendChild(rect)
+        }
       }
 
       function renderBorder() {
@@ -1265,6 +1313,7 @@
         const inner = el.querySelector('.ov-box-inner')
         inner.style.background = box.color
         inner.style.border = `${box.borderWidth}px solid ${box.borderColor}`
+        inner.style.borderRadius = box.borderRadius + 'px'
 
         const lbl = el.querySelector('.ov-label')
         if (state.showLabels) {
@@ -1365,6 +1414,11 @@
           <input type="range" id="${id}-bw" min="0" max="20" value="${box.borderWidth}" oninput="onBoxChange('${id}')">
           <span class="val-disp" id="${id}-bw-val">${box.borderWidth}px</span>
         </div>
+        <div class="ctrl-row">
+          <label>Radius</label>
+          <input type="range" id="${id}-br" min="0" max="60" value="${box.borderRadius}" oninput="onBoxChange('${id}')">
+          <span class="val-disp" id="${id}-br-val">${box.borderRadius}px</span>
+        </div>
 
         <div class="ctrl-divider">Position &amp; Size</div>
         <div class="pos-grid">
@@ -1401,6 +1455,12 @@
           box.borderWidth = +bw.value
           const v = get(`${id}-bw-val`)
           if (v) v.textContent = bw.value + 'px'
+        }
+        const br = get(`${id}-br`)
+        if (br) {
+          box.borderRadius = +br.value
+          const v = get(`${id}-br-val`)
+          if (v) v.textContent = br.value + 'px'
         }
         const op = get(`${id}-opacity`)
         if (op) {
@@ -1526,6 +1586,10 @@
       function onLabelsChange() {
         state.showLabels = document.getElementById('labels-tog').checked
         render()
+      }
+      function onMaskChange() {
+        state.showMask = document.getElementById('mask-tog').checked
+        renderMask()
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -1660,7 +1724,7 @@
           css += `  background: ${box.color};\n`
           if (box.borderWidth > 0)
             css += `  border: ${box.borderWidth}px solid ${box.borderColor};\n`
-          css += `  border-radius: 6px;\n`
+          css += `  border-radius: ${box.borderRadius}px;\n`
           if (box.opacity < 1) css += `  opacity: ${box.opacity};\n`
           css += `}\n`
         }
@@ -1705,7 +1769,7 @@
           css += `  background: ${box.color};\n`
           if (box.borderWidth > 0)
             css += `  border: ${box.borderWidth}px solid ${box.borderColor};\n`
-          css += `  border-radius: 6px;\n`
+          css += `  border-radius: ${box.borderRadius}px;\n`
           if (!box.visible) css += `  display: none;\n`
           css += `}\n`
         }

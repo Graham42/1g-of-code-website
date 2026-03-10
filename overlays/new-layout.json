@@ -1,0 +1,67 @@
+{
+  "canvas": {
+    "width": 1920,
+    "height": 1080
+  },
+  "outerBorder": {
+    "visible": true,
+    "color": "#f0a500",
+    "widthH": 14,
+    "widthV": 14,
+    "opacity": 1
+  },
+  "boxes": {
+    "main": {
+      "label": "Main Content",
+      "x": 27,
+      "y": 43,
+      "w": 1439,
+      "h": 997,
+      "color": "#1a1812",
+      "borderColor": "#9a9080",
+      "borderWidth": 4,
+      "borderRadius": 0,
+      "opacity": 1,
+      "visible": true
+    },
+    "info": {
+      "label": "Info Panel",
+      "x": 1468,
+      "y": 41,
+      "w": 410,
+      "h": 453,
+      "color": "#1a1812",
+      "borderColor": "#2e2a22",
+      "borderWidth": 4,
+      "borderRadius": 0,
+      "opacity": 1,
+      "visible": true
+    },
+    "cam1": {
+      "label": "Host 1",
+      "x": 1468,
+      "y": 496,
+      "w": 410,
+      "h": 268,
+      "color": "#0d0d0b",
+      "borderColor": "#f0a500",
+      "borderWidth": 4,
+      "borderRadius": 0,
+      "opacity": 1,
+      "visible": true
+    },
+    "cam2": {
+      "label": "Host 2",
+      "x": 1468,
+      "y": 765,
+      "w": 410,
+      "h": 274,
+      "color": "#1a1812",
+      "borderColor": "#4a9eff",
+      "borderWidth": 4,
+      "borderRadius": 0,
+      "opacity": 1,
+      "visible": true
+    }
+  }
+}
