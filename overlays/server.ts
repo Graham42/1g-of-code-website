@@ -1,8 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // 1g of Code — Live Overlay Sync Server
 // Zero npm dependencies — pure Node.js http module
-// Usage: node overlays/server.js [port]
-//        PORT=4000 node overlays/server.js
+// Usage: bun overlays/server.ts [port]
+//        PORT=4000 bun overlays/server.ts
 
 import http from 'http'
 import fs from 'fs'
@@ -24,15 +24,15 @@ const TWITCH_TOKEN = process.env.TWITCH_TOKEN
 const TWITCH_BROADCASTER_ID = process.env.TWITCH_BROADCASTER_ID
 const TWITCH_OK = !!(TWITCH_CLIENT_ID && TWITCH_TOKEN && TWITCH_BROADCASTER_ID)
 
-let lastState = null
-const sseClients = new Set()
-const followClients = new Set()
-const subscribeClients = new Set()
-const alertClients = new Set()
-const raidClients = new Set()
+let lastState: unknown = null
+const sseClients = new Set<http.ServerResponse>()
+const followClients = new Set<http.ServerResponse>()
+const subscribeClients = new Set<http.ServerResponse>()
+const alertClients = new Set<http.ServerResponse>()
+const raidClients = new Set<http.ServerResponse>()
 
 // ── SSE broadcast ─────────────────────────────────────────
-function broadcast(data) {
+function broadcast(data: unknown) {
   const msg = `data: ${JSON.stringify(data)}\n\n`
   for (const res of sseClients) {
     try {
@@ -41,7 +41,7 @@ function broadcast(data) {
   }
 }
 
-function broadcastFollow(username) {
+function broadcastFollow(username: string) {
   const msg = `data: ${JSON.stringify({ type: 'follow', username })}\n\n`
   for (const res of followClients) {
     try {
@@ -50,7 +50,7 @@ function broadcastFollow(username) {
   }
 }
 
-function broadcastSubscribe(username) {
+function broadcastSubscribe(username: string) {
   const msg = `data: ${JSON.stringify({ type: 'subscribe', username })}\n\n`
   for (const res of subscribeClients) {
     try {
@@ -59,7 +59,7 @@ function broadcastSubscribe(username) {
   }
 }
 
-function broadcastAlert(type, username) {
+function broadcastAlert(type: string, username: string) {
   const msg = `data: ${JSON.stringify({ type, username })}\n\n`
   for (const res of alertClients) {
     try {
@@ -68,7 +68,7 @@ function broadcastAlert(type, username) {
   }
 }
 
-function broadcastRaid(username, viewers) {
+function broadcastRaid(username: string, viewers: number) {
   const msg = `data: ${JSON.stringify({ type: 'raid', username, viewers })}\n\n`
   for (const res of raidClients) {
     try {
@@ -78,13 +78,13 @@ function broadcastRaid(username, viewers) {
 }
 
 // ── Twitch EventSub ───────────────────────────────────────
-let twitchWs = null
-let twitchReconnTimer = null
-let twitchKaTimer = null
+let twitchWs: WebSocket | null = null
+let twitchReconnTimer: ReturnType<typeof setTimeout> | null = null
+let twitchKaTimer: ReturnType<typeof setTimeout> | null = null
 let twitchKaSecs = 10
 
 function resetTwitchKeepalive() {
-  clearTimeout(twitchKaTimer)
+  clearTimeout(twitchKaTimer ?? undefined)
   twitchKaTimer = setTimeout(
     () => {
       console.warn('  [twitch] Keepalive timeout — reconnecting')
@@ -94,14 +94,14 @@ function resetTwitchKeepalive() {
   )
 }
 
-async function twitchSubscribeFollow(sessionId) {
+async function twitchSubscribeFollow(sessionId: string) {
   const res = await fetch(
     'https://api.twitch.tv/helix/eventsub/subscriptions',
     {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${TWITCH_TOKEN}`,
-        'Client-Id': TWITCH_CLIENT_ID,
+        'Client-Id': TWITCH_CLIENT_ID!,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -118,14 +118,14 @@ async function twitchSubscribeFollow(sessionId) {
   if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
 }
 
-async function twitchSubscribeRaid(sessionId) {
+async function twitchSubscribeRaid(sessionId: string) {
   const res = await fetch(
     'https://api.twitch.tv/helix/eventsub/subscriptions',
     {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${TWITCH_TOKEN}`,
-        'Client-Id': TWITCH_CLIENT_ID,
+        'Client-Id': TWITCH_CLIENT_ID!,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -141,14 +141,14 @@ async function twitchSubscribeRaid(sessionId) {
   if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
 }
 
-async function twitchSubscribeSubscriptions(sessionId) {
+async function twitchSubscribeSubscriptions(sessionId: string) {
   const res = await fetch(
     'https://api.twitch.tv/helix/eventsub/subscriptions',
     {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${TWITCH_TOKEN}`,
-        'Client-Id': TWITCH_CLIENT_ID,
+        'Client-Id': TWITCH_CLIENT_ID!,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -169,8 +169,8 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
     twitchWs.onclose = null
     twitchWs.close()
   }
-  clearTimeout(twitchReconnTimer)
-  clearTimeout(twitchKaTimer)
+  clearTimeout(twitchReconnTimer ?? undefined)
+  clearTimeout(twitchKaTimer ?? undefined)
 
   twitchWs = new WebSocket(url)
 
@@ -192,7 +192,10 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
         await twitchSubscribeFollow(msg.payload.session.id)
         console.log('  [twitch] Subscribed to channel.follow — listening')
       } catch (e) {
-        console.error('  [twitch] channel.follow subscribe failed:', e.message)
+        console.error(
+          '  [twitch] channel.follow subscribe failed:',
+          (e as Error).message
+        )
       }
       try {
         await twitchSubscribeSubscriptions(msg.payload.session.id)
@@ -200,14 +203,17 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
       } catch (e) {
         console.error(
           '  [twitch] channel.subscribe subscribe failed:',
-          e.message
+          (e as Error).message
         )
       }
       try {
         await twitchSubscribeRaid(msg.payload.session.id)
         console.log('  [twitch] Subscribed to channel.raid — listening')
       } catch (e) {
-        console.error('  [twitch] channel.raid subscribe failed:', e.message)
+        console.error(
+          '  [twitch] channel.raid subscribe failed:',
+          (e as Error).message
+        )
       }
     }
 
@@ -255,18 +261,19 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
   }
 
   twitchWs.onclose = (ev) => {
-    clearTimeout(twitchKaTimer)
+    clearTimeout(twitchKaTimer ?? undefined)
     if (ev.code !== 1000) {
       console.warn(`  [twitch] Closed (${ev.code}), retrying in 5s`)
       twitchReconnTimer = setTimeout(() => connectTwitch(), 5000)
     }
   }
 
-  twitchWs.onerror = (e) => console.error('  [twitch] Error:', e.message)
+  twitchWs.onerror = (e) =>
+    console.error('  [twitch] Error:', (e as ErrorEvent).message)
 }
 
 // ── Static file helper ────────────────────────────────────
-const MIME = {
+const MIME: Record<string, string> = {
   '.js': 'application/javascript',
   '.html': 'text/html; charset=utf-8',
   '.mp3': 'audio/mpeg',
@@ -274,7 +281,7 @@ const MIME = {
   '.ogg': 'audio/ogg',
 }
 
-function serveFile(filePath, res) {
+function serveFile(filePath: string, res: http.ServerResponse) {
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404, { 'Content-Type': 'text/plain' })
@@ -289,9 +296,9 @@ function serveFile(filePath, res) {
 }
 
 // ── Body parser ───────────────────────────────────────────
-function readBody(req) {
+function readBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
-    const chunks = []
+    const chunks: Buffer[] = []
     req.on('data', (c) => chunks.push(c))
     req.on('end', () => resolve(Buffer.concat(chunks).toString()))
     req.on('error', reject)
@@ -588,7 +595,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // GET /sounds/:file → serve audio files from the sounds directory
-  if (method === 'GET' && url.startsWith('/sounds/')) {
+  if (method === 'GET' && url?.startsWith('/sounds/')) {
     const file = path.basename(url.slice('/sounds/'.length))
     serveFile(path.join(DIR, 'sounds', file), res)
     return

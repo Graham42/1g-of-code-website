@@ -6,7 +6,7 @@ How episodes go from Twitch VODs to optimized pages on the site.
 
 ```
 Twitch Helix API
-  -> scripts/fetch-twitch-videos.cjs (API fetch + thumbnail download + episode file sync)
+  -> scripts/fetch-twitch-videos.ts (API fetch + thumbnail download + episode file sync)
   -> src/content/episodes/{date}.md (frontmatter + notes)
   -> src/assets/episodes/{date}.jpg (1280x720 source image)
   -> Astro build (generates AVIF/WebP/JPEG at multiple widths)
@@ -15,7 +15,7 @@ Twitch Helix API
 
 ## Fetching Videos
 
-`scripts/fetch-twitch-videos.cjs` fetches VOD data from the Twitch Helix API. It:
+`scripts/fetch-twitch-videos.ts` fetches VOD data from the Twitch Helix API. It:
 
 1. Authenticates with the Twitch API using client credentials (from `.env`)
 2. Looks up the channel's user ID via `GET /helix/users`
@@ -28,7 +28,7 @@ Twitch Helix API
 All progress and diagnostics go to stderr. Run with:
 
 ```bash
-node scripts/fetch-twitch-videos.cjs
+bun scripts/fetch-twitch-videos.ts
 ```
 
 Optional flags:
@@ -98,6 +98,6 @@ Both emit `<picture>` elements with `<source>` tags for AVIF, WebP, and JPEG fal
 
 ## Adding a New Episode
 
-1. Run `node scripts/fetch-twitch-videos.cjs` — the episode file and thumbnail are created automatically
+1. Run `bun scripts/fetch-twitch-videos.ts` — the episode file and thumbnail are created automatically
 2. Edit `src/content/episodes/{date}.md` to add show notes, adjust tags, etc.
 3. `npm run build` generates all optimized image variants

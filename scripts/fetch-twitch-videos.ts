@@ -1,6 +1,6 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
- * fetch-twitch-videos.cjs
+ * fetch-twitch-videos.ts
  *
  * Fetches VODs from the 1gOfCode Twitch channel and creates or updates episode
  * markdown files in src/content/episodes/ and thumbnails in src/assets/episodes/.
@@ -17,7 +17,7 @@
  *
  * ## Usage
  *
- *   node scripts/fetch-twitch-videos.cjs [--after YYYY-MM-DD] [--before YYYY-MM-DD] [--force]
+ *   bun scripts/fetch-twitch-videos.ts [--after YYYY-MM-DD] [--before YYYY-MM-DD] [--force]
  *
  * ## Date Filtering
  *
@@ -50,19 +50,20 @@
  * - Thumbnails are downloaded at 1280x720
  */
 
-const fs = require('fs')
-const path = require('path')
-const https = require('https')
+import fs from 'fs'
+import path from 'path'
+import https from 'https'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const CHANNEL_LOGIN = '1gofcode'
 
 /**
  * Reads a .env file and returns key-value pairs without touching process.env.
  * Credentials stay scoped to local variables instead of the global environment.
- * @param {string} filePath
- * @returns {Record<string, string>}
  */
-function readEnvFile(filePath) {
+function readEnvFile(filePath: string): Record<string, string> {
   try {
     return Object.fromEntries(
       fs
@@ -84,11 +85,11 @@ function readEnvFile(filePath) {
 
 /**
  * Makes an HTTPS GET request and returns parsed JSON
- * @param {string} url
- * @param {{ headers?: Record<string, string> }} [options]
- * @returns {Promise<unknown>}
  */
-function httpsGet(url, options = {}) {
+function httpsGet(
+  url: string,
+  options: { headers?: Record<string, string> } = {}
+): Promise<any> {
   return new Promise((resolve, reject) => {
     https
       .get(url, options, (res) => {
@@ -102,7 +103,7 @@ function httpsGet(url, options = {}) {
           try {
             resolve(JSON.parse(data))
           } catch (e) {
-            reject(new Error(`Failed to parse JSON: ${e.message}`))
+            reject(new Error(`Failed to parse JSON: ${(e as Error).message}`))
           }
         })
       })
@@ -112,11 +113,8 @@ function httpsGet(url, options = {}) {
 
 /**
  * Makes an HTTPS POST request with form-encoded body and returns parsed JSON
- * @param {string} url
- * @param {Record<string, string>} body
- * @returns {Promise<unknown>}
  */
-function httpsPost(url, body) {
+function httpsPost(url: string, body: Record<string, string>): Promise<any> {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url)
     const postData = new URLSearchParams(body).toString()
@@ -141,7 +139,7 @@ function httpsPost(url, body) {
           try {
             resolve(JSON.parse(data))
           } catch (e) {
-            reject(new Error(`Failed to parse JSON: ${e.message}`))
+            reject(new Error(`Failed to parse JSON: ${(e as Error).message}`))
           }
         })
       }
@@ -154,10 +152,15 @@ function httpsPost(url, body) {
 
 /**
  * Returns the date/time parts for a UTC timestamp in Eastern Time (America/New_York).
- * @param {string} utcTimestamp
- * @returns {{ year: string, month: string, day: string, hour: string, minute: string, second: string }}
  */
-function getEasternParts(utcTimestamp) {
+function getEasternParts(utcTimestamp: string): {
+  year: string
+  month: string
+  day: string
+  hour: string
+  minute: string
+  second: string
+} {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/New_York',
     year: 'numeric',
@@ -171,15 +174,14 @@ function getEasternParts(utcTimestamp) {
   const p = Object.fromEntries(parts.map(({ type, value }) => [type, value]))
   // Some implementations return "24" for midnight with hour12:false; normalise to "00"
   if (p.hour === '24') p.hour = '00'
-  return p
+  return p as ReturnType<typeof getEasternParts>
 }
 
 /**
  * Converts a UTC timestamp to a YYYY-MM-DD date string in Eastern Time (America/New_York).
- * @param {string} utcTimestamp - e.g. "2026-01-26T22:00:00Z"
- * @returns {string} e.g. "2026-01-26"
+ * e.g. "2026-01-26T22:00:00Z" → "2026-01-26"
  */
-function toEasternDate(utcTimestamp) {
+function toEasternDate(utcTimestamp: string): string {
   const { year, month, day } = getEasternParts(utcTimestamp)
   return `${year}-${month}-${day}`
 }
@@ -188,10 +190,8 @@ function toEasternDate(utcTimestamp) {
  * Converts a UTC timestamp to a full ISO 8601 datetime string in Eastern Time,
  * with the correct UTC offset (-05:00 EST / -04:00 EDT).
  * e.g. "2026-01-26T22:00:00Z" -> "2026-01-26T17:00:00-05:00"
- * @param {string} utcTimestamp
- * @returns {string}
  */
-function toEasternDateTime(utcTimestamp) {
+function toEasternDateTime(utcTimestamp: string): string {
   const date = new Date(utcTimestamp)
   const { year, month, day, hour, minute, second } =
     getEasternParts(utcTimestamp)
@@ -209,10 +209,8 @@ function toEasternDateTime(utcTimestamp) {
 
 /**
  * Parses a YYYY-MM-DD date argument from process.argv
- * @param {string} flag - e.g. "--after" or "--before"
- * @returns {string|null} Date string or null if flag not present
  */
-function parseDateArg(flag) {
+function parseDateArg(flag: string): string | null {
   const idx = process.argv.indexOf(flag)
   if (idx === -1) return null
   const val = process.argv[idx + 1]
@@ -225,11 +223,11 @@ function parseDateArg(flag) {
 
 /**
  * Gets an app access token using the client credentials grant
- * @param {string} clientId
- * @param {string} clientSecret
- * @returns {Promise<string>} Bearer token
  */
-async function getAccessToken(clientId, clientSecret) {
+async function getAccessToken(
+  clientId: string,
+  clientSecret: string
+): Promise<string> {
   const data = await httpsPost('https://id.twitch.tv/oauth2/token', {
     client_id: clientId,
     client_secret: clientSecret,
@@ -240,12 +238,12 @@ async function getAccessToken(clientId, clientSecret) {
 
 /**
  * Gets the Twitch user ID for a channel login name
- * @param {string} login - e.g. "1gofcode"
- * @param {string} clientId
- * @param {string} token
- * @returns {Promise<string>} Twitch user ID
  */
-async function getUserId(login, clientId, token) {
+async function getUserId(
+  login: string,
+  clientId: string,
+  token: string
+): Promise<string> {
   const data = await httpsGet(
     `https://api.twitch.tv/helix/users?login=${encodeURIComponent(login)}`,
     { headers: { 'Client-ID': clientId, Authorization: `Bearer ${token}` } }
@@ -260,13 +258,13 @@ async function getUserId(login, clientId, token) {
  * Fetches past broadcast VODs for a user, paginating through results.
  * When `afterDate` is provided, stops paginating as soon as a video on or
  * before that date is encountered (API returns newest-first).
- * @param {string} userId
- * @param {string} clientId
- * @param {string} token
- * @param {{ afterDate?: string|null }} [options]
- * @returns {Promise<object[]>} Raw Helix video objects
  */
-async function fetchAllVideos(userId, clientId, token, { afterDate } = {}) {
+async function fetchAllVideos(
+  userId: string,
+  clientId: string,
+  token: string,
+  { afterDate }: { afterDate?: string | null } = {}
+): Promise<any[]> {
   const videos = []
   let cursor = null
   do {
@@ -281,7 +279,9 @@ async function fetchAllVideos(userId, clientId, token, { afterDate } = {}) {
       if (toEasternDate(oldestOnPage.created_at) <= afterDate) {
         // This is the last useful page — take only qualifying videos and stop
         videos.push(
-          ...data.data.filter((v) => toEasternDate(v.created_at) > afterDate)
+          ...data.data.filter(
+            (v: any) => toEasternDate(v.created_at) > afterDate
+          )
         )
         break
       }
@@ -294,11 +294,10 @@ async function fetchAllVideos(userId, clientId, token, { afterDate } = {}) {
 
 /**
  * Parses Twitch's duration format into H:MM:SS display format
- * @param {string} twitchDuration - e.g. "1h1m29s", "45m10s", "30s"
- * @returns {string} e.g. "1:01:29", "45:10", "0:30"
+ * e.g. "1h1m29s" → "1:01:29", "45m10s" → "45:10", "30s" → "0:30"
  */
-function parseDuration(twitchDuration) {
-  const match = twitchDuration.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/)
+function parseDuration(twitchDuration: string): string {
+  const match = twitchDuration.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/)!
   const hours = parseInt(match[1] || '0', 10)
   const minutes = parseInt(match[2] || '0', 10)
   const seconds = parseInt(match[3] || '0', 10)
@@ -308,33 +307,17 @@ function parseDuration(twitchDuration) {
 }
 
 /**
- * Extracts video ID from a Twitch video URL
- * @param {string} url - Twitch video URL
- * @returns {string|null} Video ID or null
- */
-function extractVideoId(url) {
-  const match = url.match(/\/videos\/(\d+)/)
-  return match ? match[1] : null
-}
-
-/**
  * Wraps a string in YAML double quotes, escaping any interior double quotes.
- * @param {string} str
- * @returns {string} e.g. "It's a title"
  */
-function yamlDoubleQuote(str) {
+function yamlDoubleQuote(str: string): string {
   return `"${str.replace(/"/g, '\\"')}"`
 }
 
 /**
  * Sets a key in a YAML frontmatter string to a new value (replaces the line if it
  * exists, appends if it doesn't).
- * @param {string} yaml - The frontmatter body (between the --- delimiters)
- * @param {string} key
- * @param {string} value - Already-serialized YAML value (quoted string, bare path, etc.)
- * @returns {string}
  */
-function setYamlField(yaml, key, value) {
+function setYamlField(yaml: string, key: string, value: string): string {
   const pattern = new RegExp(`^${key}:.*$`, 'm')
   const line = `${key}: ${value}`
   return pattern.test(yaml) ? yaml.replace(pattern, line) : `${yaml}\n${line}`
@@ -342,10 +325,8 @@ function setYamlField(yaml, key, value) {
 
 /**
  * Creates a new episode markdown file with frontmatter and a placeholder body.
- * @param {string} filePath
- * @param {object} video - Transformed video object with localThumbnail set
  */
-function createEpisodeFile(filePath, video) {
+function createEpisodeFile(filePath: string, video: any): void {
   const content = [
     '---',
     `title: ${yamlDoubleQuote(video.title)}`,
@@ -364,11 +345,11 @@ function createEpisodeFile(filePath, video) {
 /**
  * Updates the frontmatter of an existing episode markdown file.
  * Syncs title, date, twitchUrl, and thumbnail from the API; tags and body are preserved.
- * @param {string} filePath
- * @param {object} video - Transformed video object with localThumbnail set
- * @returns {'updated'|'unchanged'|'skipped'}
  */
-function updateEpisodeFile(filePath, video) {
+function updateEpisodeFile(
+  filePath: string,
+  video: any
+): 'updated' | 'unchanged' | 'skipped' {
   const original = fs.readFileSync(filePath, 'utf8')
   const match = original.match(/^---\n([\s\S]*?)\n---(\n[\s\S]*)?$/)
   if (!match) {
@@ -391,11 +372,8 @@ function updateEpisodeFile(filePath, video) {
 
 /**
  * Downloads a high-resolution thumbnail from Twitch's CDN
- * @param {string} url - Original thumbnail URL (any resolution)
- * @param {string} outputPath - Local file path to save the image
- * @returns {Promise<void>}
  */
-function downloadThumbnail(url, outputPath) {
+function downloadThumbnail(url: string, outputPath: string): Promise<void> {
   // Upgrade to 1280x720 for both default (thumb0-WxH.jpg) and custom (custom-...-WxH.png) thumbnails
   const highResUrl = url.replace(/(-|\b)(\d+x\d+)(\.\w+)$/, '$11280x720$3')
   return new Promise((resolve, reject) => {
@@ -476,6 +454,7 @@ function downloadThumbnail(url, outputPath) {
         date,
         startedAt: v.created_at,
         startedAtEastern: toEasternDateTime(v.created_at),
+        localThumbnail: '',
       }
     })
 
@@ -533,7 +512,7 @@ function downloadThumbnail(url, outputPath) {
         ` (${rawVideos.length} fetched) from ${CHANNEL_LOGIN} channel\n`
     )
   } catch (error) {
-    console.error('Error fetching videos:', error.message)
+    console.error('Error fetching videos:', (error as Error).message)
     process.exit(1)
   }
 })()
