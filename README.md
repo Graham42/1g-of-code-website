@@ -5,8 +5,8 @@ Companion website for the [1g of Code Twitch channel](https://twitch.tv/1gOfCode
 ## Quick Start
 
 ```bash
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 The site will be running at `http://localhost:4321`.
@@ -35,7 +35,7 @@ src/
 Use the fetch script to get video metadata from the Twitch channel:
 
 ```bash
-npm run fetch-videos
+bun run fetch-videos
 ```
 
 This outputs JSON with video details (title, URL, thumbnail, date) that can be used to create episode files. See `scripts/fetch-twitch-videos.cjs` for detailed usage instructions.
@@ -84,19 +84,19 @@ const greeting: string = 'Hello, world!'
 
 | Command                | Description                          |
 | ---------------------- | ------------------------------------ |
-| `npm run dev`          | Start dev server at `localhost:4321` |
-| `npm run build`        | Build for production to `./dist/`    |
-| `npm run preview`      | Preview production build locally     |
-| `npm test`             | Run Playwright E2E tests             |
-| `npm run test:ui`      | Run tests with interactive UI        |
-| `npm run fetch-videos` | Fetch video info from Twitch channel |
+| `bun run dev`          | Start dev server at `localhost:4321` |
+| `bun run build`        | Build for production to `./dist/`    |
+| `bun run preview`      | Preview production build locally     |
+| `bun test`             | Run Playwright E2E tests             |
+| `bun run test:ui`      | Run tests with interactive UI        |
+| `bun run fetch-videos` | Fetch video info from Twitch channel |
 
 ### First-Time Setup
 
-After `npm install`, install Playwright browsers:
+After `bun install`, install Playwright browsers:
 
 ```bash
-npx playwright install chromium firefox
+bunx playwright install chromium firefox
 ```
 
 ## Testing
@@ -112,8 +112,8 @@ The project uses Playwright for end-to-end testing. Tests cover:
 Run tests:
 
 ```bash
-npm test              # Headless
-npm run test:ui       # Interactive mode
+bun test              # Headless
+bun run test:ui       # Interactive mode
 ```
 
 ## Styling
@@ -130,9 +130,8 @@ Key design decisions:
 
 The site deploys to Netlify automatically. Configuration is in `netlify.toml`:
 
-- Build command: `npm run build`
+- Build command: `bun run build`
 - Publish directory: `dist`
-- Node version: see `.nvmrc`
 
 ## Feedback & Contributions
 
