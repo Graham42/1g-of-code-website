@@ -1,518 +1,955 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pirate Animation Playground</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: system-ui, sans-serif; background: #0d0d1a; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-.main { display: flex; flex: 1; overflow: hidden; }
-.controls { width: 270px; min-width: 270px; background: #161625; border-right: 1px solid #2a2a3e; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 0; }
-.preview { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-/* checkerboard = transparent overlay preview */
-.canvas-wrap { flex: 1; position: relative; overflow: hidden; background-color: #555; background-image: linear-gradient(45deg,#666 25%,transparent 25%),linear-gradient(-45deg,#666 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#666 75%),linear-gradient(-45deg,transparent 75%,#666 75%); background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0; }
-canvas { display: block; width: 100%; height: 100%; }
-.prompt-area { background: #161625; border-top: 1px solid #2a2a3e; padding: 10px 14px; min-height: 80px; max-height: 100px; }
-.prompt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.prompt-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #555; }
-.copy-btn { background: #1e1e30; border: 1px solid #2a2a3e; color: #888; padding: 3px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
-.copy-btn:hover { background: #2a2a4a; }
-.copy-btn.copied { color: #4ecb71; border-color: #4ecb71; }
-#promptText { font-family: monospace; font-size: 11px; color: #9aa8c8; line-height: 1.5; }
-.stitle { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 12px 0 6px; }
-.crow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; gap: 6px; }
-label { font-size: 12px; color: #aaa; flex: 1; white-space: nowrap; }
-.val { font-family: monospace; font-size: 11px; color: #555; min-width: 28px; text-align: right; }
-input[type=range] { width: 90px; accent-color: #6a7fd4; cursor: pointer; }
-select { background: #1e1e30; border: 1px solid #2a2a3e; color: #ccc; padding: 3px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; }
-.tg { display: flex; gap: 3px; }
-.tb { background: #1e1e30; border: 1px solid #2a2a3e; color: #666; padding: 2px 7px; border-radius: 3px; font-size: 10px; cursor: pointer; }
-.tb.active { background: #2e3e6a; border-color: #5a6fcc; color: #9ab0f0; }
-.presets { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
-.pb { background: #1a1a2e; border: 1px solid #2a2a44; color: #778; padding: 4px 9px; border-radius: 4px; font-size: 10px; cursor: pointer; transition: all .12s; }
-.pb:hover { background: #252540; border-color: #4a5a8a; color: #b0b8d8; }
-hr { border: none; border-top: 1px solid #1e1e2e; margin: 8px 0; }
-.raid-box { background: #12122a; border: 1px solid #2a2a50; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; }
-.raid-box .stitle { margin-top: 0; color: #7888cc; }
-.raid-display { font-family: monospace; font-size: 11px; color: #556; margin-top: 4px; text-align: right; }
-.raid-display b { color: #8898cc; font-weight: 600; }
-.spacer { flex: 1; }
-.trigger-btn { width: 100%; padding: 12px; background: #aa2020; border: none; border-radius: 6px; color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .06em; cursor: pointer; transition: background .15s, transform .1s; margin-top: 12px; }
-.trigger-btn:hover:not(:disabled) { background: #cc2828; }
-.trigger-btn:active:not(:disabled) { transform: scale(.97); }
-.trigger-btn:disabled { background: #3a1a1a; color: #664; cursor: default; }
-</style>
-</head>
-<body>
-<div class="main">
-  <div class="controls">
-    <div class="stitle" style="margin-top:0">Presets</div>
-    <div class="presets">
-      <button class="pb" onclick="applyPreset('calm')">Calm Seas</button>
-      <button class="pb" onclick="applyPreset('storm')">Storm!</button>
-      <button class="pb" onclick="applyPreset('midnight')">Midnight Raid</button>
-      <button class="pb" onclick="applyPreset('jolly')">Jolly Roger</button>
-      <button class="pb" onclick="applyPreset('chaos')">Pure Chaos</button>
-    </div>
-
-    <div class="raid-box">
-      <div class="stitle">Raid Size</div>
-      <div class="crow">
-        <label>Viewers</label>
-        <input type="range" id="raidViewers" min="1" max="500" value="42" oninput="update('raidViewers',+this.value)">
-        <span class="val" id="raidViewersV">42</span>
-      </div>
-      <div class="raid-display" id="raidDisplay"></div>
-    </div>
-
-    <div class="stitle">Pirate Style</div>
-    <div class="crow">
-      <label>Type</label>
-      <select id="pirateStyle" onchange="update('pirateStyle',this.value)">
-        <option value="buccaneer">🏴‍☠️ Buccaneer</option>
-        <option value="skeleton">💀 Skeleton Crew</option>
-        <option value="corsair">⚔️ Corsair</option>
-      </select>
-    </div>
-    <div class="crow">
-      <label>Pixel Size</label>
-      <div class="tg">
-        <button class="tb" id="px4" onclick="setPS(4,this)">4px</button>
-        <button class="tb active" id="px6" onclick="setPS(6,this)">6px</button>
-        <button class="tb" id="px8" onclick="setPS(8,this)">8px</button>
-      </div>
-    </div>
-    <div class="crow">
-      <label>Color Theme</label>
-      <select id="colorTheme" onchange="update('colorTheme',this.value)">
-        <option value="classic">Classic</option>
-        <option value="dark">Dark</option>
-        <option value="colorful">Colorful</option>
-        <option value="sepia">Sepia</option>
-      </select>
-    </div>
-    <hr>
-
-    <div class="stitle">Movement</div>
-    <div class="crow">
-      <label>Direction</label>
-      <select id="runDir" onchange="update('runDir',this.value)">
-        <option value="ltr" selected>→ Left to Right</option>
-        <option value="rtl">← Right to Left</option>
-      </select>
-    </div>
-    <div class="crow">
-      <label>Speed</label>
-      <select id="runSpeed" onchange="update('runSpeed',this.value)">
-        <option value="fast" selected>Fast</option>
-        <option value="faster">Faster</option>
-        <option value="fastest">Fastest</option>
-        <option value="manic">Manic</option>
-      </select>
-    </div>
-    <hr>
-
-    <div class="stitle">Rope Swingers</div>
-    <div class="crow">
-      <label>Rope Length</label>
-      <input type="range" id="ropeLen" min="60" max="200" value="120" oninput="update('ropeLen',+this.value)">
-      <span class="val" id="ropeLenV">120</span>
-    </div>
-    <div class="crow">
-      <label>Swing Speed</label>
-      <select id="swingSpeed" onchange="update('swingSpeed',this.value)">
-        <option value="fast" selected>Fast</option>
-        <option value="faster">Faster</option>
-        <option value="fastest">Fastest</option>
-        <option value="manic">Manic</option>
-      </select>
-    </div>
-
-    <div class="spacer"></div>
-    <button class="trigger-btn" id="triggerBtn" onclick="triggerRaid()">⚔ TRIGGER RAID</button>
-  </div>
-
-  <div class="preview">
-    <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
-    <div class="prompt-area">
-      <div class="prompt-header">
-        <span class="prompt-label">Generated Prompt</span>
-        <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
-      </div>
-      <div id="promptText">Adjust settings, then trigger a raid to preview.</div>
-    </div>
-  </div>
-</div>
-<script>
-// ── State ─────────────────────────────────────────────────────────────────────
-const DEFAULTS = {
-  raidViewers:42, ropeLen:120, swingSpeed:'fast', runSpeed:'fast', runDir:'ltr',
-  pixelSize:6, pirateStyle:'buccaneer', colorTheme:'classic',
-};
-const state = {...DEFAULTS};
-let phase = 'idle'; // idle | active
-
-function countFromRaid(v) {
-  const total = Math.min(v, 100);
-  // ~25% swingers, proportional to raid size
-  const sw = total === 0 ? 0 : Math.max(1, Math.round(total * 0.25));
-  return { total, sw, ru: total - sw };
-}
-
-// ── Palettes ──────────────────────────────────────────────────────────────────
-// idx: 0=transparent 1=outline 2=skin 3=white 4=coat 5=leather 6=gold 7=pants 8=eyepatch
-const BASE_PAL = {
-  classic: {1:'#1a1020',2:'#e8aa60',3:'#f5f0e8',4:'#aa2020',5:'#5a3515',6:'#d4a020',7:'#2a4a7a',8:'#1a0a08'},
-  dark:    {1:'#060608',2:'#a06830',3:'#c8c0a8',4:'#601010',5:'#2a1a08',6:'#807010',7:'#152535',8:'#100505'},
-  colorful:{1:'#100820',2:'#ffc080',3:'#ffffff',4:'#ff3050',5:'#804020',6:'#ffd700',7:'#2060ff',8:'#200a40'},
-  sepia:   {1:'#2a1a08',2:'#c8905a',3:'#e8d8b0',4:'#8a3818',5:'#4a2808',6:'#b08830',7:'#484028',8:'#180800'},
-};
-// Per-style overrides applied on top of base palette
-const STYLE_PAL = {
-  buccaneer: {},
-  skeleton:  {2:'#b8c8b0', 4:'#2c2c2c', 7:'#1a1a1a'},
-  corsair:   {4:'#1a3a6a', 6:'#c0c0c0'},
-};
-function getPal() {
-  return {...(BASE_PAL[state.colorTheme]||BASE_PAL.classic), ...(STYLE_PAL[state.pirateStyle]||{})};
-}
-
-// ── Sprites ───────────────────────────────────────────────────────────────────
-// Head variants: rows 0-5 (hat rows 0-2, face rows 3-5)
-const HEADS = {
-  buccaneer: [
-    [0,0,1,1,1,1,0,0],[0,1,1,3,3,1,1,0],[1,1,1,1,1,1,1,1], // tricorn
-    [0,0,2,2,2,2,0,0],[0,0,8,2,2,3,0,0],[0,0,2,2,2,2,0,0], // face: eyepatch|eye
-  ],
-  skeleton: [
-    [0,0,1,1,1,1,0,0],[0,1,1,3,3,1,1,0],[1,1,1,1,1,1,1,1], // hat
-    [0,0,3,3,3,3,0,0],[0,0,1,3,3,1,0,0],[0,1,3,1,1,3,1,0], // skull face
-  ],
-  corsair: [
-    [0,0,6,6,6,6,0,0],[0,6,1,2,2,1,6,0],[0,0,2,2,2,2,0,0], // bandana
-    [0,0,2,2,2,2,0,0],[0,0,8,2,2,2,0,0],[0,0,5,2,2,5,0,0], // scowl + stubble
-  ],
-};
-// Body rows shared (swing / walk-A legs / walk-B legs)
-const BODY_SW = [[2,4,4,4,4,4,4,2],[0,4,4,4,4,4,4,0],[0,5,6,6,6,6,5,0],[0,5,7,7,7,7,5,0],[0,5,7,0,0,7,5,0],[0,1,0,0,0,0,1,0]];
-const BODY_WA = [[0,4,4,4,4,4,4,0],[2,4,4,4,4,4,4,2],[0,5,6,6,6,6,5,0],[0,5,7,7,0,0,5,0],[0,0,5,7,0,5,5,0],[0,0,1,0,0,5,1,0]];
-const BODY_WB = [[0,4,4,4,4,4,4,0],[2,4,4,4,4,4,4,2],[0,5,6,6,6,6,5,0],[0,0,0,7,7,5,0,0],[0,5,5,7,5,0,0,0],[0,1,5,0,1,0,0,0]];
-
-function buildSprites() {
-  const head = HEADS[state.pirateStyle] || HEADS.buccaneer;
-  return {
-    swing: [...head, ...BODY_SW],
-    walkA: [...head, ...BODY_WA],
-    walkB: [...head, ...BODY_WB],
-  };
-}
-
-// ── Sprite cache (offscreen canvas per name+flip) ─────────────────────────────
-let cache = {};
-function buildCache() {
-  cache = {};
-  const ps = state.pixelSize;
-  const pal = getPal();
-  const sprs = buildSprites();
-  for (const [name, spr] of Object.entries(sprs)) {
-    for (const flip of [false, true]) {
-      const oc = document.createElement('canvas');
-      oc.width = 8*ps; oc.height = 12*ps;
-      const ctx = oc.getContext('2d');
-      spr.forEach((row, ry) => row.forEach((ci, rx) => {
-        if (!ci) return;
-        const c = pal[ci]; if (!c) return;
-        ctx.fillStyle = c;
-        ctx.fillRect((flip ? (7-rx) : rx)*ps, ry*ps, ps, ps);
-      }));
-      cache[`${name}_${flip}`] = oc;
-    }
-  }
-}
-function blit(ctx, name, x, y, flip) {
-  const img = cache[`${name}_${!!flip}`];
-  if (img) ctx.drawImage(img, x, y);
-}
-
-// ── Entities ──────────────────────────────────────────────────────────────────
-let swingers = [], runners = [];
-let t = 0;
-
-const RUN_SPD = {fast:2.5, faster:4.0, fastest:6.5, manic:11.0};
-const SW_FREQ  = {fast:.030, faster:.042, fastest:.058, manic:.080};
-const GRAVITY  = 0.45;
-
-function initSwingers(W, H, count) {
-  const L = state.ropeLen;
-  const dir = state.runDir === 'ltr' ? 1 : -1;
-  // Anchor just past entry edge so pirate starts off-screen
-  const baseAnchorX = dir === 1 ? L * 0.55 : W - L * 0.55;
-  const initAngle = -dir * 1.45; // large angle toward entry side
-  swingers = Array.from({length: count}, (_, i) => ({
-    anchorX: baseAnchorX + dir * i * 35,
-    anchorY: 12,
-    angle: initAngle,
-    angVel: 0,
-    ropeLen: L,
-    phase: 'waiting',
-    delay: i * Math.max(8, Math.floor(240 / count)), // all enter within ~4s
-    crossed: false,       // has crossed vertical going toward exit?
-    lane: i % 4,
-    // for fall/run:
-    x:0, y:0, vx:0, vy:0, frame:0, ft:0, spd:0, done:false,
-  }));
-}
-
-function initRunners(W, H, count) {
-  const ps = state.pixelSize, SW = 8*ps;
-  const dir = state.runDir === 'ltr' ? 1 : -1;
-  // Seed spread across entry side so large herds fill screen immediately
-  const spreadW = count > 15 ? W * 1.5 : 0;
-  runners = Array.from({length: count}, (_, i) => {
-    const lane = i % 4;
-    const y = H * .73 - lane * ps * 3;
-    const x = dir === 1
-      ? -SW - (spreadW > 0 ? (i/count)*spreadW : i*28)
-      :  W+SW + (spreadW > 0 ? (i/count)*spreadW : i*28);
-    return {
-      x, y, dir, lane,
-      frame: i % 2,
-      ft: Math.floor((i*7)%10),
-      spd: RUN_SPD[state.runSpeed] * (.85 + (i%5)*.07),
-      done: false,
-    };
-  });
-}
-
-function triggerRaid() {
-  if (phase === 'active') return;
-  phase = 'active';
-  const canvas = document.getElementById('canvas');
-  const W = canvas.width, H = canvas.height;
-  const {sw, ru} = countFromRaid(state.raidViewers);
-  initSwingers(W, H, sw);
-  initRunners(W, H, ru);
-  const btn = document.getElementById('triggerBtn');
-  btn.disabled = true;
-  btn.textContent = `⚓ ${countFromRaid(state.raidViewers).total} raiders incoming…`;
-  updatePrompt();
-}
-
-function checkDone(W) {
-  if (phase !== 'active') return;
-  const swDone = swingers.every(s => s.done);
-  const ruDone = runners.every(r => r.done);
-  if (swDone && ruDone) {
-    phase = 'idle';
-    swingers = []; runners = [];
-    const btn = document.getElementById('triggerBtn');
-    btn.disabled = false;
-    btn.textContent = '⚔ TRIGGER RAID';
-  }
-}
-
-// ── Drawing ───────────────────────────────────────────────────────────────────
-function updateSwingers(ctx, W, H) {
-  const ps = state.pixelSize, SW=8*ps;
-  const dir = state.runDir==='ltr' ? 1 : -1;
-  const freq = SW_FREQ[state.swingSpeed] || SW_FREQ.fast;
-
-  swingers.forEach(sw => {
-    if (sw.done) return;
-
-    if (sw.phase === 'waiting') {
-      if (--sw.delay > 0) return;
-      sw.phase = 'swinging';
-    }
-
-    if (sw.phase === 'swinging') {
-      const prev = sw.angle;
-      sw.angVel += -(0.4 / sw.ropeLen) * Math.sin(sw.angle) * (freq / .030);
-      sw.angVel *= .999;
-      sw.angle += sw.angVel;
-
-      // Detect first crossing toward exit side
-      const headingExit = dir===1 ? sw.angVel>0 : sw.angVel<0;
-      if (!sw.crossed && prev*sw.angle < 0 && headingExit) {
-        sw.crossed = true;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pirate Animation Playground</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-      // Release at bottom of arc on exit-side swing
-      if (sw.crossed && headingExit && Math.abs(sw.angle) < 0.25) {
-        // Tangential velocity at release
-        sw.x = sw.anchorX + Math.sin(sw.angle)*sw.ropeLen;
-        sw.y = sw.anchorY + Math.cos(sw.angle)*sw.ropeLen;
-        sw.vx = Math.cos(sw.angle) * sw.angVel * sw.ropeLen;
-        sw.vy = -Math.sin(sw.angle) * sw.angVel * sw.ropeLen;
-        sw.phase = 'falling';
+      body {
+        font-family: system-ui, sans-serif;
+        background: #0d0d1a;
+        color: #e0e0e0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .main {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+      .controls {
+        width: 270px;
+        min-width: 270px;
+        background: #161625;
+        border-right: 1px solid #2a2a3e;
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .preview {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      /* checkerboard = transparent overlay preview */
+      .canvas-wrap {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        background-color: #555;
+        background-image:
+          linear-gradient(45deg, #666 25%, transparent 25%),
+          linear-gradient(-45deg, #666 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #666 75%),
+          linear-gradient(-45deg, transparent 75%, #666 75%);
+        background-size: 24px 24px;
+        background-position:
+          0 0,
+          0 12px,
+          12px -12px,
+          -12px 0;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .prompt-area {
+        background: #161625;
+        border-top: 1px solid #2a2a3e;
+        padding: 10px 14px;
+        min-height: 80px;
+        max-height: 100px;
+      }
+      .prompt-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+      .prompt-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #555;
+      }
+      .copy-btn {
+        background: #1e1e30;
+        border: 1px solid #2a2a3e;
+        color: #888;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .copy-btn:hover {
+        background: #2a2a4a;
+      }
+      .copy-btn.copied {
+        color: #4ecb71;
+        border-color: #4ecb71;
+      }
+      #promptText {
+        font-family: monospace;
+        font-size: 11px;
+        color: #9aa8c8;
+        line-height: 1.5;
+      }
+      .stitle {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #555;
+        margin: 12px 0 6px;
+      }
+      .crow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 7px;
+        gap: 6px;
+      }
+      label {
+        font-size: 12px;
+        color: #aaa;
+        flex: 1;
+        white-space: nowrap;
+      }
+      .val {
+        font-family: monospace;
+        font-size: 11px;
+        color: #555;
+        min-width: 28px;
+        text-align: right;
+      }
+      input[type='range'] {
+        width: 90px;
+        accent-color: #6a7fd4;
+        cursor: pointer;
+      }
+      select {
+        background: #1e1e30;
+        border: 1px solid #2a2a3e;
+        color: #ccc;
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .tg {
+        display: flex;
+        gap: 3px;
+      }
+      .tb {
+        background: #1e1e30;
+        border: 1px solid #2a2a3e;
+        color: #666;
+        padding: 2px 7px;
+        border-radius: 3px;
+        font-size: 10px;
+        cursor: pointer;
+      }
+      .tb.active {
+        background: #2e3e6a;
+        border-color: #5a6fcc;
+        color: #9ab0f0;
+      }
+      .presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 12px;
+      }
+      .pb {
+        background: #1a1a2e;
+        border: 1px solid #2a2a44;
+        color: #778;
+        padding: 4px 9px;
+        border-radius: 4px;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.12s;
+      }
+      .pb:hover {
+        background: #252540;
+        border-color: #4a5a8a;
+        color: #b0b8d8;
+      }
+      hr {
+        border: none;
+        border-top: 1px solid #1e1e2e;
+        margin: 8px 0;
+      }
+      .raid-box {
+        background: #12122a;
+        border: 1px solid #2a2a50;
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+      }
+      .raid-box .stitle {
+        margin-top: 0;
+        color: #7888cc;
+      }
+      .raid-display {
+        font-family: monospace;
+        font-size: 11px;
+        color: #556;
+        margin-top: 4px;
+        text-align: right;
+      }
+      .raid-display b {
+        color: #8898cc;
+        font-weight: 600;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .trigger-btn {
+        width: 100%;
+        padding: 12px;
+        background: #aa2020;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        margin-top: 12px;
+      }
+      .trigger-btn:hover:not(:disabled) {
+        background: #cc2828;
+      }
+      .trigger-btn:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+      .trigger-btn:disabled {
+        background: #3a1a1a;
+        color: #664;
+        cursor: default;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <div class="controls">
+        <div class="stitle" style="margin-top: 0">Presets</div>
+        <div class="presets">
+          <button class="pb" onclick="applyPreset('calm')">Calm Seas</button>
+          <button class="pb" onclick="applyPreset('storm')">Storm!</button>
+          <button class="pb" onclick="applyPreset('midnight')">
+            Midnight Raid
+          </button>
+          <button class="pb" onclick="applyPreset('jolly')">Jolly Roger</button>
+          <button class="pb" onclick="applyPreset('chaos')">Pure Chaos</button>
+        </div>
+
+        <div class="raid-box">
+          <div class="stitle">Raid Size</div>
+          <div class="crow">
+            <label>Viewers</label>
+            <input
+              type="range"
+              id="raidViewers"
+              min="1"
+              max="500"
+              value="42"
+              oninput="update('raidViewers', +this.value)"
+            />
+            <span class="val" id="raidViewersV">42</span>
+          </div>
+          <div class="raid-display" id="raidDisplay"></div>
+        </div>
+
+        <div class="stitle">Pirate Style</div>
+        <div class="crow">
+          <label>Type</label>
+          <select id="pirateStyle" onchange="update('pirateStyle', this.value)">
+            <option value="buccaneer">🏴‍☠️ Buccaneer</option>
+            <option value="skeleton">💀 Skeleton Crew</option>
+            <option value="corsair">⚔️ Corsair</option>
+          </select>
+        </div>
+        <div class="crow">
+          <label>Pixel Size</label>
+          <div class="tg">
+            <button class="tb" id="px4" onclick="setPS(4, this)">4px</button>
+            <button class="tb active" id="px6" onclick="setPS(6, this)">
+              6px
+            </button>
+            <button class="tb" id="px8" onclick="setPS(8, this)">8px</button>
+          </div>
+        </div>
+        <div class="crow">
+          <label>Color Theme</label>
+          <select id="colorTheme" onchange="update('colorTheme', this.value)">
+            <option value="classic">Classic</option>
+            <option value="dark">Dark</option>
+            <option value="colorful">Colorful</option>
+            <option value="sepia">Sepia</option>
+          </select>
+        </div>
+        <hr />
+
+        <div class="stitle">Movement</div>
+        <div class="crow">
+          <label>Direction</label>
+          <select id="runDir" onchange="update('runDir', this.value)">
+            <option value="ltr" selected>→ Left to Right</option>
+            <option value="rtl">← Right to Left</option>
+          </select>
+        </div>
+        <div class="crow">
+          <label>Speed</label>
+          <select id="runSpeed" onchange="update('runSpeed', this.value)">
+            <option value="fast" selected>Fast</option>
+            <option value="faster">Faster</option>
+            <option value="fastest">Fastest</option>
+            <option value="manic">Manic</option>
+          </select>
+        </div>
+        <hr />
+
+        <div class="stitle">Rope Swingers</div>
+        <div class="crow">
+          <label>Rope Length</label>
+          <input
+            type="range"
+            id="ropeLen"
+            min="60"
+            max="200"
+            value="120"
+            oninput="update('ropeLen', +this.value)"
+          />
+          <span class="val" id="ropeLenV">120</span>
+        </div>
+        <div class="crow">
+          <label>Swing Speed</label>
+          <select id="swingSpeed" onchange="update('swingSpeed', this.value)">
+            <option value="fast" selected>Fast</option>
+            <option value="faster">Faster</option>
+            <option value="fastest">Fastest</option>
+            <option value="manic">Manic</option>
+          </select>
+        </div>
+
+        <div class="spacer"></div>
+        <button class="trigger-btn" id="triggerBtn" onclick="triggerRaid()">
+          ⚔ TRIGGER RAID
+        </button>
+      </div>
+
+      <div class="preview">
+        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+        <div class="prompt-area">
+          <div class="prompt-header">
+            <span class="prompt-label">Generated Prompt</span>
+            <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">
+              Copy
+            </button>
+          </div>
+          <div id="promptText">
+            Adjust settings, then trigger a raid to preview.
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // ── State ─────────────────────────────────────────────────────────────────────
+      const DEFAULTS = {
+        raidViewers: 42,
+        ropeLen: 120,
+        swingSpeed: 'fast',
+        runSpeed: 'fast',
+        runDir: 'ltr',
+        pixelSize: 6,
+        pirateStyle: 'buccaneer',
+        colorTheme: 'classic',
+      }
+      const state = { ...DEFAULTS }
+      let phase = 'idle' // idle | active
+
+      function countFromRaid(v) {
+        const total = Math.min(v, 100)
+        // ~25% swingers, proportional to raid size
+        const sw = total === 0 ? 0 : Math.max(1, Math.round(total * 0.25))
+        return { total, sw, ru: total - sw }
       }
 
-      // Draw beam
-      const ax = sw.anchorX;
-      ctx.strokeStyle='#5a3510'; ctx.lineWidth=5;
-      ctx.beginPath(); ctx.moveTo(ax-20,0); ctx.lineTo(ax+20,0); ctx.stroke();
-      ctx.lineWidth=4;
-      ctx.beginPath(); ctx.moveTo(ax,0); ctx.lineTo(ax,sw.anchorY+2); ctx.stroke();
-      // Rope
-      const px = sw.anchorX+Math.sin(sw.angle)*sw.ropeLen;
-      const py = sw.anchorY+Math.cos(sw.angle)*sw.ropeLen;
-      ctx.strokeStyle='#9a7040'; ctx.lineWidth=2;
-      const bow = Math.abs(Math.sin(sw.angle))*6;
-      ctx.beginPath(); ctx.moveTo(ax,sw.anchorY);
-      ctx.quadraticCurveTo(ax+Math.sin(sw.angle)*sw.ropeLen*.5+bow*Math.sign(sw.angle||1),
-        sw.anchorY+Math.cos(sw.angle)*sw.ropeLen*.5+bow, px, py);
-      ctx.stroke();
-      // Pirate
-      ctx.save(); ctx.translate(px,py); ctx.rotate(sw.angle*.2);
-      blit(ctx,'swing',-SW/2,0,sw.angle<0);
-      ctx.restore();
-      return;
-    }
-
-    if (sw.phase === 'falling') {
-      sw.vy += GRAVITY;
-      sw.x += sw.vx;
-      sw.y += sw.vy;
-      const groundY = H*.73 - sw.lane*ps*3;
-      if (sw.y >= groundY) {
-        sw.y = groundY;
-        sw.phase = 'running';
-        sw.spd = RUN_SPD[state.runSpeed] * (.9+Math.random()*.2);
-        sw.vx = 0; sw.vy = 0;
+      // ── Palettes ──────────────────────────────────────────────────────────────────
+      // idx: 0=transparent 1=outline 2=skin 3=white 4=coat 5=leather 6=gold 7=pants 8=eyepatch
+      const BASE_PAL = {
+        classic: {
+          1: '#1a1020',
+          2: '#e8aa60',
+          3: '#f5f0e8',
+          4: '#aa2020',
+          5: '#5a3515',
+          6: '#d4a020',
+          7: '#2a4a7a',
+          8: '#1a0a08',
+        },
+        dark: {
+          1: '#060608',
+          2: '#a06830',
+          3: '#c8c0a8',
+          4: '#601010',
+          5: '#2a1a08',
+          6: '#807010',
+          7: '#152535',
+          8: '#100505',
+        },
+        colorful: {
+          1: '#100820',
+          2: '#ffc080',
+          3: '#ffffff',
+          4: '#ff3050',
+          5: '#804020',
+          6: '#ffd700',
+          7: '#2060ff',
+          8: '#200a40',
+        },
+        sepia: {
+          1: '#2a1a08',
+          2: '#c8905a',
+          3: '#e8d8b0',
+          4: '#8a3818',
+          5: '#4a2808',
+          6: '#b08830',
+          7: '#484028',
+          8: '#180800',
+        },
       }
-      blit(ctx,'swing',sw.x-SW/2,sw.y,dir===-1);
-      return;
-    }
+      // Per-style overrides applied on top of base palette
+      const STYLE_PAL = {
+        buccaneer: {},
+        skeleton: { 2: '#b8c8b0', 4: '#2c2c2c', 7: '#1a1a1a' },
+        corsair: { 4: '#1a3a6a', 6: '#c0c0c0' },
+      }
+      function getPal() {
+        return {
+          ...(BASE_PAL[state.colorTheme] || BASE_PAL.classic),
+          ...(STYLE_PAL[state.pirateStyle] || {}),
+        }
+      }
 
-    if (sw.phase === 'running') {
-      sw.x += dir * sw.spd;
-      sw.ft++; if (sw.ft>=10){sw.ft=0;sw.frame^=1;}
-      blit(ctx, sw.frame?'walkB':'walkA', sw.x-SW/2, sw.y, dir===-1);
-      const exitX = dir===1 ? W+SW : -SW;
-      if ((dir===1&&sw.x>exitX)||(dir===-1&&sw.x<exitX)) sw.done=true;
-    }
-  });
-}
+      // ── Sprites ───────────────────────────────────────────────────────────────────
+      // Head variants: rows 0-5 (hat rows 0-2, face rows 3-5)
+      const HEADS = {
+        buccaneer: [
+          [0, 0, 1, 1, 1, 1, 0, 0],
+          [0, 1, 1, 3, 3, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1, 1], // tricorn
+          [0, 0, 2, 2, 2, 2, 0, 0],
+          [0, 0, 8, 2, 2, 3, 0, 0],
+          [0, 0, 2, 2, 2, 2, 0, 0], // face: eyepatch|eye
+        ],
+        skeleton: [
+          [0, 0, 1, 1, 1, 1, 0, 0],
+          [0, 1, 1, 3, 3, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1, 1], // hat
+          [0, 0, 3, 3, 3, 3, 0, 0],
+          [0, 0, 1, 3, 3, 1, 0, 0],
+          [0, 1, 3, 1, 1, 3, 1, 0], // skull face
+        ],
+        corsair: [
+          [0, 0, 6, 6, 6, 6, 0, 0],
+          [0, 6, 1, 2, 2, 1, 6, 0],
+          [0, 0, 2, 2, 2, 2, 0, 0], // bandana
+          [0, 0, 2, 2, 2, 2, 0, 0],
+          [0, 0, 8, 2, 2, 2, 0, 0],
+          [0, 0, 5, 2, 2, 5, 0, 0], // scowl + stubble
+        ],
+      }
+      // Body rows shared (swing / walk-A legs / walk-B legs)
+      const BODY_SW = [
+        [2, 4, 4, 4, 4, 4, 4, 2],
+        [0, 4, 4, 4, 4, 4, 4, 0],
+        [0, 5, 6, 6, 6, 6, 5, 0],
+        [0, 5, 7, 7, 7, 7, 5, 0],
+        [0, 5, 7, 0, 0, 7, 5, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+      ]
+      const BODY_WA = [
+        [0, 4, 4, 4, 4, 4, 4, 0],
+        [2, 4, 4, 4, 4, 4, 4, 2],
+        [0, 5, 6, 6, 6, 6, 5, 0],
+        [0, 5, 7, 7, 0, 0, 5, 0],
+        [0, 0, 5, 7, 0, 5, 5, 0],
+        [0, 0, 1, 0, 0, 5, 1, 0],
+      ]
+      const BODY_WB = [
+        [0, 4, 4, 4, 4, 4, 4, 0],
+        [2, 4, 4, 4, 4, 4, 4, 2],
+        [0, 5, 6, 6, 6, 6, 5, 0],
+        [0, 0, 0, 7, 7, 5, 0, 0],
+        [0, 5, 5, 7, 5, 0, 0, 0],
+        [0, 1, 5, 0, 1, 0, 0, 0],
+      ]
 
-function updateRunners(ctx, W, H) {
-  const ps = state.pixelSize, SW=8*ps;
-  runners.forEach(r => {
-    if (r.done) return;
-    r.x += r.dir * r.spd;
-    r.ft++; if (r.ft>=10){r.ft=0;r.frame^=1;}
-    blit(ctx, r.frame?'walkB':'walkA', r.x, r.y, r.dir===-1);
-    const exitX = r.dir===1 ? W+SW : -SW;
-    if ((r.dir===1&&r.x>exitX)||(r.dir===-1&&r.x<exitX)) r.done=true;
-  });
-}
+      function buildSprites() {
+        const head = HEADS[state.pirateStyle] || HEADS.buccaneer
+        return {
+          swing: [...head, ...BODY_SW],
+          walkA: [...head, ...BODY_WA],
+          walkB: [...head, ...BODY_WB],
+        }
+      }
 
-// ── Main loop ─────────────────────────────────────────────────────────────────
-function tick() {
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.clientWidth, H = canvas.clientHeight;
-  if (canvas.width!==W||canvas.height!==H) {
-    canvas.width=W; canvas.height=H;
-  }
-  ctx.clearRect(0,0,W,H);
-  t++;
-  if (phase==='active') {
-    updateSwingers(ctx,W,H);
-    updateRunners(ctx,W,H);
-    checkDone(W);
-  }
-  requestAnimationFrame(tick);
-}
+      // ── Sprite cache (offscreen canvas per name+flip) ─────────────────────────────
+      let cache = {}
+      function buildCache() {
+        cache = {}
+        const ps = state.pixelSize
+        const pal = getPal()
+        const sprs = buildSprites()
+        for (const [name, spr] of Object.entries(sprs)) {
+          for (const flip of [false, true]) {
+            const oc = document.createElement('canvas')
+            oc.width = 8 * ps
+            oc.height = 12 * ps
+            const ctx = oc.getContext('2d')
+            spr.forEach((row, ry) =>
+              row.forEach((ci, rx) => {
+                if (!ci) return
+                const c = pal[ci]
+                if (!c) return
+                ctx.fillStyle = c
+                ctx.fillRect((flip ? 7 - rx : rx) * ps, ry * ps, ps, ps)
+              })
+            )
+            cache[`${name}_${flip}`] = oc
+          }
+        }
+      }
+      function blit(ctx, name, x, y, flip) {
+        const img = cache[`${name}_${!!flip}`]
+        if (img) ctx.drawImage(img, x, y)
+      }
 
-// ── Controls ──────────────────────────────────────────────────────────────────
-function update(key, val) {
-  state[key]=val;
-  if (key==='ropeLen') { document.getElementById('ropeLenV').textContent=val; }
-  if (key==='raidViewers') { document.getElementById('raidViewersV').textContent=val; }
-  if (key==='pixelSize'||key==='colorTheme'||key==='pirateStyle') buildCache();
-  updateRaidDisplay();
-  updatePrompt();
-}
-function setPS(size,btn) {
-  state.pixelSize=size;
-  document.querySelectorAll('.tb[id^="px"]').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  buildCache();
-  updatePrompt();
-}
-function updateRaidDisplay() {
-  const {total,sw,ru}=countFromRaid(state.raidViewers);
-  const cap = state.raidViewers>100?' <span style="color:#445">(capped)</span>':'';
-  document.getElementById('raidDisplay').innerHTML=
-    `<b>${sw}</b> swinger${sw!==1?'s':''} + <b>${ru}</b> runner${ru!==1?'s':''} = <b>${total}</b> pirates${cap}`;
-}
+      // ── Entities ──────────────────────────────────────────────────────────────────
+      let swingers = [],
+        runners = []
+      let t = 0
 
-// ── Presets ───────────────────────────────────────────────────────────────────
-const PRESETS = {
-  calm:    {raidViewers:8,  ropeLen:140,swingSpeed:'fast',   runSpeed:'fast',   runDir:'ltr',pixelSize:6,pirateStyle:'buccaneer',colorTheme:'classic'},
-  storm:   {raidViewers:80, ropeLen:90, swingSpeed:'fastest',runSpeed:'fastest',runDir:'rtl',pixelSize:4,pirateStyle:'skeleton', colorTheme:'dark'   },
-  midnight:{raidViewers:45, ropeLen:150,swingSpeed:'fast',   runSpeed:'faster', runDir:'ltr',pixelSize:6,pirateStyle:'corsair',  colorTheme:'dark'   },
-  jolly:   {raidViewers:42, ropeLen:120,swingSpeed:'fast',   runSpeed:'fast',   runDir:'ltr',pixelSize:6,pirateStyle:'buccaneer',colorTheme:'classic'},
-  chaos:   {raidViewers:500,ropeLen:70, swingSpeed:'manic',  runSpeed:'manic',  runDir:'ltr',pixelSize:4,pirateStyle:'skeleton', colorTheme:'colorful'},
-};
-function applyPreset(name) {
-  if (phase==='active') return;
-  Object.assign(state,PRESETS[name]);
-  syncUI();
-  buildCache();
-  updateRaidDisplay();
-  updatePrompt();
-}
-function syncUI() {
-  const s=id=>document.getElementById(id);
-  s('raidViewers').value=state.raidViewers; s('raidViewersV').textContent=state.raidViewers;
-  s('ropeLen').value=state.ropeLen; s('ropeLenV').textContent=state.ropeLen;
-  s('swingSpeed').value=state.swingSpeed;
-  s('runSpeed').value=state.runSpeed;
-  s('runDir').value=state.runDir;
-  s('colorTheme').value=state.colorTheme;
-  s('pirateStyle').value=state.pirateStyle;
-  document.querySelectorAll('.tb[id^="px"]').forEach(b=>b.classList.remove('active'));
-  s('px'+state.pixelSize).classList.add('active');
-}
+      const RUN_SPD = { fast: 2.5, faster: 4.0, fastest: 6.5, manic: 11.0 }
+      const SW_FREQ = { fast: 0.03, faster: 0.042, fastest: 0.058, manic: 0.08 }
+      const GRAVITY = 0.45
 
-// ── Prompt ────────────────────────────────────────────────────────────────────
-function updatePrompt() {
-  const {total,sw,ru}=countFromRaid(state.raidViewers);
-  const dirL={ltr:'left to right',rtl:'right to left'}[state.runDir];
-  const styleL={buccaneer:'classic buccaneer',skeleton:'skeleton crew',corsair:'corsair'}[state.pirateStyle];
-  const parts=[
-    `transparent background (stream overlay)`,
-    `${total} ${styleL} pixel-art pirates scaling from ${state.raidViewers} raid viewers (max 100)`,
-    `${sw} swinging in from the ${state.runDir==='ltr'?'left':'right'} on ${state.ropeLen}px ropes then landing and running`,
-    `${ru} running ${state.runSpeed}ly ${dirL}`,
-  ];
-  if (state.pixelSize!==6) parts.push(`${state.pixelSize}px pixel grid`);
-  document.getElementById('promptText').textContent =
-    `Create a pirate raid animation with ${parts.join(', ')}. Pirates use ${state.pixelSize}px pixel-art sprites on canvas with rAF. Swingers use pendulum physics, releasing at bottom of arc when heading toward exit; runners seed across entry side and loop off the far edge.`;
-}
+      function initSwingers(W, H, count) {
+        const L = state.ropeLen
+        const dir = state.runDir === 'ltr' ? 1 : -1
+        // Anchor just past entry edge so pirate starts off-screen
+        const baseAnchorX = dir === 1 ? L * 0.55 : W - L * 0.55
+        const initAngle = -dir * 1.45 // large angle toward entry side
+        swingers = Array.from({ length: count }, (_, i) => ({
+          anchorX: baseAnchorX + dir * i * 35,
+          anchorY: 12,
+          angle: initAngle,
+          angVel: 0,
+          ropeLen: L,
+          phase: 'waiting',
+          delay: i * Math.max(8, Math.floor(240 / count)), // all enter within ~4s
+          crossed: false, // has crossed vertical going toward exit?
+          lane: i % 4,
+          // for fall/run:
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0,
+          frame: 0,
+          ft: 0,
+          spd: 0,
+          done: false,
+        }))
+      }
 
-function copyPrompt() {
-  navigator.clipboard.writeText(document.getElementById('promptText').textContent).then(()=>{
-    const b=document.getElementById('copyBtn');
-    b.textContent='Copied!'; b.classList.add('copied');
-    setTimeout(()=>{b.textContent='Copy';b.classList.remove('copied');},1500);
-  });
-}
+      function initRunners(W, H, count) {
+        const ps = state.pixelSize,
+          SW = 8 * ps
+        const dir = state.runDir === 'ltr' ? 1 : -1
+        // Seed spread across entry side so large herds fill screen immediately
+        const spreadW = count > 15 ? W * 1.5 : 0
+        runners = Array.from({ length: count }, (_, i) => {
+          const lane = i % 4
+          const y = H * 0.73 - lane * ps * 3
+          const x =
+            dir === 1
+              ? -SW - (spreadW > 0 ? (i / count) * spreadW : i * 28)
+              : W + SW + (spreadW > 0 ? (i / count) * spreadW : i * 28)
+          return {
+            x,
+            y,
+            dir,
+            lane,
+            frame: i % 2,
+            ft: Math.floor((i * 7) % 10),
+            spd: RUN_SPD[state.runSpeed] * (0.85 + (i % 5) * 0.07),
+            done: false,
+          }
+        })
+      }
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
-window.addEventListener('load',()=>{
-  const canvas=document.getElementById('canvas');
-  canvas.width=canvas.clientWidth; canvas.height=canvas.clientHeight;
-  buildCache();
-  updateRaidDisplay();
-  updatePrompt();
-  tick();
-});
-window.addEventListener('resize',()=>{
-  const c=document.getElementById('canvas');
-  c.width=c.clientWidth; c.height=c.clientHeight;
-});
-</script>
-</body>
+      function triggerRaid() {
+        if (phase === 'active') return
+        phase = 'active'
+        const canvas = document.getElementById('canvas')
+        const W = canvas.width,
+          H = canvas.height
+        const { sw, ru } = countFromRaid(state.raidViewers)
+        initSwingers(W, H, sw)
+        initRunners(W, H, ru)
+        const btn = document.getElementById('triggerBtn')
+        btn.disabled = true
+        btn.textContent = `⚓ ${countFromRaid(state.raidViewers).total} raiders incoming…`
+        updatePrompt()
+      }
+
+      function checkDone(W) {
+        if (phase !== 'active') return
+        const swDone = swingers.every((s) => s.done)
+        const ruDone = runners.every((r) => r.done)
+        if (swDone && ruDone) {
+          phase = 'idle'
+          swingers = []
+          runners = []
+          const btn = document.getElementById('triggerBtn')
+          btn.disabled = false
+          btn.textContent = '⚔ TRIGGER RAID'
+        }
+      }
+
+      // ── Drawing ───────────────────────────────────────────────────────────────────
+      function updateSwingers(ctx, W, H) {
+        const ps = state.pixelSize,
+          SW = 8 * ps
+        const dir = state.runDir === 'ltr' ? 1 : -1
+        const freq = SW_FREQ[state.swingSpeed] || SW_FREQ.fast
+
+        swingers.forEach((sw) => {
+          if (sw.done) return
+
+          if (sw.phase === 'waiting') {
+            if (--sw.delay > 0) return
+            sw.phase = 'swinging'
+          }
+
+          if (sw.phase === 'swinging') {
+            const prev = sw.angle
+            sw.angVel +=
+              -(0.4 / sw.ropeLen) * Math.sin(sw.angle) * (freq / 0.03)
+            sw.angVel *= 0.999
+            sw.angle += sw.angVel
+
+            // Detect first crossing toward exit side
+            const headingExit = dir === 1 ? sw.angVel > 0 : sw.angVel < 0
+            if (!sw.crossed && prev * sw.angle < 0 && headingExit) {
+              sw.crossed = true
+            }
+            // Release at bottom of arc on exit-side swing
+            if (sw.crossed && headingExit && Math.abs(sw.angle) < 0.25) {
+              // Tangential velocity at release
+              sw.x = sw.anchorX + Math.sin(sw.angle) * sw.ropeLen
+              sw.y = sw.anchorY + Math.cos(sw.angle) * sw.ropeLen
+              sw.vx = Math.cos(sw.angle) * sw.angVel * sw.ropeLen
+              sw.vy = -Math.sin(sw.angle) * sw.angVel * sw.ropeLen
+              sw.phase = 'falling'
+            }
+
+            // Draw beam
+            const ax = sw.anchorX
+            ctx.strokeStyle = '#5a3510'
+            ctx.lineWidth = 5
+            ctx.beginPath()
+            ctx.moveTo(ax - 20, 0)
+            ctx.lineTo(ax + 20, 0)
+            ctx.stroke()
+            ctx.lineWidth = 4
+            ctx.beginPath()
+            ctx.moveTo(ax, 0)
+            ctx.lineTo(ax, sw.anchorY + 2)
+            ctx.stroke()
+            // Rope
+            const px = sw.anchorX + Math.sin(sw.angle) * sw.ropeLen
+            const py = sw.anchorY + Math.cos(sw.angle) * sw.ropeLen
+            ctx.strokeStyle = '#9a7040'
+            ctx.lineWidth = 2
+            const bow = Math.abs(Math.sin(sw.angle)) * 6
+            ctx.beginPath()
+            ctx.moveTo(ax, sw.anchorY)
+            ctx.quadraticCurveTo(
+              ax +
+                Math.sin(sw.angle) * sw.ropeLen * 0.5 +
+                bow * Math.sign(sw.angle || 1),
+              sw.anchorY + Math.cos(sw.angle) * sw.ropeLen * 0.5 + bow,
+              px,
+              py
+            )
+            ctx.stroke()
+            // Pirate
+            ctx.save()
+            ctx.translate(px, py)
+            ctx.rotate(sw.angle * 0.2)
+            blit(ctx, 'swing', -SW / 2, 0, sw.angle < 0)
+            ctx.restore()
+            return
+          }
+
+          if (sw.phase === 'falling') {
+            sw.vy += GRAVITY
+            sw.x += sw.vx
+            sw.y += sw.vy
+            const groundY = H * 0.73 - sw.lane * ps * 3
+            if (sw.y >= groundY) {
+              sw.y = groundY
+              sw.phase = 'running'
+              sw.spd = RUN_SPD[state.runSpeed] * (0.9 + Math.random() * 0.2)
+              sw.vx = 0
+              sw.vy = 0
+            }
+            blit(ctx, 'swing', sw.x - SW / 2, sw.y, dir === -1)
+            return
+          }
+
+          if (sw.phase === 'running') {
+            sw.x += dir * sw.spd
+            sw.ft++
+            if (sw.ft >= 10) {
+              sw.ft = 0
+              sw.frame ^= 1
+            }
+            blit(
+              ctx,
+              sw.frame ? 'walkB' : 'walkA',
+              sw.x - SW / 2,
+              sw.y,
+              dir === -1
+            )
+            const exitX = dir === 1 ? W + SW : -SW
+            if ((dir === 1 && sw.x > exitX) || (dir === -1 && sw.x < exitX))
+              sw.done = true
+          }
+        })
+      }
+
+      function updateRunners(ctx, W, H) {
+        const ps = state.pixelSize,
+          SW = 8 * ps
+        runners.forEach((r) => {
+          if (r.done) return
+          r.x += r.dir * r.spd
+          r.ft++
+          if (r.ft >= 10) {
+            r.ft = 0
+            r.frame ^= 1
+          }
+          blit(ctx, r.frame ? 'walkB' : 'walkA', r.x, r.y, r.dir === -1)
+          const exitX = r.dir === 1 ? W + SW : -SW
+          if ((r.dir === 1 && r.x > exitX) || (r.dir === -1 && r.x < exitX))
+            r.done = true
+        })
+      }
+
+      // ── Main loop ─────────────────────────────────────────────────────────────────
+      function tick() {
+        const canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('2d')
+        const W = canvas.clientWidth,
+          H = canvas.clientHeight
+        if (canvas.width !== W || canvas.height !== H) {
+          canvas.width = W
+          canvas.height = H
+        }
+        ctx.clearRect(0, 0, W, H)
+        t++
+        if (phase === 'active') {
+          updateSwingers(ctx, W, H)
+          updateRunners(ctx, W, H)
+          checkDone(W)
+        }
+        requestAnimationFrame(tick)
+      }
+
+      // ── Controls ──────────────────────────────────────────────────────────────────
+      function update(key, val) {
+        state[key] = val
+        if (key === 'ropeLen') {
+          document.getElementById('ropeLenV').textContent = val
+        }
+        if (key === 'raidViewers') {
+          document.getElementById('raidViewersV').textContent = val
+        }
+        if (
+          key === 'pixelSize' ||
+          key === 'colorTheme' ||
+          key === 'pirateStyle'
+        )
+          buildCache()
+        updateRaidDisplay()
+        updatePrompt()
+      }
+      function setPS(size, btn) {
+        state.pixelSize = size
+        document
+          .querySelectorAll('.tb[id^="px"]')
+          .forEach((b) => b.classList.remove('active'))
+        btn.classList.add('active')
+        buildCache()
+        updatePrompt()
+      }
+      function updateRaidDisplay() {
+        const { total, sw, ru } = countFromRaid(state.raidViewers)
+        const cap =
+          state.raidViewers > 100
+            ? ' <span style="color:#445">(capped)</span>'
+            : ''
+        document.getElementById('raidDisplay').innerHTML =
+          `<b>${sw}</b> swinger${sw !== 1 ? 's' : ''} + <b>${ru}</b> runner${ru !== 1 ? 's' : ''} = <b>${total}</b> pirates${cap}`
+      }
+
+      // ── Presets ───────────────────────────────────────────────────────────────────
+      const PRESETS = {
+        calm: {
+          raidViewers: 8,
+          ropeLen: 140,
+          swingSpeed: 'fast',
+          runSpeed: 'fast',
+          runDir: 'ltr',
+          pixelSize: 6,
+          pirateStyle: 'buccaneer',
+          colorTheme: 'classic',
+        },
+        storm: {
+          raidViewers: 80,
+          ropeLen: 90,
+          swingSpeed: 'fastest',
+          runSpeed: 'fastest',
+          runDir: 'rtl',
+          pixelSize: 4,
+          pirateStyle: 'skeleton',
+          colorTheme: 'dark',
+        },
+        midnight: {
+          raidViewers: 45,
+          ropeLen: 150,
+          swingSpeed: 'fast',
+          runSpeed: 'faster',
+          runDir: 'ltr',
+          pixelSize: 6,
+          pirateStyle: 'corsair',
+          colorTheme: 'dark',
+        },
+        jolly: {
+          raidViewers: 42,
+          ropeLen: 120,
+          swingSpeed: 'fast',
+          runSpeed: 'fast',
+          runDir: 'ltr',
+          pixelSize: 6,
+          pirateStyle: 'buccaneer',
+          colorTheme: 'classic',
+        },
+        chaos: {
+          raidViewers: 500,
+          ropeLen: 70,
+          swingSpeed: 'manic',
+          runSpeed: 'manic',
+          runDir: 'ltr',
+          pixelSize: 4,
+          pirateStyle: 'skeleton',
+          colorTheme: 'colorful',
+        },
+      }
+      function applyPreset(name) {
+        if (phase === 'active') return
+        Object.assign(state, PRESETS[name])
+        syncUI()
+        buildCache()
+        updateRaidDisplay()
+        updatePrompt()
+      }
+      function syncUI() {
+        const s = (id) => document.getElementById(id)
+        s('raidViewers').value = state.raidViewers
+        s('raidViewersV').textContent = state.raidViewers
+        s('ropeLen').value = state.ropeLen
+        s('ropeLenV').textContent = state.ropeLen
+        s('swingSpeed').value = state.swingSpeed
+        s('runSpeed').value = state.runSpeed
+        s('runDir').value = state.runDir
+        s('colorTheme').value = state.colorTheme
+        s('pirateStyle').value = state.pirateStyle
+        document
+          .querySelectorAll('.tb[id^="px"]')
+          .forEach((b) => b.classList.remove('active'))
+        s('px' + state.pixelSize).classList.add('active')
+      }
+
+      // ── Prompt ────────────────────────────────────────────────────────────────────
+      function updatePrompt() {
+        const { total, sw, ru } = countFromRaid(state.raidViewers)
+        const dirL = { ltr: 'left to right', rtl: 'right to left' }[
+          state.runDir
+        ]
+        const styleL = {
+          buccaneer: 'classic buccaneer',
+          skeleton: 'skeleton crew',
+          corsair: 'corsair',
+        }[state.pirateStyle]
+        const parts = [
+          `transparent background (stream overlay)`,
+          `${total} ${styleL} pixel-art pirates scaling from ${state.raidViewers} raid viewers (max 100)`,
+          `${sw} swinging in from the ${state.runDir === 'ltr' ? 'left' : 'right'} on ${state.ropeLen}px ropes then landing and running`,
+          `${ru} running ${state.runSpeed}ly ${dirL}`,
+        ]
+        if (state.pixelSize !== 6) parts.push(`${state.pixelSize}px pixel grid`)
+        document.getElementById('promptText').textContent =
+          `Create a pirate raid animation with ${parts.join(', ')}. Pirates use ${state.pixelSize}px pixel-art sprites on canvas with rAF. Swingers use pendulum physics, releasing at bottom of arc when heading toward exit; runners seed across entry side and loop off the far edge.`
+      }
+
+      function copyPrompt() {
+        navigator.clipboard
+          .writeText(document.getElementById('promptText').textContent)
+          .then(() => {
+            const b = document.getElementById('copyBtn')
+            b.textContent = 'Copied!'
+            b.classList.add('copied')
+            setTimeout(() => {
+              b.textContent = 'Copy'
+              b.classList.remove('copied')
+            }, 1500)
+          })
+      }
+
+      // ── Boot ──────────────────────────────────────────────────────────────────────
+      window.addEventListener('load', () => {
+        const canvas = document.getElementById('canvas')
+        canvas.width = canvas.clientWidth
+        canvas.height = canvas.clientHeight
+        buildCache()
+        updateRaidDisplay()
+        updatePrompt()
+        tick()
+      })
+      window.addEventListener('resize', () => {
+        const c = document.getElementById('canvas')
+        c.width = c.clientWidth
+        c.height = c.clientHeight
+      })
+    </script>
+  </body>
 </html>

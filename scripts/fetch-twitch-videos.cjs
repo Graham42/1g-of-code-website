@@ -77,7 +77,7 @@ function readEnvFile(filePath) {
         })
     )
   } catch (e) {
-    console.error("Failed to read env file", e);
+    console.error('Failed to read env file', e)
     return {}
   }
 }

@@ -1,1035 +1,1372 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pirate Raid Alert — Full Screen Playground</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pirate Raid Alert — Full Screen Playground</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;900&family=IBM+Plex+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-:root {
-  --bg:      #040b16;
-  --surface: #080f1c;
-  --border:  #1a2d45;
-  --text:    #c4d4e8;
-  --muted:   #5a7a9a;
-  --gold:    #c8942c;
-  --gold-dim: #9a6e1a;
-  --parchment: #f2e8c4;
-  --s: 0.4; /* preview scale, updated by JS */
-}
+      :root {
+        --bg: #040b16;
+        --surface: #080f1c;
+        --border: #1a2d45;
+        --text: #c4d4e8;
+        --muted: #5a7a9a;
+        --gold: #c8942c;
+        --gold-dim: #9a6e1a;
+        --parchment: #f2e8c4;
+        --s: 0.4; /* preview scale, updated by JS */
+      }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 12px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  /* nautical grid background */
-  background-image:
-    linear-gradient(rgba(200, 148, 44, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 148, 44, 0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-  background-position: 0 0;
-}
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        font-size: 12px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        /* nautical grid background */
+        background-image:
+          linear-gradient(rgba(200, 148, 44, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(200, 148, 44, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+        background-position: 0 0;
+      }
 
-/* === HEADER === */
-.header {
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-  background: rgba(4, 11, 22, 0.85);
-  backdrop-filter: blur(4px);
-}
-.header-skull {
-  font-size: 22px;
-  line-height: 1;
-  filter: drop-shadow(0 0 8px rgba(200, 148, 44, 0.7));
-}
-.header-title {
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
-  text-shadow: 0 0 20px rgba(200, 148, 44, 0.4);
-}
-.header-badge {
-  background: rgba(200, 148, 44, 0.1);
-  border: 1px solid rgba(200, 148, 44, 0.3);
-  color: var(--gold-dim);
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 2px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.header-hint {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 0.05em;
-}
+      /* === HEADER === */
+      .header {
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-shrink: 0;
+        background: rgba(4, 11, 22, 0.85);
+        backdrop-filter: blur(4px);
+      }
+      .header-skull {
+        font-size: 22px;
+        line-height: 1;
+        filter: drop-shadow(0 0 8px rgba(200, 148, 44, 0.7));
+      }
+      .header-title {
+        font-family: 'Cinzel', Georgia, serif;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold);
+        text-shadow: 0 0 20px rgba(200, 148, 44, 0.4);
+      }
+      .header-badge {
+        background: rgba(200, 148, 44, 0.1);
+        border: 1px solid rgba(200, 148, 44, 0.3);
+        color: var(--gold-dim);
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 2px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .header-hint {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.05em;
+      }
 
-/* === MAIN LAYOUT === */
-.main {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  overflow: hidden;
-  min-height: 0;
-}
+      /* === MAIN LAYOUT === */
+      .main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        overflow: hidden;
+        min-height: 0;
+      }
 
-/* === CONTROLS === */
-.controls {
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-  background: rgba(4, 11, 22, 0.6);
-}
-.section { display: flex; flex-direction: column; gap: 8px; }
+      /* === CONTROLS === */
+      .controls {
+        border-right: 1px solid var(--border);
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+        background: rgba(4, 11, 22, 0.6);
+      }
+      .section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
 
-.section-label {
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(200, 148, 44, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.section-label::before {
-  content: '⚓';
-  font-size: 10px;
-  opacity: 0.6;
-}
+      .section-label {
+        font-family: 'Cinzel', Georgia, serif;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(200, 148, 44, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .section-label::before {
+        content: '⚓';
+        font-size: 10px;
+        opacity: 0.6;
+      }
 
-.row { display: flex; align-items: center; gap: 8px; }
-.row-label { color: var(--muted); min-width: 80px; font-size: 11px; flex-shrink: 0; }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .row-label {
+        color: var(--muted);
+        min-width: 80px;
+        font-size: 11px;
+        flex-shrink: 0;
+      }
 
-select {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 6px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-family: 'IBM Plex Mono', monospace;
-  cursor: pointer;
-  outline: none;
-}
-select:focus { border-color: var(--gold); }
+      select {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 4px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-family: 'IBM Plex Mono', monospace;
+        cursor: pointer;
+        outline: none;
+      }
+      select:focus {
+        border-color: var(--gold);
+      }
 
-input[type="color"] {
-  width: 28px; height: 22px;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  background: none;
-  padding: 1px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-input[type="text"] {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 7px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-family: 'IBM Plex Mono', monospace;
-  outline: none;
-}
-input[type="text"]:focus { border-color: var(--gold); }
-input[type="range"] {
-  flex: 1;
-  accent-color: var(--gold);
-  height: 16px;
-}
-.val {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--muted);
-  min-width: 28px;
-  text-align: right;
-  flex-shrink: 0;
-}
+      input[type='color'] {
+        width: 28px;
+        height: 22px;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: none;
+        padding: 1px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      input[type='text'] {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 4px 7px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-family: 'IBM Plex Mono', monospace;
+        outline: none;
+      }
+      input[type='text']:focus {
+        border-color: var(--gold);
+      }
+      input[type='range'] {
+        flex: 1;
+        accent-color: var(--gold);
+        height: 16px;
+      }
+      .val {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        color: var(--muted);
+        min-width: 28px;
+        text-align: right;
+        flex-shrink: 0;
+      }
 
-.toggle-wrap { display: flex; align-items: center; }
-.toggle {
-  width: 28px; height: 16px;
-  background: var(--border);
-  border-radius: 8px;
-  position: relative;
-  cursor: pointer;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-.toggle.on { background: var(--gold); }
-.toggle::after {
-  content: '';
-  position: absolute;
-  width: 12px; height: 12px;
-  background: white;
-  border-radius: 50%;
-  top: 2px; left: 2px;
-  transition: transform 0.2s;
-}
-.toggle.on::after { transform: translateX(12px); }
+      .toggle-wrap {
+        display: flex;
+        align-items: center;
+      }
+      .toggle {
+        width: 28px;
+        height: 16px;
+        background: var(--border);
+        border-radius: 8px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+      .toggle.on {
+        background: var(--gold);
+      }
+      .toggle::after {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s;
+      }
+      .toggle.on::after {
+        transform: translateX(12px);
+      }
 
-/* Presets */
-.presets { display: flex; gap: 6px; flex-wrap: wrap; }
-.preset-btn {
-  padding: 5px 10px;
-  border-radius: 3px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 10px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-transform: uppercase;
-}
-.preset-btn:hover { border-color: var(--gold); color: var(--text); }
-.preset-btn.active { border-color: var(--gold); background: rgba(200, 148, 44, 0.15); color: var(--gold); }
+      /* Presets */
+      .presets {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .preset-btn {
+        padding: 5px 10px;
+        border-radius: 3px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 10px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-transform: uppercase;
+      }
+      .preset-btn:hover {
+        border-color: var(--gold);
+        color: var(--text);
+      }
+      .preset-btn.active {
+        border-color: var(--gold);
+        background: rgba(200, 148, 44, 0.15);
+        color: var(--gold);
+      }
 
-/* === PREVIEW PANEL === */
-.preview-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse at 40% 30%, rgba(14, 36, 70, 0.35) 0%, transparent 60%),
-    radial-gradient(ellipse at 60% 70%, rgba(5, 15, 36, 0.5) 0%, transparent 60%);
-}
+      /* === PREVIEW PANEL === */
+      .preview-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            ellipse at 40% 30%,
+            rgba(14, 36, 70, 0.35) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 60% 70%,
+            rgba(5, 15, 36, 0.5) 0%,
+            transparent 60%
+          );
+      }
 
-.preview-labels {
-  position: absolute;
-  top: 10px;
-  left: 0; right: 0;
-  padding: 0 16px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  pointer-events: none;
-  font-family: 'IBM Plex Mono', monospace;
-}
+      .preview-labels {
+        position: absolute;
+        top: 10px;
+        left: 0;
+        right: 0;
+        padding: 0 16px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        pointer-events: none;
+        font-family: 'IBM Plex Mono', monospace;
+      }
 
-/* Preview wrapper — sized to scaled 1920×1080 */
-.preview-wrapper {
-  position: relative;
-  overflow: hidden;
-  outline: 1px solid rgba(200, 148, 44, 0.2);
-  box-shadow:
-    0 0 40px rgba(200, 148, 44, 0.08),
-    0 0 0 1px rgba(200, 148, 44, 0.1);
-  flex-shrink: 0;
-}
+      /* Preview wrapper — sized to scaled 1920×1080 */
+      .preview-wrapper {
+        position: relative;
+        overflow: hidden;
+        outline: 1px solid rgba(200, 148, 44, 0.2);
+        box-shadow:
+          0 0 40px rgba(200, 148, 44, 0.08),
+          0 0 0 1px rgba(200, 148, 44, 0.1);
+        flex-shrink: 0;
+      }
 
-/* The actual 1920×1080 alert, scaled down */
-#alert-preview {
-  width: 1920px;
-  height: 1080px;
-  transform-origin: top left;
-  transform: scale(var(--s));
-  position: absolute;
-  top: 0; left: 0;
-  /* Alert background */
-  background:
-    radial-gradient(ellipse 90% 55% at 50% 15%, #0e2445 0%, #07111f 55%, #040912 100%);
-  overflow: hidden;
-  font-family: 'Cinzel', Georgia, serif;
-}
+      /* The actual 1920×1080 alert, scaled down */
+      #alert-preview {
+        width: 1920px;
+        height: 1080px;
+        transform-origin: top left;
+        transform: scale(var(--s));
+        position: absolute;
+        top: 0;
+        left: 0;
+        /* Alert background */
+        background: radial-gradient(
+          ellipse 90% 55% at 50% 15%,
+          #0e2445 0%,
+          #07111f 55%,
+          #040912 100%
+        );
+        overflow: hidden;
+        font-family: 'Cinzel', Georgia, serif;
+      }
 
-/* Wave canvas inside preview */
-#prev-canvas {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
+      /* Wave canvas inside preview */
+      #prev-canvas {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
 
-/* Lightning */
-#prev-lightning {
-  position: absolute;
-  inset: 0;
-  background: #ddeeff;
-  opacity: 0;
-  z-index: 5;
-  pointer-events: none;
-}
+      /* Lightning */
+      #prev-lightning {
+        position: absolute;
+        inset: 0;
+        background: #ddeeff;
+        opacity: 0;
+        z-index: 5;
+        pointer-events: none;
+      }
 
-/* Alert content inside preview */
-#prev-content {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  padding: 0 120px 100px;
-  text-align: center;
-  gap: 0;
-}
+      /* Alert content inside preview */
+      #prev-content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        padding: 0 120px 100px;
+        text-align: center;
+        gap: 0;
+      }
 
-#prev-skull {
-  font-size: 180px;
-  line-height: 1;
-  margin-bottom: 24px;
-  display: block;
-  opacity: 0;
-}
+      #prev-skull {
+        font-size: 180px;
+        line-height: 1;
+        margin-bottom: 24px;
+        display: block;
+        opacity: 0;
+      }
 
-#prev-badge {
-  font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  color: #c8942c;
-  opacity: 0;
-  margin-bottom: 20px;
-  text-shadow:
-    0 0 40px rgba(200, 148, 44, 0.7),
-    0 0 90px rgba(200, 148, 44, 0.25);
-}
+      #prev-badge {
+        font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.42em;
+        text-transform: uppercase;
+        color: #c8942c;
+        opacity: 0;
+        margin-bottom: 20px;
+        text-shadow:
+          0 0 40px rgba(200, 148, 44, 0.7),
+          0 0 90px rgba(200, 148, 44, 0.25);
+      }
 
-.prev-divider {
-  width: 720px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #c8942c 18%, #f0c055 50%, #c8942c 82%, transparent);
-  box-shadow: 0 0 14px rgba(200, 148, 44, 0.45);
-  opacity: 0;
-  transform: scaleX(0);
-  transform-origin: center;
-  margin: 16px 0;
-}
+      .prev-divider {
+        width: 720px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          #c8942c 18%,
+          #f0c055 50%,
+          #c8942c 82%,
+          transparent
+        );
+        box-shadow: 0 0 14px rgba(200, 148, 44, 0.45);
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: center;
+        margin: 16px 0;
+      }
 
-#prev-username {
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 112px;
-  font-weight: 900;
-  color: #f2e8c4;
-  line-height: 1.05;
-  opacity: 0;
-  margin-bottom: 18px;
-  text-shadow:
-    0 0 60px rgba(200, 148, 44, 0.5),
-    0 0 130px rgba(200, 148, 44, 0.2),
-    0 6px 30px rgba(0, 0, 0, 0.95);
-  word-break: break-word;
-  max-width: 1650px;
-}
+      #prev-username {
+        font-family: 'Cinzel', Georgia, serif;
+        font-size: 112px;
+        font-weight: 900;
+        color: #f2e8c4;
+        line-height: 1.05;
+        opacity: 0;
+        margin-bottom: 18px;
+        text-shadow:
+          0 0 60px rgba(200, 148, 44, 0.5),
+          0 0 130px rgba(200, 148, 44, 0.2),
+          0 6px 30px rgba(0, 0, 0, 0.95);
+        word-break: break-word;
+        max-width: 1650px;
+      }
 
-#prev-crew {
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 38px;
-  font-weight: 600;
-  color: #c8942c;
-  letter-spacing: 0.09em;
-  opacity: 0;
-  margin-bottom: 12px;
-  text-shadow: 0 0 30px rgba(200, 148, 44, 0.45);
-}
+      #prev-crew {
+        font-family: 'Cinzel', Georgia, serif;
+        font-size: 38px;
+        font-weight: 600;
+        color: #c8942c;
+        letter-spacing: 0.09em;
+        opacity: 0;
+        margin-bottom: 12px;
+        text-shadow: 0 0 30px rgba(200, 148, 44, 0.45);
+      }
 
-#prev-message {
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 24px;
-  font-weight: 400;
-  color: rgba(242, 232, 196, 0.5);
-  letter-spacing: 0.12em;
-  font-style: italic;
-  opacity: 0;
-}
+      #prev-message {
+        font-family: 'Cinzel', Georgia, serif;
+        font-size: 24px;
+        font-weight: 400;
+        color: rgba(242, 232, 196, 0.5);
+        letter-spacing: 0.12em;
+        font-style: italic;
+        opacity: 0;
+      }
 
-/* === TRIGGER BUTTON === */
-.trigger-btn {
-  background: var(--gold);
-  color: #030810;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 28px;
-  font-size: 12px;
-  font-family: 'Cinzel', Georgia, serif;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-  flex-shrink: 0;
-}
-.trigger-btn:hover { background: #e0aa38; }
-.trigger-btn:active { transform: scale(0.97); }
-.trigger-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+      /* === TRIGGER BUTTON === */
+      .trigger-btn {
+        background: var(--gold);
+        color: #030810;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 28px;
+        font-size: 12px;
+        font-family: 'Cinzel', Georgia, serif;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        flex-shrink: 0;
+      }
+      .trigger-btn:hover {
+        background: #e0aa38;
+      }
+      .trigger-btn:active {
+        transform: scale(0.97);
+      }
+      .trigger-btn:disabled {
+        opacity: 0.35;
+        cursor: default;
+        transform: none;
+      }
 
-/* === FOOTER === */
-.footer {
-  border-top: 1px solid var(--border);
-  padding: 10px 16px;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  flex-shrink: 0;
-  background: rgba(4, 11, 22, 0.85);
-}
-.prompt-label {
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-  padding-top: 3px;
-  flex-shrink: 0;
-}
-#prompt-output {
-  flex: 1;
-  background: none;
-  border: none;
-  color: var(--text);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  line-height: 1.55;
-  resize: none;
-  height: 44px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-.copy-btn {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 3px;
-  padding: 5px 14px;
-  font-size: 11px;
-  font-family: 'IBM Plex Mono', monospace;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-.copy-btn:hover { background: #0d1828; }
-.copy-btn.copied { color: #4ade80; border-color: #4ade80; }
+      /* === FOOTER === */
+      .footer {
+        border-top: 1px solid var(--border);
+        padding: 10px 16px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        flex-shrink: 0;
+        background: rgba(4, 11, 22, 0.85);
+      }
+      .prompt-label {
+        font-family: 'Cinzel', Georgia, serif;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold-dim);
+        padding-top: 3px;
+        flex-shrink: 0;
+      }
+      #prompt-output {
+        flex: 1;
+        background: none;
+        border: none;
+        color: var(--text);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        line-height: 1.55;
+        resize: none;
+        height: 44px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+      }
+      .copy-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 3px;
+        padding: 5px 14px;
+        font-size: 11px;
+        font-family: 'IBM Plex Mono', monospace;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s;
+        flex-shrink: 0;
+      }
+      .copy-btn:hover {
+        background: #0d1828;
+      }
+      .copy-btn.copied {
+        color: #4ade80;
+        border-color: #4ade80;
+      }
 
-/* === PREVIEW ANIMATIONS === */
-@keyframes skullDrop {
-  0%   { opacity: 0; transform: scale(0.15) translateY(-100px) rotate(-20deg); filter: blur(16px) brightness(4); }
-  35%  { opacity: 1; transform: scale(1.14) translateY(8px) rotate(5deg);      filter: blur(1px)  brightness(1.5); }
-  60%  { transform: scale(0.94) translateY(-4px) rotate(-1deg); filter: none; }
-  80%  { transform: scale(1.04) translateY(3px); }
-  100% { opacity: 1; transform: scale(1) translateY(0) rotate(0); filter: none; }
-}
-@keyframes fadeSlideDown {
-  from { opacity: 0; transform: translateY(-28px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(70px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes dividerOpen {
-  from { opacity: 0; transform: scaleX(0); }
-  to   { opacity: 1; transform: scaleX(1); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes lightningFlash {
-  0%   { opacity: 0; }
-  7%   { opacity: 0.6; }
-  14%  { opacity: 0.08; }
-  24%  { opacity: 0.5; }
-  38%  { opacity: 0.04; }
-  52%  { opacity: 0.35; }
-  70%  { opacity: 0; }
-  100% { opacity: 0; }
-}
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-</style>
-</head>
-<body>
-
-<div class="header">
-  <span class="header-skull">☠️</span>
-  <span class="header-title">Pirate Raid Alert</span>
-  <span class="header-badge">Full Screen · 1920 × 1080</span>
-  <span class="header-badge" style="border-color: rgba(100,150,200,0.3); color: #4a7aaa; background: rgba(100,150,200,0.08);">channel.raid · /raid</span>
-  <span class="header-hint">Design your raid takeover → Copy prompt → Deploy</span>
-</div>
-
-<div class="main">
-
-  <!-- CONTROLS -->
-  <div class="controls">
-
-    <div class="section">
-      <div class="section-label">Presets</div>
-      <div class="presets">
-        <button class="preset-btn active" data-preset="jollyRoger">Jolly Roger</button>
-        <button class="preset-btn" data-preset="davyJones">Davy Jones</button>
-        <button class="preset-btn" data-preset="corsair">Corsair</button>
-        <button class="preset-btn" data-preset="seaDogs">Sea Dogs</button>
-        <button class="preset-btn" data-preset="ghost">Ghost Ship</button>
-      </div>
+      /* === PREVIEW ANIMATIONS === */
+      @keyframes skullDrop {
+        0% {
+          opacity: 0;
+          transform: scale(0.15) translateY(-100px) rotate(-20deg);
+          filter: blur(16px) brightness(4);
+        }
+        35% {
+          opacity: 1;
+          transform: scale(1.14) translateY(8px) rotate(5deg);
+          filter: blur(1px) brightness(1.5);
+        }
+        60% {
+          transform: scale(0.94) translateY(-4px) rotate(-1deg);
+          filter: none;
+        }
+        80% {
+          transform: scale(1.04) translateY(3px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0) rotate(0);
+          filter: none;
+        }
+      }
+      @keyframes fadeSlideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-28px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(70px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes dividerOpen {
+        from {
+          opacity: 0;
+          transform: scaleX(0);
+        }
+        to {
+          opacity: 1;
+          transform: scaleX(1);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes lightningFlash {
+        0% {
+          opacity: 0;
+        }
+        7% {
+          opacity: 0.6;
+        }
+        14% {
+          opacity: 0.08;
+        }
+        24% {
+          opacity: 0.5;
+        }
+        38% {
+          opacity: 0.04;
+        }
+        52% {
+          opacity: 0.35;
+        }
+        70% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span class="header-skull">☠️</span>
+      <span class="header-title">Pirate Raid Alert</span>
+      <span class="header-badge">Full Screen · 1920 × 1080</span>
+      <span
+        class="header-badge"
+        style="
+          border-color: rgba(100, 150, 200, 0.3);
+          color: #4a7aaa;
+          background: rgba(100, 150, 200, 0.08);
+        "
+        >channel.raid · /raid</span
+      >
+      <span class="header-hint"
+        >Design your raid takeover → Copy prompt → Deploy</span
+      >
     </div>
 
-    <div class="section">
-      <div class="section-label">Colors</div>
-      <div class="row">
-        <span class="row-label">Accent</span>
-        <input type="color" id="accentColor" value="#c8942c">
-        <span class="row-label" style="min-width:56px; margin-left:4px;">Text</span>
-        <input type="color" id="textColor" value="#f2e8c4">
-      </div>
-      <div class="row">
-        <span class="row-label">Sky top</span>
-        <input type="color" id="skyTop" value="#0e2445">
-        <span class="row-label" style="min-width:56px; margin-left:4px;">Sky bot</span>
-        <input type="color" id="skyBot" value="#040912">
-      </div>
-    </div>
+    <div class="main">
+      <!-- CONTROLS -->
+      <div class="controls">
+        <div class="section">
+          <div class="section-label">Presets</div>
+          <div class="presets">
+            <button class="preset-btn active" data-preset="jollyRoger">
+              Jolly Roger
+            </button>
+            <button class="preset-btn" data-preset="davyJones">
+              Davy Jones
+            </button>
+            <button class="preset-btn" data-preset="corsair">Corsair</button>
+            <button class="preset-btn" data-preset="seaDogs">Sea Dogs</button>
+            <button class="preset-btn" data-preset="ghost">Ghost Ship</button>
+          </div>
+        </div>
 
-    <div class="section">
-      <div class="section-label">Skull / Icon</div>
-      <div class="row">
-        <span class="row-label">Icon</span>
-        <select id="skullIcon">
-          <option value="☠️" selected>☠️  Skull &amp; Crossbones</option>
-          <option value="⚔️">⚔️  Crossed Swords</option>
-          <option value="🏴‍☠️">🏴‍☠️  Jolly Roger Flag</option>
-          <option value="🔱">🔱  Trident</option>
-          <option value="🐙">🐙  Kraken</option>
-          <option value="⚓">⚓  Anchor</option>
-          <option value="🌊">🌊  Wave</option>
-        </select>
-      </div>
-    </div>
+        <div class="section">
+          <div class="section-label">Colors</div>
+          <div class="row">
+            <span class="row-label">Accent</span>
+            <input type="color" id="accentColor" value="#c8942c" />
+            <span class="row-label" style="min-width: 56px; margin-left: 4px"
+              >Text</span
+            >
+            <input type="color" id="textColor" value="#f2e8c4" />
+          </div>
+          <div class="row">
+            <span class="row-label">Sky top</span>
+            <input type="color" id="skyTop" value="#0e2445" />
+            <span class="row-label" style="min-width: 56px; margin-left: 4px"
+              >Sky bot</span
+            >
+            <input type="color" id="skyBot" value="#040912" />
+          </div>
+        </div>
 
-    <div class="section">
-      <div class="section-label">Content</div>
-      <div class="row">
-        <span class="row-label">Badge</span>
-        <input type="text" id="badgeText" value="Prepare to be Boarded">
-      </div>
-      <div class="row">
-        <span class="row-label">Crew text</span>
-        <input type="text" id="crewSuffix" value="pirates to your shores">
-      </div>
-      <div class="row">
-        <span class="row-label">Message</span>
-        <input type="text" id="messageText" value="Batten down the hatches!">
-      </div>
-    </div>
+        <div class="section">
+          <div class="section-label">Skull / Icon</div>
+          <div class="row">
+            <span class="row-label">Icon</span>
+            <select id="skullIcon">
+              <option value="☠️" selected>☠️ Skull &amp; Crossbones</option>
+              <option value="⚔️">⚔️ Crossed Swords</option>
+              <option value="🏴‍☠️">🏴‍☠️ Jolly Roger Flag</option>
+              <option value="🔱">🔱 Trident</option>
+              <option value="🐙">🐙 Kraken</option>
+              <option value="⚓">⚓ Anchor</option>
+              <option value="🌊">🌊 Wave</option>
+            </select>
+          </div>
+        </div>
 
-    <div class="section">
-      <div class="section-label">Timing</div>
-      <div class="row">
-        <span class="row-label">Hold for</span>
-        <input type="range" id="holdDur" min="4" max="15" value="8" step="0.5">
-        <span class="val" id="holdDurVal">8s</span>
-      </div>
-    </div>
+        <div class="section">
+          <div class="section-label">Content</div>
+          <div class="row">
+            <span class="row-label">Badge</span>
+            <input type="text" id="badgeText" value="Prepare to be Boarded" />
+          </div>
+          <div class="row">
+            <span class="row-label">Crew text</span>
+            <input type="text" id="crewSuffix" value="pirates to your shores" />
+          </div>
+          <div class="row">
+            <span class="row-label">Message</span>
+            <input
+              type="text"
+              id="messageText"
+              value="Batten down the hatches!"
+            />
+          </div>
+        </div>
 
-    <div class="section">
-      <div class="section-label">Effects</div>
-      <div class="toggle-wrap row">
-        <span class="row-label">Rain</span>
-        <div class="toggle on" id="toggleRain" onclick="toggleFx('rain')"></div>
-      </div>
-      <div class="toggle-wrap row">
-        <span class="row-label">Fog</span>
-        <div class="toggle on" id="toggleFog" onclick="toggleFx('fog')"></div>
-      </div>
-      <div class="toggle-wrap row">
-        <span class="row-label">Lightning</span>
-        <div class="toggle on" id="toggleLightning" onclick="toggleFx('lightning')"></div>
-      </div>
-      <div class="toggle-wrap row">
-        <span class="row-label">Gold dividers</span>
-        <div class="toggle on" id="toggleDividers" onclick="toggleFx('dividers')"></div>
-      </div>
-    </div>
+        <div class="section">
+          <div class="section-label">Timing</div>
+          <div class="row">
+            <span class="row-label">Hold for</span>
+            <input
+              type="range"
+              id="holdDur"
+              min="4"
+              max="15"
+              value="8"
+              step="0.5"
+            />
+            <span class="val" id="holdDurVal">8s</span>
+          </div>
+        </div>
 
-  </div><!-- end controls -->
-
-  <!-- PREVIEW -->
-  <div class="preview-panel" id="previewPanel">
-    <div class="preview-labels">
-      <span>☠ Live Preview</span>
-      <span>1920 × 1080  ·  /raid</span>
-    </div>
-
-    <div class="preview-wrapper" id="previewWrapper">
-      <div id="alert-preview">
-        <canvas id="prev-canvas" width="1920" height="1080"></canvas>
-        <div id="prev-lightning"></div>
-        <div id="prev-content">
-          <div id="prev-skull">☠️</div>
-          <div id="prev-badge">Prepare to be Boarded</div>
-          <div class="prev-divider" id="prev-div-top"></div>
-          <div id="prev-username">RaidLeader99</div>
-          <div id="prev-crew">brings 42 pirates to your shores</div>
-          <div class="prev-divider" id="prev-div-bot"></div>
-          <div id="prev-message">Batten down the hatches!</div>
+        <div class="section">
+          <div class="section-label">Effects</div>
+          <div class="toggle-wrap row">
+            <span class="row-label">Rain</span>
+            <div
+              class="toggle on"
+              id="toggleRain"
+              onclick="toggleFx('rain')"
+            ></div>
+          </div>
+          <div class="toggle-wrap row">
+            <span class="row-label">Fog</span>
+            <div
+              class="toggle on"
+              id="toggleFog"
+              onclick="toggleFx('fog')"
+            ></div>
+          </div>
+          <div class="toggle-wrap row">
+            <span class="row-label">Lightning</span>
+            <div
+              class="toggle on"
+              id="toggleLightning"
+              onclick="toggleFx('lightning')"
+            ></div>
+          </div>
+          <div class="toggle-wrap row">
+            <span class="row-label">Gold dividers</span>
+            <div
+              class="toggle on"
+              id="toggleDividers"
+              onclick="toggleFx('dividers')"
+            ></div>
+          </div>
         </div>
       </div>
+      <!-- end controls -->
+
+      <!-- PREVIEW -->
+      <div class="preview-panel" id="previewPanel">
+        <div class="preview-labels">
+          <span>☠ Live Preview</span>
+          <span>1920 × 1080 · /raid</span>
+        </div>
+
+        <div class="preview-wrapper" id="previewWrapper">
+          <div id="alert-preview">
+            <canvas id="prev-canvas" width="1920" height="1080"></canvas>
+            <div id="prev-lightning"></div>
+            <div id="prev-content">
+              <div id="prev-skull">☠️</div>
+              <div id="prev-badge">Prepare to be Boarded</div>
+              <div class="prev-divider" id="prev-div-top"></div>
+              <div id="prev-username">RaidLeader99</div>
+              <div id="prev-crew">brings 42 pirates to your shores</div>
+              <div class="prev-divider" id="prev-div-bot"></div>
+              <div id="prev-message">Batten down the hatches!</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="trigger-btn" id="triggerBtn" onclick="triggerPreview()">
+          ☠ Trigger Raid
+        </button>
+      </div>
+    </div>
+    <!-- end main -->
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <span class="prompt-label">Prompt</span>
+      <textarea id="prompt-output" readonly></textarea>
+      <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
     </div>
 
-    <button class="trigger-btn" id="triggerBtn" onclick="triggerPreview()">☠ Trigger Raid</button>
-  </div>
+    <script>
+      // ============================================================
+      // STATE
+      // ============================================================
+      const DEFAULTS = {
+        accentColor: '#c8942c',
+        textColor: '#f2e8c4',
+        skyTop: '#0e2445',
+        skyBot: '#040912',
+        skullIcon: '☠️',
+        badgeText: 'Prepare to be Boarded',
+        crewSuffix: 'pirates to your shores',
+        messageText: 'Batten down the hatches!',
+        holdDur: 8,
+        rain: true,
+        fog: true,
+        lightning: true,
+        dividers: true,
+      }
 
-</div><!-- end main -->
+      const state = { ...DEFAULTS }
 
-<!-- FOOTER -->
-<div class="footer">
-  <span class="prompt-label">Prompt</span>
-  <textarea id="prompt-output" readonly></textarea>
-  <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
-</div>
+      const PRESETS = {
+        jollyRoger: {
+          accentColor: '#c8942c',
+          textColor: '#f2e8c4',
+          skyTop: '#0e2445',
+          skyBot: '#040912',
+          skullIcon: '☠️',
+          badgeText: 'Prepare to be Boarded',
+          crewSuffix: 'pirates to your shores',
+          messageText: 'Batten down the hatches!',
+          holdDur: 8,
+          rain: true,
+          fog: true,
+          lightning: true,
+          dividers: true,
+        },
+        davyJones: {
+          accentColor: '#38c8c8',
+          textColor: '#c8f0f0',
+          skyTop: '#012030',
+          skyBot: '#000d18',
+          skullIcon: '🔱',
+          badgeText: 'Davy Jones Sends His Regards',
+          crewSuffix: 'souls rise from the deep',
+          messageText: 'The sea claims us all…',
+          holdDur: 10,
+          rain: true,
+          fog: true,
+          lightning: false,
+          dividers: true,
+        },
+        corsair: {
+          accentColor: '#e03030',
+          textColor: '#f8d8c8',
+          skyTop: '#280808',
+          skyBot: '#0e0202',
+          skullIcon: '⚔️',
+          badgeText: 'Under Corsair Colors',
+          crewSuffix: 'cutthroats at your door',
+          messageText: 'No quarter given.',
+          holdDur: 8,
+          rain: false,
+          fog: true,
+          lightning: true,
+          dividers: true,
+        },
+        seaDogs: {
+          accentColor: '#a08050',
+          textColor: '#e0d8c0',
+          skyTop: '#1a1408',
+          skyBot: '#080602',
+          skullIcon: '🐙',
+          badgeText: 'The Sea Dogs Arrive',
+          crewSuffix: 'scallywags aboard',
+          messageText: 'Avast, ye landlubbers!',
+          holdDur: 7,
+          rain: true,
+          fog: true,
+          lightning: false,
+          dividers: false,
+        },
+        ghost: {
+          accentColor: '#a8c0d8',
+          textColor: '#e8f0f8',
+          skyTop: '#081828',
+          skyBot: '#020810',
+          skullIcon: '🏴‍☠️',
+          badgeText: 'The Ghost Fleet Approaches',
+          crewSuffix: 'specters haunt your stream',
+          messageText: 'They sail on moonlit seas…',
+          holdDur: 12,
+          rain: false,
+          fog: true,
+          lightning: false,
+          dividers: true,
+        },
+      }
 
-<script>
-// ============================================================
-// STATE
-// ============================================================
-const DEFAULTS = {
-  accentColor:  '#c8942c',
-  textColor:    '#f2e8c4',
-  skyTop:       '#0e2445',
-  skyBot:       '#040912',
-  skullIcon:    '☠️',
-  badgeText:    'Prepare to be Boarded',
-  crewSuffix:   'pirates to your shores',
-  messageText:  'Batten down the hatches!',
-  holdDur:      8,
-  rain:         true,
-  fog:          true,
-  lightning:    true,
-  dividers:     true,
-};
+      // ============================================================
+      // CANVAS ANIMATION
+      // ============================================================
+      const canvas = document.getElementById('prev-canvas')
+      const ctx = canvas.getContext('2d')
+      let animRaf = null,
+        animT = 0
 
-const state = { ...DEFAULTS };
+      const WAVES = [
+        {
+          baseY: 808,
+          freq: 0.007,
+          spd: 0.55,
+          amp: 26,
+          color: 'rgba(9, 30, 60, 0.93)',
+        },
+        {
+          baseY: 842,
+          freq: 0.011,
+          spd: 0.82,
+          amp: 18,
+          color: 'rgba(6, 22, 48, 0.96)',
+        },
+        {
+          baseY: 874,
+          freq: 0.006,
+          spd: 0.38,
+          amp: 32,
+          color: 'rgba(5, 15, 36, 1.0)',
+        },
+        {
+          baseY: 912,
+          freq: 0.016,
+          spd: 1.1,
+          amp: 14,
+          color: 'rgba(3, 10, 24, 1.0)',
+        },
+        {
+          baseY: 955,
+          freq: 0.004,
+          spd: 0.2,
+          amp: 22,
+          color: 'rgba(2,  6, 16, 1.0)',
+        },
+      ]
 
-const PRESETS = {
-  jollyRoger: {
-    accentColor: '#c8942c', textColor: '#f2e8c4', skyTop: '#0e2445', skyBot: '#040912',
-    skullIcon: '☠️', badgeText: 'Prepare to be Boarded',
-    crewSuffix: 'pirates to your shores', messageText: 'Batten down the hatches!',
-    holdDur: 8, rain: true, fog: true, lightning: true, dividers: true,
-  },
-  davyJones: {
-    accentColor: '#38c8c8', textColor: '#c8f0f0', skyTop: '#012030', skyBot: '#000d18',
-    skullIcon: '🔱', badgeText: 'Davy Jones Sends His Regards',
-    crewSuffix: 'souls rise from the deep', messageText: 'The sea claims us all…',
-    holdDur: 10, rain: true, fog: true, lightning: false, dividers: true,
-  },
-  corsair: {
-    accentColor: '#e03030', textColor: '#f8d8c8', skyTop: '#280808', skyBot: '#0e0202',
-    skullIcon: '⚔️', badgeText: 'Under Corsair Colors',
-    crewSuffix: 'cutthroats at your door', messageText: 'No quarter given.',
-    holdDur: 8, rain: false, fog: true, lightning: true, dividers: true,
-  },
-  seaDogs: {
-    accentColor: '#a08050', textColor: '#e0d8c0', skyTop: '#1a1408', skyBot: '#080602',
-    skullIcon: '🐙', badgeText: 'The Sea Dogs Arrive',
-    crewSuffix: 'scallywags aboard', messageText: 'Avast, ye landlubbers!',
-    holdDur: 7, rain: true, fog: true, lightning: false, dividers: false,
-  },
-  ghost: {
-    accentColor: '#a8c0d8', textColor: '#e8f0f8', skyTop: '#081828', skyBot: '#020810',
-    skullIcon: '🏴‍☠️', badgeText: 'The Ghost Fleet Approaches',
-    crewSuffix: 'specters haunt your stream', messageText: 'They sail on moonlit seas…',
-    holdDur: 12, rain: false, fog: true, lightning: false, dividers: true,
-  },
-};
+      const FOG = Array.from({ length: 14 }, () => ({
+        x: Math.random() * 2200 - 100,
+        y: Math.random() * 620 + 60,
+        rx: 300 + Math.random() * 500,
+        ry: 75 + Math.random() * 140,
+        spd: 0.11 + Math.random() * 0.22,
+        alpha: 0.035 + Math.random() * 0.065,
+      }))
 
-// ============================================================
-// CANVAS ANIMATION
-// ============================================================
-const canvas = document.getElementById('prev-canvas');
-const ctx    = canvas.getContext('2d');
-let animRaf = null, animT = 0;
+      const RAIN = Array.from({ length: 140 }, () => ({
+        x: Math.random() * 1920,
+        y: Math.random() * 1080,
+        len: 14 + Math.random() * 26,
+        spd: 13 + Math.random() * 10,
+        alpha: 0.06 + Math.random() * 0.1,
+      }))
 
-const WAVES = [
-  { baseY: 808, freq: 0.007, spd: 0.55, amp: 26, color: 'rgba(9, 30, 60, 0.93)'  },
-  { baseY: 842, freq: 0.011, spd: 0.82, amp: 18, color: 'rgba(6, 22, 48, 0.96)'  },
-  { baseY: 874, freq: 0.006, spd: 0.38, amp: 32, color: 'rgba(5, 15, 36, 1.0)'   },
-  { baseY: 912, freq: 0.016, spd: 1.1,  amp: 14, color: 'rgba(3, 10, 24, 1.0)'   },
-  { baseY: 955, freq: 0.004, spd: 0.2,  amp: 22, color: 'rgba(2,  6, 16, 1.0)'   },
-];
+      function drawFrame(t) {
+        ctx.clearRect(0, 0, 1920, 1080)
 
-const FOG = Array.from({ length: 14 }, () => ({
-  x:    Math.random() * 2200 - 100,
-  y:    Math.random() * 620  + 60,
-  rx:   300 + Math.random() * 500,
-  ry:   75  + Math.random() * 140,
-  spd:  0.11 + Math.random() * 0.22,
-  alpha: 0.035 + Math.random() * 0.065,
-}));
+        if (state.rain) {
+          ctx.save()
+          ctx.lineWidth = 1
+          for (const r of RAIN) {
+            ctx.globalAlpha = r.alpha
+            ctx.strokeStyle = 'rgba(180, 210, 240, 0.9)'
+            ctx.beginPath()
+            ctx.moveTo(r.x, r.y)
+            ctx.lineTo(r.x - 3, r.y + r.len)
+            ctx.stroke()
+            r.y += r.spd
+            r.x -= 2
+            if (r.y > 1080) {
+              r.y = -30
+              r.x = Math.random() * 1940
+            }
+          }
+          ctx.globalAlpha = 1
+          ctx.restore()
+        }
 
-const RAIN = Array.from({ length: 140 }, () => ({
-  x:    Math.random() * 1920,
-  y:    Math.random() * 1080,
-  len:  14 + Math.random() * 26,
-  spd:  13  + Math.random() * 10,
-  alpha: 0.06 + Math.random() * 0.1,
-}));
+        if (state.fog) {
+          for (const f of FOG) {
+            const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.rx)
+            g.addColorStop(0, `rgba(145, 170, 205, ${f.alpha})`)
+            g.addColorStop(1, 'rgba(145, 170, 205, 0)')
+            ctx.save()
+            ctx.scale(1, f.ry / f.rx)
+            ctx.fillStyle = g
+            ctx.beginPath()
+            ctx.arc(f.x, f.y * (f.rx / f.ry), f.rx, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.restore()
+            f.x -= f.spd
+            if (f.x + f.rx < -50) f.x = 2050 + Math.random() * 300
+          }
+        }
 
-function drawFrame(t) {
-  ctx.clearRect(0, 0, 1920, 1080);
+        for (const w of WAVES) {
+          ctx.beginPath()
+          ctx.moveTo(0, 1080)
+          for (let x = 0; x <= 1920; x += 3) {
+            const y = w.baseY + Math.sin(x * w.freq + t * w.spd) * w.amp
+            ctx.lineTo(x, y)
+          }
+          ctx.lineTo(1920, 1080)
+          ctx.closePath()
+          ctx.fillStyle = w.color
+          ctx.fill()
+        }
+      }
 
-  if (state.rain) {
-    ctx.save();
-    ctx.lineWidth = 1;
-    for (const r of RAIN) {
-      ctx.globalAlpha = r.alpha;
-      ctx.strokeStyle = 'rgba(180, 210, 240, 0.9)';
-      ctx.beginPath();
-      ctx.moveTo(r.x, r.y);
-      ctx.lineTo(r.x - 3, r.y + r.len);
-      ctx.stroke();
-      r.y += r.spd;
-      r.x -= 2;
-      if (r.y > 1080) { r.y = -30; r.x = Math.random() * 1940; }
-    }
-    ctx.globalAlpha = 1;
-    ctx.restore();
-  }
+      function startAnim() {
+        if (animRaf) return
+        function loop() {
+          animT += 0.016
+          drawFrame(animT)
+          animRaf = requestAnimationFrame(loop)
+        }
+        animRaf = requestAnimationFrame(loop)
+      }
 
-  if (state.fog) {
-    for (const f of FOG) {
-      const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.rx);
-      g.addColorStop(0, `rgba(145, 170, 205, ${f.alpha})`);
-      g.addColorStop(1, 'rgba(145, 170, 205, 0)');
-      ctx.save();
-      ctx.scale(1, f.ry / f.rx);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(f.x, f.y * (f.rx / f.ry), f.rx, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      f.x -= f.spd;
-      if (f.x + f.rx < -50) f.x = 2050 + Math.random() * 300;
-    }
-  }
+      function stopAnim() {
+        if (animRaf) {
+          cancelAnimationFrame(animRaf)
+          animRaf = null
+        }
+        ctx.clearRect(0, 0, 1920, 1080)
+      }
 
-  for (const w of WAVES) {
-    ctx.beginPath();
-    ctx.moveTo(0, 1080);
-    for (let x = 0; x <= 1920; x += 3) {
-      const y = w.baseY + Math.sin(x * w.freq + t * w.spd) * w.amp;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(1920, 1080);
-    ctx.closePath();
-    ctx.fillStyle = w.color;
-    ctx.fill();
-  }
-}
+      // ============================================================
+      // RENDER PREVIEW APPEARANCE
+      // ============================================================
+      function renderPreview() {
+        const preview = document.getElementById('alert-preview')
+        const ac = state.accentColor
+        const tc = state.textColor
+        const rgb = (h) => {
+          const r = parseInt(h.slice(1, 3), 16)
+          const g = parseInt(h.slice(3, 5), 16)
+          const b = parseInt(h.slice(5, 7), 16)
+          return `${r}, ${g}, ${b}`
+        }
+        const acRgb = rgb(ac)
 
-function startAnim() {
-  if (animRaf) return;
-  function loop() { animT += 0.016; drawFrame(animT); animRaf = requestAnimationFrame(loop); }
-  animRaf = requestAnimationFrame(loop);
-}
+        // Background gradient
+        preview.style.background = `radial-gradient(ellipse 90% 55% at 50% 15%, ${state.skyTop} 0%, #07111f 55%, ${state.skyBot} 100%)`
 
-function stopAnim() {
-  if (animRaf) { cancelAnimationFrame(animRaf); animRaf = null; }
-  ctx.clearRect(0, 0, 1920, 1080);
-}
+        // Skull
+        const skull = document.getElementById('prev-skull')
+        skull.textContent = state.skullIcon
+        skull.style.filter = `drop-shadow(0 0 40px rgba(${acRgb}, 0.85)) drop-shadow(0 0 90px rgba(${acRgb}, 0.35))`
 
-// ============================================================
-// RENDER PREVIEW APPEARANCE
-// ============================================================
-function renderPreview() {
-  const preview = document.getElementById('alert-preview');
-  const ac = state.accentColor;
-  const tc = state.textColor;
-  const rgb = (h) => {
-    const r = parseInt(h.slice(1,3), 16);
-    const g = parseInt(h.slice(3,5), 16);
-    const b = parseInt(h.slice(5,7), 16);
-    return `${r}, ${g}, ${b}`;
-  };
-  const acRgb = rgb(ac);
+        // Badge
+        const badge = document.getElementById('prev-badge')
+        badge.textContent = state.badgeText
+        badge.style.color = ac
+        badge.style.textShadow = `0 0 40px rgba(${acRgb}, 0.7), 0 0 90px rgba(${acRgb}, 0.25)`
 
-  // Background gradient
-  preview.style.background =
-    `radial-gradient(ellipse 90% 55% at 50% 15%, ${state.skyTop} 0%, #07111f 55%, ${state.skyBot} 100%)`;
+        // Dividers
+        const divStyle = `linear-gradient(90deg, transparent, ${ac} 18%, #f0c055 50%, ${ac} 82%, transparent)`
+        document.querySelectorAll('.prev-divider').forEach((d) => {
+          d.style.background = state.dividers ? divStyle : 'transparent'
+          d.style.boxShadow = state.dividers
+            ? `0 0 14px rgba(${acRgb}, 0.45)`
+            : 'none'
+        })
 
-  // Skull
-  const skull = document.getElementById('prev-skull');
-  skull.textContent = state.skullIcon;
-  skull.style.filter = `drop-shadow(0 0 40px rgba(${acRgb}, 0.85)) drop-shadow(0 0 90px rgba(${acRgb}, 0.35))`;
+        // Username
+        document.getElementById('prev-username').style.color = tc
+        document.getElementById('prev-username').style.textShadow =
+          `0 0 60px rgba(${acRgb}, 0.5), 0 6px 30px rgba(0,0,0,0.95)`
 
-  // Badge
-  const badge = document.getElementById('prev-badge');
-  badge.textContent = state.badgeText;
-  badge.style.color = ac;
-  badge.style.textShadow = `0 0 40px rgba(${acRgb}, 0.7), 0 0 90px rgba(${acRgb}, 0.25)`;
+        // Crew
+        const crew = document.getElementById('prev-crew')
+        crew.style.color = ac
+        crew.style.textShadow = `0 0 30px rgba(${acRgb}, 0.45)`
 
-  // Dividers
-  const divStyle = `linear-gradient(90deg, transparent, ${ac} 18%, #f0c055 50%, ${ac} 82%, transparent)`;
-  document.querySelectorAll('.prev-divider').forEach(d => {
-    d.style.background = state.dividers ? divStyle : 'transparent';
-    d.style.boxShadow  = state.dividers ? `0 0 14px rgba(${acRgb}, 0.45)` : 'none';
-  });
+        // Message
+        document.getElementById('prev-message').style.color =
+          `rgba(${rgb(tc)}, 0.5)`
+        document.getElementById('prev-message').textContent = state.messageText
 
-  // Username
-  document.getElementById('prev-username').style.color = tc;
-  document.getElementById('prev-username').style.textShadow =
-    `0 0 60px rgba(${acRgb}, 0.5), 0 6px 30px rgba(0,0,0,0.95)`;
+        updatePrompt()
+      }
 
-  // Crew
-  const crew = document.getElementById('prev-crew');
-  crew.style.color = ac;
-  crew.style.textShadow = `0 0 30px rgba(${acRgb}, 0.45)`;
+      // ============================================================
+      // TRIGGER PREVIEW ANIMATION
+      // ============================================================
+      const RAIDERS = [
+        'RaidLeader99',
+        'CaptainMorgen',
+        'BlackPearl_TV',
+        'TheSeaWitch',
+        'DreadPirate_',
+        'SilverTongue',
+      ]
+      let hideTimer = null,
+        outTimer = null
 
-  // Message
-  document.getElementById('prev-message').style.color = `rgba(${rgb(tc)}, 0.5)`;
-  document.getElementById('prev-message').textContent = state.messageText;
+      function triggerPreview() {
+        const btn = document.getElementById('triggerBtn')
 
-  updatePrompt();
-}
+        // Random name + viewer count
+        const name = RAIDERS[Math.floor(Math.random() * RAIDERS.length)]
+        const viewers = 10 + Math.floor(Math.random() * 200)
+        const suffix = state.crewSuffix
 
-// ============================================================
-// TRIGGER PREVIEW ANIMATION
-// ============================================================
-const RAIDERS = ['RaidLeader99', 'CaptainMorgen', 'BlackPearl_TV', 'TheSeaWitch', 'DreadPirate_', 'SilverTongue'];
-let hideTimer = null, outTimer = null;
+        document.getElementById('prev-username').textContent = name
+        document.getElementById('prev-crew').textContent =
+          `brings ${viewers} ${suffix}`
 
-function triggerPreview() {
-  const btn = document.getElementById('triggerBtn');
+        // Reset all
+        clearTimeout(hideTimer)
+        clearTimeout(outTimer)
+        stopAnim()
 
-  // Random name + viewer count
-  const name = RAIDERS[Math.floor(Math.random() * RAIDERS.length)];
-  const viewers = 10 + Math.floor(Math.random() * 200);
-  const suffix = state.crewSuffix;
+        const els = [
+          'prev-skull',
+          'prev-badge',
+          'prev-div-top',
+          'prev-username',
+          'prev-crew',
+          'prev-div-bot',
+          'prev-message',
+        ]
+        els.forEach((id) => {
+          const el = document.getElementById(id)
+          el.style.animation = 'none'
+          el.style.opacity = '0'
+          void el.offsetWidth
+        })
+        const lgEl = document.getElementById('prev-lightning')
+        lgEl.style.animation = 'none'
+        lgEl.style.opacity = '0'
+        void lgEl.offsetWidth
 
-  document.getElementById('prev-username').textContent = name;
-  document.getElementById('prev-crew').textContent = `brings ${viewers} ${suffix}`;
+        startAnim()
+        btn.disabled = true
 
-  // Reset all
-  clearTimeout(hideTimer);
-  clearTimeout(outTimer);
-  stopAnim();
+        function anim(id, name, dur, delay = 0) {
+          document.getElementById(id).style.animation =
+            `${name} ${dur}ms ease-out ${delay}ms both`
+        }
 
-  const els = ['prev-skull','prev-badge','prev-div-top','prev-username','prev-crew','prev-div-bot','prev-message'];
-  els.forEach(id => {
-    const el = document.getElementById(id);
-    el.style.animation = 'none';
-    el.style.opacity = '0';
-    void el.offsetWidth;
-  });
-  const lgEl = document.getElementById('prev-lightning');
-  lgEl.style.animation = 'none';
-  lgEl.style.opacity = '0';
-  void lgEl.offsetWidth;
+        if (state.lightning)
+          setTimeout(() => {
+            anim('prev-lightning', 'lightningFlash', 700)
+          }, 150)
+        setTimeout(() => {
+          anim('prev-skull', 'skullDrop', 850)
+        }, 380)
+        setTimeout(() => {
+          anim('prev-badge', 'fadeSlideDown', 580)
+        }, 900)
+        if (state.dividers)
+          setTimeout(() => {
+            anim('prev-div-top', 'dividerOpen', 480)
+          }, 1100)
+        setTimeout(() => {
+          anim('prev-username', 'fadeSlideUp', 680)
+        }, 1160)
+        setTimeout(() => {
+          anim('prev-crew', 'fadeIn', 520)
+        }, 1460)
+        if (state.dividers)
+          setTimeout(() => {
+            anim('prev-div-bot', 'dividerOpen', 480)
+          }, 1620)
+        setTimeout(() => {
+          anim('prev-message', 'fadeIn', 500)
+        }, 1750)
 
-  startAnim();
-  btn.disabled = true;
+        if (state.lightning)
+          setTimeout(() => {
+            lgEl.style.animation = 'none'
+            void lgEl.offsetWidth
+            lgEl.style.animation = 'lightningFlash 550ms ease-out both'
+          }, 2600)
 
-  function anim(id, name, dur, delay = 0) {
-    document.getElementById(id).style.animation = `${name} ${dur}ms ease-out ${delay}ms both`;
-  }
+        hideTimer = setTimeout(() => {
+          ;[
+            'prev-skull',
+            'prev-badge',
+            'prev-username',
+            'prev-crew',
+            'prev-message',
+          ].forEach((id) => {
+            anim(id, 'fadeOut', 600)
+          })
+          if (state.dividers) {
+            anim('prev-div-top', 'fadeOut', 400)
+            anim('prev-div-bot', 'fadeOut', 400)
+          }
+          outTimer = setTimeout(() => {
+            stopAnim()
+            btn.disabled = false
+          }, 1000)
+        }, state.holdDur * 1000)
+      }
 
-  if (state.lightning) setTimeout(() => { anim('prev-lightning', 'lightningFlash', 700); }, 150);
-  setTimeout(() => { anim('prev-skull',   'skullDrop',     850); }, 380);
-  setTimeout(() => { anim('prev-badge',   'fadeSlideDown', 580); }, 900);
-  if (state.dividers) setTimeout(() => { anim('prev-div-top', 'dividerOpen', 480); }, 1100);
-  setTimeout(() => { anim('prev-username','fadeSlideUp',   680); }, 1160);
-  setTimeout(() => { anim('prev-crew',    'fadeIn',        520); }, 1460);
-  if (state.dividers) setTimeout(() => { anim('prev-div-bot', 'dividerOpen', 480); }, 1620);
-  setTimeout(() => { anim('prev-message', 'fadeIn',        500); }, 1750);
+      // ============================================================
+      // SCALING
+      // ============================================================
+      function updateScale() {
+        const panel = document.getElementById('previewPanel')
+        const wrapper = document.getElementById('previewWrapper')
+        const availW = panel.clientWidth - 40
+        const availH = panel.clientHeight - 100
+        const scale = Math.min(availW / 1920, availH / 1080)
+        document.documentElement.style.setProperty('--s', scale)
+        wrapper.style.width = Math.round(1920 * scale) + 'px'
+        wrapper.style.height = Math.round(1080 * scale) + 'px'
+      }
+      window.addEventListener('resize', updateScale)
 
-  if (state.lightning) setTimeout(() => {
-    lgEl.style.animation = 'none';
-    void lgEl.offsetWidth;
-    lgEl.style.animation = 'lightningFlash 550ms ease-out both';
-  }, 2600);
+      // ============================================================
+      // PROMPT GENERATION
+      // ============================================================
+      function updatePrompt() {
+        const fx = []
+        if (state.rain) fx.push('rain streaks')
+        if (state.fog) fx.push('drifting fog puffs')
+        if (state.lightning) fx.push('multi-flash lightning on entry')
+        if (state.dividers) fx.push('gold gradient divider lines')
 
-  hideTimer = setTimeout(() => {
-    ['prev-skull','prev-badge','prev-username','prev-crew','prev-message'].forEach(id => {
-      anim(id, 'fadeOut', 600);
-    });
-    if (state.dividers) {
-      anim('prev-div-top', 'fadeOut', 400);
-      anim('prev-div-bot', 'fadeOut', 400);
-    }
-    outTimer = setTimeout(() => {
-      stopAnim();
-      btn.disabled = false;
-    }, 1000);
-  }, state.holdDur * 1000);
-}
+        const prompt = [
+          `Build a full-screen Twitch raid alert overlay sized 1920×1080px for OBS.`,
+          ` Background: radial gradient from ${state.skyTop} (top) to ${state.skyBot} (base), simulating a stormy night ocean.`,
+          ` Animated canvas layer: 5-layer sine-wave ocean (waves start around y=810, dark navy fill tones), ${state.fog ? 'radial fog puffs drifting right-to-left, ' : ''}${state.rain ? 'angled rain streaks, ' : ''}all continuously animating.`,
+          ` On raid: ${state.lightning ? 'multi-flash lightning briefly fills the screen, then ' : ''}a choreographed sequence reveals: `,
+          ` (1) "${state.skullIcon}" icon drops in with physics bounce (Cinzel font, ${state.accentColor} glow); `,
+          ` (2) badge "${state.badgeText}" slides down in Cinzel Decorative, ${state.accentColor} color, wide letter-spacing; `,
+          state.dividers
+            ? ` (3) gold gradient horizontal rule expands from center; `
+            : '',
+          ` (4) raider username rises from below in Cinzel 900, ${state.textColor}, ~112px; `,
+          ` (5) crew line "brings N ${state.crewSuffix}" fades in, ${state.accentColor}; `,
+          state.dividers ? ` (6) second divider; ` : '',
+          ` (7) italic message "${state.messageText}" fades in at 50% opacity.`,
+          ` Hold for ${state.holdDur}s then fade everything out. Transparent body background.`,
+          ` Connect to SSE at /raid-events, listen for { type: "raid", username, viewers }.`,
+        ].join('')
 
-// ============================================================
-// SCALING
-// ============================================================
-function updateScale() {
-  const panel   = document.getElementById('previewPanel');
-  const wrapper = document.getElementById('previewWrapper');
-  const availW  = panel.clientWidth  - 40;
-  const availH  = panel.clientHeight - 100;
-  const scale   = Math.min(availW / 1920, availH / 1080);
-  document.documentElement.style.setProperty('--s', scale);
-  wrapper.style.width  = Math.round(1920 * scale) + 'px';
-  wrapper.style.height = Math.round(1080 * scale) + 'px';
-}
-window.addEventListener('resize', updateScale);
+        document.getElementById('prompt-output').value = prompt
+      }
 
-// ============================================================
-// PROMPT GENERATION
-// ============================================================
-function updatePrompt() {
-  const fx = [];
-  if (state.rain)      fx.push('rain streaks');
-  if (state.fog)       fx.push('drifting fog puffs');
-  if (state.lightning) fx.push('multi-flash lightning on entry');
-  if (state.dividers)  fx.push('gold gradient divider lines');
+      // ============================================================
+      // CONTROLS
+      // ============================================================
+      function clearActivePreset() {
+        document
+          .querySelectorAll('.preset-btn')
+          .forEach((b) => b.classList.remove('active'))
+      }
 
-  const prompt = [
-    `Build a full-screen Twitch raid alert overlay sized 1920×1080px for OBS.`,
-    ` Background: radial gradient from ${state.skyTop} (top) to ${state.skyBot} (base), simulating a stormy night ocean.`,
-    ` Animated canvas layer: 5-layer sine-wave ocean (waves start around y=810, dark navy fill tones), ${state.fog ? 'radial fog puffs drifting right-to-left, ' : ''}${state.rain ? 'angled rain streaks, ' : ''}all continuously animating.`,
-    ` On raid: ${state.lightning ? 'multi-flash lightning briefly fills the screen, then ' : ''}a choreographed sequence reveals: `,
-    ` (1) "${state.skullIcon}" icon drops in with physics bounce (Cinzel font, ${state.accentColor} glow); `,
-    ` (2) badge "${state.badgeText}" slides down in Cinzel Decorative, ${state.accentColor} color, wide letter-spacing; `,
-    state.dividers ? ` (3) gold gradient horizontal rule expands from center; ` : '',
-    ` (4) raider username rises from below in Cinzel 900, ${state.textColor}, ~112px; `,
-    ` (5) crew line "brings N ${state.crewSuffix}" fades in, ${state.accentColor}; `,
-    state.dividers ? ` (6) second divider; ` : '',
-    ` (7) italic message "${state.messageText}" fades in at 50% opacity.`,
-    ` Hold for ${state.holdDur}s then fade everything out. Transparent body background.`,
-    ` Connect to SSE at /raid-events, listen for { type: "raid", username, viewers }.`,
-  ].join('');
+      function bind(id, key) {
+        document.getElementById(id).addEventListener('input', (e) => {
+          state[key] = e.target.value
+          clearActivePreset()
+          renderPreview()
+        })
+      }
+      function bindRange(id, key, valId, unit) {
+        document.getElementById(id).addEventListener('input', (e) => {
+          state[key] = parseFloat(e.target.value)
+          document.getElementById(valId).textContent = e.target.value + unit
+          clearActivePreset()
+          renderPreview()
+        })
+      }
 
-  document.getElementById('prompt-output').value = prompt;
-}
+      bind('accentColor', 'accentColor')
+      bind('textColor', 'textColor')
+      bind('skyTop', 'skyTop')
+      bind('skyBot', 'skyBot')
+      bind('skullIcon', 'skullIcon')
+      bind('badgeText', 'badgeText')
+      bind('crewSuffix', 'crewSuffix')
+      bind('messageText', 'messageText')
+      bindRange('holdDur', 'holdDur', 'holdDurVal', 's')
 
-// ============================================================
-// CONTROLS
-// ============================================================
-function clearActivePreset() {
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-}
+      function toggleFx(key) {
+        state[key] = !state[key]
+        const cap = key.charAt(0).toUpperCase() + key.slice(1)
+        document
+          .getElementById('toggle' + cap)
+          .classList.toggle('on', state[key])
+        clearActivePreset()
+        renderPreview()
+      }
 
-function bind(id, key) {
-  document.getElementById(id).addEventListener('input', e => {
-    state[key] = e.target.value;
-    clearActivePreset();
-    renderPreview();
-  });
-}
-function bindRange(id, key, valId, unit) {
-  document.getElementById(id).addEventListener('input', e => {
-    state[key] = parseFloat(e.target.value);
-    document.getElementById(valId).textContent = e.target.value + unit;
-    clearActivePreset();
-    renderPreview();
-  });
-}
+      function applyStateToControls() {
+        const set = (id, val) => {
+          const el = document.getElementById(id)
+          if (el) el.value = val
+        }
+        set('accentColor', state.accentColor)
+        set('textColor', state.textColor)
+        set('skyTop', state.skyTop)
+        set('skyBot', state.skyBot)
+        set('skullIcon', state.skullIcon)
+        set('badgeText', state.badgeText)
+        set('crewSuffix', state.crewSuffix)
+        set('messageText', state.messageText)
+        set('holdDur', state.holdDur)
+        document.getElementById('holdDurVal').textContent = state.holdDur + 's'
+        ;['rain', 'fog', 'lightning', 'dividers'].forEach((k) => {
+          const cap = k.charAt(0).toUpperCase() + k.slice(1)
+          document
+            .getElementById('toggle' + cap)
+            .classList.toggle('on', state[k])
+        })
+      }
 
-bind('accentColor',  'accentColor');
-bind('textColor',    'textColor');
-bind('skyTop',       'skyTop');
-bind('skyBot',       'skyBot');
-bind('skullIcon',    'skullIcon');
-bind('badgeText',    'badgeText');
-bind('crewSuffix',   'crewSuffix');
-bind('messageText',  'messageText');
-bindRange('holdDur', 'holdDur', 'holdDurVal', 's');
+      document.querySelectorAll('.preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const p = PRESETS[btn.dataset.preset]
+          if (!p) return
+          Object.assign(state, p)
+          applyStateToControls()
+          renderPreview()
+          document
+            .querySelectorAll('.preset-btn')
+            .forEach((b) => b.classList.remove('active'))
+          btn.classList.add('active')
+        })
+      })
 
-function toggleFx(key) {
-  state[key] = !state[key];
-  const cap = key.charAt(0).toUpperCase() + key.slice(1);
-  document.getElementById('toggle' + cap).classList.toggle('on', state[key]);
-  clearActivePreset();
-  renderPreview();
-}
+      // ============================================================
+      // COPY
+      // ============================================================
+      function copyPrompt() {
+        navigator.clipboard
+          .writeText(document.getElementById('prompt-output').value)
+          .then(() => {
+            const btn = document.getElementById('copyBtn')
+            btn.textContent = 'Copied!'
+            btn.classList.add('copied')
+            setTimeout(() => {
+              btn.textContent = 'Copy'
+              btn.classList.remove('copied')
+            }, 1500)
+          })
+      }
 
-function applyStateToControls() {
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-  set('accentColor', state.accentColor);
-  set('textColor',   state.textColor);
-  set('skyTop',      state.skyTop);
-  set('skyBot',      state.skyBot);
-  set('skullIcon',   state.skullIcon);
-  set('badgeText',   state.badgeText);
-  set('crewSuffix',  state.crewSuffix);
-  set('messageText', state.messageText);
-  set('holdDur',     state.holdDur);
-  document.getElementById('holdDurVal').textContent = state.holdDur + 's';
-  ['rain','fog','lightning','dividers'].forEach(k => {
-    const cap = k.charAt(0).toUpperCase() + k.slice(1);
-    document.getElementById('toggle' + cap).classList.toggle('on', state[k]);
-  });
-}
-
-document.querySelectorAll('.preset-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const p = PRESETS[btn.dataset.preset];
-    if (!p) return;
-    Object.assign(state, p);
-    applyStateToControls();
-    renderPreview();
-    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
-
-// ============================================================
-// COPY
-// ============================================================
-function copyPrompt() {
-  navigator.clipboard.writeText(document.getElementById('prompt-output').value).then(() => {
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = 'Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
-  });
-}
-
-// ============================================================
-// INIT
-// ============================================================
-updateScale();
-applyStateToControls();
-renderPreview();
-setTimeout(() => triggerPreview(), 700);
-</script>
-</body>
+      // ============================================================
+      // INIT
+      // ============================================================
+      updateScale()
+      applyStateToControls()
+      renderPreview()
+      setTimeout(() => triggerPreview(), 700)
+    </script>
+  </body>
 </html>

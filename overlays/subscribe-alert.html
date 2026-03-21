@@ -1,295 +1,367 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Subscribe Alert</title>
-<style>
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 410px;
-  height: 450px;
-  overflow: hidden;
-  background: transparent;
-}
+  <head>
+    <meta charset="UTF-8" />
+    <title>Subscribe Alert</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 410px;
+        height: 450px;
+        overflow: hidden;
+        background: transparent;
+      }
 
-/* ── STATUS DOT ─────────────────────────────────────── */
-#status-dot {
-  position: fixed;
-  top: 8px;
-  right: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #444;
-  z-index: 100;
-  transition: background 0.3s, box-shadow 0.3s, opacity 1s;
-}
-#status-dot.connecting { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
-#status-dot.connected  { background: #00ff88; box-shadow: 0 0 5px #00ff88; }
-#status-dot.error      { background: #ff4040; box-shadow: 0 0 5px #ff4040; opacity: 1 !important; }
+      /* ── STATUS DOT ─────────────────────────────────────── */
+      #status-dot {
+        position: fixed;
+        top: 8px;
+        right: 8px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #444;
+        z-index: 100;
+        transition:
+          background 0.3s,
+          box-shadow 0.3s,
+          opacity 1s;
+      }
+      #status-dot.connecting {
+        background: #ffaa00;
+        box-shadow: 0 0 5px #ffaa00;
+      }
+      #status-dot.connected {
+        background: #00ff88;
+        box-shadow: 0 0 5px #00ff88;
+      }
+      #status-dot.error {
+        background: #ff4040;
+        box-shadow: 0 0 5px #ff4040;
+        opacity: 1 !important;
+      }
 
-/* ── ALERT BOX ──────────────────────────────────────── */
-#alert-box {
-  position: absolute;
-  inset: 0;
-  background: rgba(13, 10, 26, 0.97);
-  border: 1px solid rgba(176, 108, 255, 0.35);
-  border-radius: 8px;
-  box-shadow:
-    0 0 24px rgba(176, 108, 255, 0.28),
-    0 0 70px rgba(176, 108, 255, 0.12),
-    inset 0 0 50px rgba(176, 108, 255, 0.04);
-  font-family: 'Courier New', 'Lucida Console', Courier, monospace;
-  color: #ffffff;
-  opacity: 0;
-  pointer-events: none;
-}
+      /* ── ALERT BOX ──────────────────────────────────────── */
+      #alert-box {
+        position: absolute;
+        inset: 0;
+        background: rgba(13, 10, 26, 0.97);
+        border: 1px solid rgba(176, 108, 255, 0.35);
+        border-radius: 8px;
+        box-shadow:
+          0 0 24px rgba(176, 108, 255, 0.28),
+          0 0 70px rgba(176, 108, 255, 0.12),
+          inset 0 0 50px rgba(176, 108, 255, 0.04);
+        font-family: 'Courier New', 'Lucida Console', Courier, monospace;
+        color: #ffffff;
+        opacity: 0;
+        pointer-events: none;
+      }
 
-#alert-box.glitch-in { animation: glitchIn 0.7s ease-out forwards; }
-#alert-box.fade-out  { animation: fadeOut 0.4s ease-in  forwards; }
+      #alert-box.glitch-in {
+        animation: glitchIn 0.7s ease-out forwards;
+      }
+      #alert-box.fade-out {
+        animation: fadeOut 0.4s ease-in forwards;
+      }
 
-/* ── SCAN LINE (sweeps down on entry) ───────────────── */
-#alert-box.glitch-in::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 10%, #b06cff 50%, transparent 90%);
-  box-shadow: 0 0 8px #b06cff;
-  animation: scanLine 0.65s ease-out;
-  z-index: 10;
-  pointer-events: none;
-}
-@keyframes scanLine {
-  0%   { top: 0;    opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
+      /* ── SCAN LINE (sweeps down on entry) ───────────────── */
+      #alert-box.glitch-in::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent 10%,
+          #b06cff 50%,
+          transparent 90%
+        );
+        box-shadow: 0 0 8px #b06cff;
+        animation: scanLine 0.65s ease-out;
+        z-index: 10;
+        pointer-events: none;
+      }
+      @keyframes scanLine {
+        0% {
+          top: 0;
+          opacity: 1;
+        }
+        100% {
+          top: 100%;
+          opacity: 0;
+        }
+      }
 
-/* ── PARTICLES ──────────────────────────────────────── */
-#particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
+      /* ── PARTICLES ──────────────────────────────────────── */
+      #particles {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+      }
 
-/* ── ALERT CONTENT ──────────────────────────────────── */
-.content {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 32px 28px;
-  z-index: 2;
-  text-align: center;
-}
+      /* ── ALERT CONTENT ──────────────────────────────────── */
+      .content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 32px 28px;
+        z-index: 2;
+        text-align: center;
+      }
 
-#alert-icon {
-  display: block;
-  font-size: 80px;
-  line-height: 1;
-  margin-bottom: 10px;
-  color: #b06cff;
-  text-shadow:
-    0 0 20px rgba(176, 108, 255, 0.9),
-    0 0 45px rgba(176, 108, 255, 0.55),
-    0 0 90px rgba(176, 108, 255, 0.3);
-}
-#alert-icon.pulsing {
-  animation: iconPulse 1.6s ease-in-out infinite;
-}
-@keyframes iconPulse {
-  0%, 100% {
-    text-shadow:
-      0 0 20px rgba(176,108,255,0.9),  0 0 45px rgba(176,108,255,0.55),  0 0 90px rgba(176,108,255,0.3);
-  }
-  50% {
-    text-shadow:
-      0 0 30px rgba(176,108,255,1.0),  0 0 65px rgba(176,108,255,0.8),   0 0 110px rgba(176,108,255,0.5);
-  }
-}
+      #alert-icon {
+        display: block;
+        font-size: 80px;
+        line-height: 1;
+        margin-bottom: 10px;
+        color: #b06cff;
+        text-shadow:
+          0 0 20px rgba(176, 108, 255, 0.9),
+          0 0 45px rgba(176, 108, 255, 0.55),
+          0 0 90px rgba(176, 108, 255, 0.3);
+      }
+      #alert-icon.pulsing {
+        animation: iconPulse 1.6s ease-in-out infinite;
+      }
+      @keyframes iconPulse {
+        0%,
+        100% {
+          text-shadow:
+            0 0 20px rgba(176, 108, 255, 0.9),
+            0 0 45px rgba(176, 108, 255, 0.55),
+            0 0 90px rgba(176, 108, 255, 0.3);
+        }
+        50% {
+          text-shadow:
+            0 0 30px rgba(176, 108, 255, 1),
+            0 0 65px rgba(176, 108, 255, 0.8),
+            0 0 110px rgba(176, 108, 255, 0.5);
+        }
+      }
 
-.alert-badge {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: #b06cff;
-  opacity: 0.75;
-}
+      .alert-badge {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: #b06cff;
+        opacity: 0.75;
+      }
 
-#alert-username {
-  font-size: 34px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  word-break: break-word;
-  max-width: 100%;
-  text-shadow: 0 0 20px rgba(176, 108, 255, 0.25);
-}
+      #alert-username {
+        font-size: 34px;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.2;
+        word-break: break-word;
+        max-width: 100%;
+        text-shadow: 0 0 20px rgba(176, 108, 255, 0.25);
+      }
 
-.alert-message {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.65);
-  margin-top: 4px;
-}
+      .alert-message {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.65);
+        margin-top: 4px;
+      }
 
-/* ── GLITCH KEYFRAMES ───────────────────────────────── */
-@keyframes glitchIn {
-  0%   { opacity: 0;   transform: translateX(55px)  skewX(-12deg); filter: blur(8px)  hue-rotate(180deg) saturate(3); }
-  15%  { opacity: 0.9; transform: translateX(-12px) skewX(8deg);   filter: blur(3px)  hue-rotate(90deg)  saturate(2); }
-  30%  {               transform: translateX(8px)   skewX(-4deg);  filter: blur(1px)  hue-rotate(40deg); }
-  48%  {               transform: translateX(-5px)  skewX(2deg);   filter: hue-rotate(15deg); }
-  65%  {               transform: translateX(2px)   skewX(-1deg);  filter: hue-rotate(5deg); }
-  85%  {               transform: translateX(-1px);                filter: hue-rotate(0); }
-  100% { opacity: 1;   transform: translateX(0)     skewX(0);      filter: none; }
-}
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
+      /* ── GLITCH KEYFRAMES ───────────────────────────────── */
+      @keyframes glitchIn {
+        0% {
+          opacity: 0;
+          transform: translateX(55px) skewX(-12deg);
+          filter: blur(8px) hue-rotate(180deg) saturate(3);
+        }
+        15% {
+          opacity: 0.9;
+          transform: translateX(-12px) skewX(8deg);
+          filter: blur(3px) hue-rotate(90deg) saturate(2);
+        }
+        30% {
+          transform: translateX(8px) skewX(-4deg);
+          filter: blur(1px) hue-rotate(40deg);
+        }
+        48% {
+          transform: translateX(-5px) skewX(2deg);
+          filter: hue-rotate(15deg);
+        }
+        65% {
+          transform: translateX(2px) skewX(-1deg);
+          filter: hue-rotate(5deg);
+        }
+        85% {
+          transform: translateX(-1px);
+          filter: hue-rotate(0);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0) skewX(0);
+          filter: none;
+        }
+      }
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status-dot"></div>
 
-</style>
-</head>
-<body>
+    <!-- Alert -->
+    <div id="alert-box">
+      <canvas id="particles" width="410" height="450"></canvas>
+      <div class="content">
+        <span id="alert-icon">★</span>
+        <div class="alert-badge">NEW SUBSCRIBER</div>
+        <div id="alert-username">StreamViewer42</div>
+        <div class="alert-message">Thanks for subscribing!</div>
+      </div>
+    </div>
 
-<div id="status-dot"></div>
+    <script>
+      // ─── STATUS DOT ──────────────────────────────────────────────
+      const dot = document.getElementById('status-dot')
+      function setStatus(s) {
+        dot.className = s
+      }
 
-<!-- Alert -->
-<div id="alert-box">
-  <canvas id="particles" width="410" height="450"></canvas>
-  <div class="content">
-    <span id="alert-icon">★</span>
-    <div class="alert-badge">NEW SUBSCRIBER</div>
-    <div id="alert-username">StreamViewer42</div>
-    <div class="alert-message">Thanks for subscribing!</div>
-  </div>
-</div>
+      // ─── SERVER SSE ──────────────────────────────────────────────
+      function connectSSE() {
+        setStatus('connecting')
+        const es = new EventSource('/subscribe-events')
+        es.onopen = () => {
+          setStatus('connected')
+          setTimeout(() => {
+            dot.style.opacity = '0'
+          }, 3000)
+        }
+        es.onerror = () => setStatus('error')
+        es.onmessage = (ev) => {
+          let data
+          try {
+            data = JSON.parse(ev.data)
+          } catch {
+            return
+          }
+          if (data.type === 'subscribe') showAlert(data.username)
+        }
+      }
 
-<script>
+      // ─── PARTICLES ───────────────────────────────────────────────
+      const canvas = document.getElementById('particles')
+      const ctx = canvas.getContext('2d')
+      let pList = [],
+        pRaf = null
 
-// ─── STATUS DOT ──────────────────────────────────────────────
-const dot = document.getElementById('status-dot');
-function setStatus(s) { dot.className = s; }
+      function spawnParticles() {
+        for (let i = 0; i < 45; i++) {
+          setTimeout(() => {
+            pList.push({
+              x: 90 + Math.random() * 230,
+              y: 160 + Math.random() * 130,
+              vx: (Math.random() - 0.5) * 5,
+              vy: -(Math.random() * 5.5 + 1.5),
+              r: Math.random() * 4.5 + 1.5,
+              life: 1,
+              decay: Math.random() * 0.013 + 0.006,
+            })
+          }, i * 45)
+        }
+      }
 
-// ─── SERVER SSE ──────────────────────────────────────────────
-function connectSSE() {
-  setStatus('connecting');
-  const es = new EventSource('/subscribe-events');
-  es.onopen    = () => {
-    setStatus('connected');
-    setTimeout(() => { dot.style.opacity = '0'; }, 3000);
-  };
-  es.onerror   = () => setStatus('error');
-  es.onmessage = (ev) => {
-    let data;
-    try { data = JSON.parse(ev.data); } catch { return; }
-    if (data.type === 'subscribe') showAlert(data.username);
-  };
-}
+      function runParticles() {
+        if (pRaf) cancelAnimationFrame(pRaf)
+        function loop() {
+          ctx.clearRect(0, 0, 410, 450)
+          pList = pList.filter((p) => p.life > 0.01)
+          for (const p of pList) {
+            ctx.globalAlpha = p.life * 0.88
+            ctx.fillStyle = '#b06cff'
+            ctx.shadowColor = '#b06cff'
+            ctx.shadowBlur = 10
+            ctx.beginPath()
+            ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2)
+            ctx.fill()
+            p.x += p.vx
+            p.y += p.vy
+            p.vy += 0.14
+            p.life -= p.decay
+          }
+          ctx.globalAlpha = 1
+          ctx.shadowBlur = 0
+          if (pList.length > 0) pRaf = requestAnimationFrame(loop)
+          else pRaf = null
+        }
+        pRaf = requestAnimationFrame(loop)
+      }
 
-// ─── PARTICLES ───────────────────────────────────────────────
-const canvas = document.getElementById('particles');
-const ctx    = canvas.getContext('2d');
-let pList = [], pRaf = null;
+      function stopParticles() {
+        if (pRaf) {
+          cancelAnimationFrame(pRaf)
+          pRaf = null
+        }
+        ctx.clearRect(0, 0, 410, 450)
+        pList = []
+      }
 
-function spawnParticles() {
-  for (let i = 0; i < 45; i++) {
-    setTimeout(() => {
-      pList.push({
-        x:     90 + Math.random() * 230,
-        y:     160 + Math.random() * 130,
-        vx:    (Math.random() - 0.5) * 5,
-        vy:    -(Math.random() * 5.5 + 1.5),
-        r:     Math.random() * 4.5 + 1.5,
-        life:  1,
-        decay: Math.random() * 0.013 + 0.006,
-      });
-    }, i * 45);
-  }
-}
+      // ─── AUDIO ───────────────────────────────────────────────────
+      const alertAudio = new Audio('/sounds/dragon-studio-shutdown-386182.mp3')
 
-function runParticles() {
-  if (pRaf) cancelAnimationFrame(pRaf);
-  function loop() {
-    ctx.clearRect(0, 0, 410, 450);
-    pList = pList.filter(p => p.life > 0.01);
-    for (const p of pList) {
-      ctx.globalAlpha = p.life * 0.88;
-      ctx.fillStyle   = '#b06cff';
-      ctx.shadowColor = '#b06cff';
-      ctx.shadowBlur  = 10;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
-      ctx.fill();
-      p.x  += p.vx;
-      p.y  += p.vy;
-      p.vy += 0.14;
-      p.life -= p.decay;
-    }
-    ctx.globalAlpha = 1;
-    ctx.shadowBlur  = 0;
-    if (pList.length > 0) pRaf = requestAnimationFrame(loop);
-    else pRaf = null;
-  }
-  pRaf = requestAnimationFrame(loop);
-}
+      // ─── ALERT DISPLAY ───────────────────────────────────────────
+      const alertBox = document.getElementById('alert-box')
+      const iconEl = document.getElementById('alert-icon')
+      const usernameEl = document.getElementById('alert-username')
+      let hideTimer = null,
+        outTimer = null
 
-function stopParticles() {
-  if (pRaf) { cancelAnimationFrame(pRaf); pRaf = null; }
-  ctx.clearRect(0, 0, 410, 450);
-  pList = [];
-}
+      function showAlert(username) {
+        clearTimeout(hideTimer)
+        clearTimeout(outTimer)
+        stopParticles()
 
-// ─── AUDIO ───────────────────────────────────────────────────
-const alertAudio = new Audio('/sounds/dragon-studio-shutdown-386182.mp3');
+        usernameEl.textContent = username
 
-// ─── ALERT DISPLAY ───────────────────────────────────────────
-const alertBox   = document.getElementById('alert-box');
-const iconEl     = document.getElementById('alert-icon');
-const usernameEl = document.getElementById('alert-username');
-let hideTimer = null, outTimer = null;
+        alertBox.className = ''
+        alertBox.style.opacity = '0'
+        void alertBox.offsetWidth // force reflow
 
-function showAlert(username) {
-  clearTimeout(hideTimer);
-  clearTimeout(outTimer);
-  stopParticles();
+        alertBox.style.opacity = ''
+        alertBox.classList.add('glitch-in')
+        iconEl.classList.add('pulsing')
 
-  usernameEl.textContent = username;
+        alertAudio.currentTime = 0
+        alertAudio.play().catch(() => {})
 
-  alertBox.className = '';
-  alertBox.style.opacity = '0';
-  void alertBox.offsetWidth; // force reflow
+        spawnParticles()
+        runParticles()
 
-  alertBox.style.opacity = '';
-  alertBox.classList.add('glitch-in');
-  iconEl.classList.add('pulsing');
+        hideTimer = setTimeout(() => {
+          iconEl.classList.remove('pulsing')
+          alertBox.classList.replace('glitch-in', 'fade-out')
+          outTimer = setTimeout(() => {
+            alertBox.className = ''
+            alertBox.style.opacity = '0'
+            stopParticles()
+          }, 400)
+        }, 5000)
+      }
 
-  alertAudio.currentTime = 0;
-  alertAudio.play().catch(() => {});
-
-  spawnParticles();
-  runParticles();
-
-  hideTimer = setTimeout(() => {
-    iconEl.classList.remove('pulsing');
-    alertBox.classList.replace('glitch-in', 'fade-out');
-    outTimer = setTimeout(() => {
-      alertBox.className = '';
-      alertBox.style.opacity = '0';
-      stopParticles();
-    }, 400);
-  }, 5000);
-}
-
-// ─── INIT ────────────────────────────────────────────────────
-alertBox.style.opacity = '0';
-dot.style.transition = 'background 0.3s, box-shadow 0.3s, opacity 1s';
-connectSSE();
-</script>
-</body>
+      // ─── INIT ────────────────────────────────────────────────────
+      alertBox.style.opacity = '0'
+      dot.style.transition = 'background 0.3s, box-shadow 0.3s, opacity 1s'
+      connectSSE()
+    </script>
+  </body>
 </html>

@@ -15,19 +15,21 @@ const PORT = parseInt(process.argv[2] || process.env.PORT || '3000', 10)
 const DIR = __dirname
 
 // Load .env from overlays directory
-try { process.loadEnvFile(path.join(DIR, '.env')) } catch {}
+try {
+  process.loadEnvFile(path.join(DIR, '.env'))
+} catch {}
 
-const TWITCH_CLIENT_ID      = process.env.TWITCH_CLIENT_ID
-const TWITCH_TOKEN          = process.env.TWITCH_TOKEN
+const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID
+const TWITCH_TOKEN = process.env.TWITCH_TOKEN
 const TWITCH_BROADCASTER_ID = process.env.TWITCH_BROADCASTER_ID
 const TWITCH_OK = !!(TWITCH_CLIENT_ID && TWITCH_TOKEN && TWITCH_BROADCASTER_ID)
 
 let lastState = null
-const sseClients       = new Set()
-const followClients    = new Set()
+const sseClients = new Set()
+const followClients = new Set()
 const subscribeClients = new Set()
-const alertClients     = new Set()
-const raidClients      = new Set()
+const alertClients = new Set()
+const raidClients = new Set()
 
 // ── SSE broadcast ─────────────────────────────────────────
 function broadcast(data) {
@@ -42,108 +44,131 @@ function broadcast(data) {
 function broadcastFollow(username) {
   const msg = `data: ${JSON.stringify({ type: 'follow', username })}\n\n`
   for (const res of followClients) {
-    try { res.write(msg) } catch {}
+    try {
+      res.write(msg)
+    } catch {}
   }
 }
 
 function broadcastSubscribe(username) {
   const msg = `data: ${JSON.stringify({ type: 'subscribe', username })}\n\n`
   for (const res of subscribeClients) {
-    try { res.write(msg) } catch {}
+    try {
+      res.write(msg)
+    } catch {}
   }
 }
 
 function broadcastAlert(type, username) {
   const msg = `data: ${JSON.stringify({ type, username })}\n\n`
   for (const res of alertClients) {
-    try { res.write(msg) } catch {}
+    try {
+      res.write(msg)
+    } catch {}
   }
 }
 
 function broadcastRaid(username, viewers) {
   const msg = `data: ${JSON.stringify({ type: 'raid', username, viewers })}\n\n`
   for (const res of raidClients) {
-    try { res.write(msg) } catch {}
+    try {
+      res.write(msg)
+    } catch {}
   }
 }
 
 // ── Twitch EventSub ───────────────────────────────────────
-let twitchWs        = null
+let twitchWs = null
 let twitchReconnTimer = null
-let twitchKaTimer   = null
-let twitchKaSecs    = 10
+let twitchKaTimer = null
+let twitchKaSecs = 10
 
 function resetTwitchKeepalive() {
   clearTimeout(twitchKaTimer)
-  twitchKaTimer = setTimeout(() => {
-    console.warn('  [twitch] Keepalive timeout — reconnecting')
-    if (twitchWs) twitchWs.close()
-  }, (twitchKaSecs + 10) * 1000)
+  twitchKaTimer = setTimeout(
+    () => {
+      console.warn('  [twitch] Keepalive timeout — reconnecting')
+      if (twitchWs) twitchWs.close()
+    },
+    (twitchKaSecs + 10) * 1000
+  )
 }
 
 async function twitchSubscribeFollow(sessionId) {
-  const res = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${TWITCH_TOKEN}`,
-      'Client-Id': TWITCH_CLIENT_ID,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      type: 'channel.follow',
-      version: '2',
-      condition: {
-        broadcaster_user_id: TWITCH_BROADCASTER_ID,
-        moderator_user_id:   TWITCH_BROADCASTER_ID,
+  const res = await fetch(
+    'https://api.twitch.tv/helix/eventsub/subscriptions',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${TWITCH_TOKEN}`,
+        'Client-Id': TWITCH_CLIENT_ID,
+        'Content-Type': 'application/json',
       },
-      transport: { method: 'websocket', session_id: sessionId },
-    }),
-  })
+      body: JSON.stringify({
+        type: 'channel.follow',
+        version: '2',
+        condition: {
+          broadcaster_user_id: TWITCH_BROADCASTER_ID,
+          moderator_user_id: TWITCH_BROADCASTER_ID,
+        },
+        transport: { method: 'websocket', session_id: sessionId },
+      }),
+    }
+  )
   if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
 }
 
 async function twitchSubscribeRaid(sessionId) {
-  const res = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${TWITCH_TOKEN}`,
-      'Client-Id': TWITCH_CLIENT_ID,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      type: 'channel.raid',
-      version: '1',
-      condition: {
-        to_broadcaster_user_id: TWITCH_BROADCASTER_ID,
+  const res = await fetch(
+    'https://api.twitch.tv/helix/eventsub/subscriptions',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${TWITCH_TOKEN}`,
+        'Client-Id': TWITCH_CLIENT_ID,
+        'Content-Type': 'application/json',
       },
-      transport: { method: 'websocket', session_id: sessionId },
-    }),
-  })
+      body: JSON.stringify({
+        type: 'channel.raid',
+        version: '1',
+        condition: {
+          to_broadcaster_user_id: TWITCH_BROADCASTER_ID,
+        },
+        transport: { method: 'websocket', session_id: sessionId },
+      }),
+    }
+  )
   if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
 }
 
 async function twitchSubscribeSubscriptions(sessionId) {
-  const res = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${TWITCH_TOKEN}`,
-      'Client-Id': TWITCH_CLIENT_ID,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      type: 'channel.subscribe',
-      version: '1',
-      condition: {
-        broadcaster_user_id: TWITCH_BROADCASTER_ID,
+  const res = await fetch(
+    'https://api.twitch.tv/helix/eventsub/subscriptions',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${TWITCH_TOKEN}`,
+        'Client-Id': TWITCH_CLIENT_ID,
+        'Content-Type': 'application/json',
       },
-      transport: { method: 'websocket', session_id: sessionId },
-    }),
-  })
+      body: JSON.stringify({
+        type: 'channel.subscribe',
+        version: '1',
+        condition: {
+          broadcaster_user_id: TWITCH_BROADCASTER_ID,
+        },
+        transport: { method: 'websocket', session_id: sessionId },
+      }),
+    }
+  )
   if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
 }
 
 function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
-  if (twitchWs) { twitchWs.onclose = null; twitchWs.close() }
+  if (twitchWs) {
+    twitchWs.onclose = null
+    twitchWs.close()
+  }
   clearTimeout(twitchReconnTimer)
   clearTimeout(twitchKaTimer)
 
@@ -151,7 +176,11 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
 
   twitchWs.onmessage = async (ev) => {
     let msg
-    try { msg = JSON.parse(ev.data) } catch { return }
+    try {
+      msg = JSON.parse(ev.data)
+    } catch {
+      return
+    }
     resetTwitchKeepalive()
 
     const type = msg?.metadata?.message_type
@@ -169,7 +198,10 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
         await twitchSubscribeSubscriptions(msg.payload.session.id)
         console.log('  [twitch] Subscribed to channel.subscribe — listening')
       } catch (e) {
-        console.error('  [twitch] channel.subscribe subscribe failed:', e.message)
+        console.error(
+          '  [twitch] channel.subscribe subscribe failed:',
+          e.message
+        )
       }
       try {
         await twitchSubscribeRaid(msg.payload.session.id)
@@ -179,26 +211,33 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
       }
     }
 
-    if (type === 'notification' &&
-        msg.metadata?.subscription_type === 'channel.follow') {
+    if (
+      type === 'notification' &&
+      msg.metadata?.subscription_type === 'channel.follow'
+    ) {
       const username = msg.payload?.event?.user_name ?? 'Someone'
       console.log(`  [twitch] ♥  ${username} followed`)
       broadcastFollow(username)
       broadcastAlert('follow', username)
     }
 
-    if (type === 'notification' &&
-        msg.metadata?.subscription_type === 'channel.subscribe') {
+    if (
+      type === 'notification' &&
+      msg.metadata?.subscription_type === 'channel.subscribe'
+    ) {
       const username = msg.payload?.event?.user_name ?? 'Someone'
       console.log(`  [twitch] ★  ${username} subscribed`)
       broadcastSubscribe(username)
       broadcastAlert('subscribe', username)
     }
 
-    if (type === 'notification' &&
-        msg.metadata?.subscription_type === 'channel.raid') {
-      const username = msg.payload?.event?.from_broadcaster_user_name ?? 'Someone'
-      const viewers  = msg.payload?.event?.viewers ?? 1
+    if (
+      type === 'notification' &&
+      msg.metadata?.subscription_type === 'channel.raid'
+    ) {
+      const username =
+        msg.payload?.event?.from_broadcaster_user_name ?? 'Someone'
+      const viewers = msg.payload?.event?.viewers ?? 1
       console.log(`  [twitch] ⚔  ${username} raided with ${viewers} viewers`)
       broadcastRaid(username, viewers)
     }
@@ -208,7 +247,10 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
     }
 
     if (type === 'revocation') {
-      console.warn('  [twitch] Subscription revoked:', msg.payload?.subscription?.status)
+      console.warn(
+        '  [twitch] Subscription revoked:',
+        msg.payload?.subscription?.status
+      )
     }
   }
 
@@ -225,11 +267,11 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
 
 // ── Static file helper ────────────────────────────────────
 const MIME = {
-  '.js':   'application/javascript',
+  '.js': 'application/javascript',
   '.html': 'text/html; charset=utf-8',
-  '.mp3':  'audio/mpeg',
-  '.wav':  'audio/wav',
-  '.ogg':  'audio/ogg',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg',
 }
 
 function serveFile(filePath, res) {
@@ -429,7 +471,11 @@ const server = http.createServer(async (req, res) => {
     raidClients.add(res)
 
     const ping = setInterval(() => {
-      try { res.write(': ping\n\n') } catch { clearInterval(ping) }
+      try {
+        res.write(': ping\n\n')
+      } catch {
+        clearInterval(ping)
+      }
     }, 20000)
 
     req.on('close', () => {
@@ -463,7 +509,11 @@ const server = http.createServer(async (req, res) => {
     alertClients.add(res)
 
     const ping = setInterval(() => {
-      try { res.write(': ping\n\n') } catch { clearInterval(ping) }
+      try {
+        res.write(': ping\n\n')
+      } catch {
+        clearInterval(ping)
+      }
     }, 20000)
 
     req.on('close', () => {
@@ -497,7 +547,11 @@ const server = http.createServer(async (req, res) => {
     followClients.add(res)
 
     const ping = setInterval(() => {
-      try { res.write(': ping\n\n') } catch { clearInterval(ping) }
+      try {
+        res.write(': ping\n\n')
+      } catch {
+        clearInterval(ping)
+      }
     }, 20000)
 
     req.on('close', () => {
@@ -519,7 +573,11 @@ const server = http.createServer(async (req, res) => {
     subscribeClients.add(res)
 
     const ping = setInterval(() => {
-      try { res.write(': ping\n\n') } catch { clearInterval(ping) }
+      try {
+        res.write(': ping\n\n')
+      } catch {
+        clearInterval(ping)
+      }
     }, 20000)
 
     req.on('close', () => {
@@ -552,17 +610,28 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`  Sub Alert     →  http://localhost:${PORT}/subscribe-alert`)
   console.log(`  Admin         →  http://localhost:${PORT}/admin`)
   console.log('')
-  console.log(`  OBS: Browser Source → http://localhost:${PORT}/overlay  (1920×1080)`)
-  console.log(`  OBS: Browser Source → http://localhost:${PORT}/alert  (410×450)`)
-  console.log(`  OBS: Browser Source → http://localhost:${PORT}/raid   (1920×1080, full screen)`)
+  console.log(
+    `  OBS: Browser Source → http://localhost:${PORT}/overlay  (1920×1080)`
+  )
+  console.log(
+    `  OBS: Browser Source → http://localhost:${PORT}/alert  (410×450)`
+  )
+  console.log(
+    `  OBS: Browser Source → http://localhost:${PORT}/raid   (1920×1080, full screen)`
+  )
   console.log('')
 
   if (TWITCH_OK) {
     console.log('  [twitch] Credentials found — connecting to EventSub...')
     connectTwitch()
   } else {
-    const missing = ['TWITCH_CLIENT_ID','TWITCH_TOKEN','TWITCH_BROADCASTER_ID']
-      .filter(k => !process.env[k])
-    console.log(`  [twitch] Not configured — add to .env: ${missing.join(', ')}`)
+    const missing = [
+      'TWITCH_CLIENT_ID',
+      'TWITCH_TOKEN',
+      'TWITCH_BROADCASTER_ID',
+    ].filter((k) => !process.env[k])
+    console.log(
+      `  [twitch] Not configured — add to .env: ${missing.join(', ')}`
+    )
   }
 })

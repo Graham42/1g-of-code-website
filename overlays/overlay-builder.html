@@ -870,13 +870,29 @@
           <div id="overlay-canvas">
             <div id="ov-border"></div>
             <canvas id="grid-canvas"></canvas>
-            <svg id="gap-mask-svg" style="position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none;z-index:500;display:none">
+            <svg
+              id="gap-mask-svg"
+              style="
+                position: absolute;
+                inset: 0;
+                width: 1920px;
+                height: 1080px;
+                pointer-events: none;
+                z-index: 500;
+                display: none;
+              "
+            >
               <defs>
                 <mask id="gap-mask">
-                  <rect width="1920" height="1080" fill="white"/>
+                  <rect width="1920" height="1080" fill="white" />
                 </mask>
               </defs>
-              <rect width="1920" height="1080" fill="rgba(0,0,0,0.78)" mask="url(#gap-mask)"/>
+              <rect
+                width="1920"
+                height="1080"
+                fill="rgba(0,0,0,0.78)"
+                mask="url(#gap-mask)"
+              />
             </svg>
             <!-- boxes injected by JS -->
           </div>
@@ -895,8 +911,12 @@
           <button class="ex-tab" onclick="switchTab('obs')" id="tab-obs">
             OBS CSS
           </button>
-          <button class="tb-btn ex-dl-btn" onclick="downloadCurrentTab()">↓ File</button>
-          <button class="tb-btn ex-all-btn" onclick="downloadAll()">↓ All</button>
+          <button class="tb-btn ex-dl-btn" onclick="downloadCurrentTab()">
+            ↓ File
+          </button>
+          <button class="tb-btn ex-all-btn" onclick="downloadAll()">
+            ↓ All
+          </button>
           <button id="copy-btn" onclick="copyExport()">Copy</button>
         </div>
         <div id="export-output"></div>
@@ -946,7 +966,13 @@
         showMask: false,
         selectedBox: null,
         exportTab: 'css',
-        outerBorder: { visible: true, color: '#f0a500', widthH: 14, widthV: 14, opacity: 1 },
+        outerBorder: {
+          visible: true,
+          color: '#f0a500',
+          widthH: 14,
+          widthV: 14,
+          opacity: 1,
+        },
         boxes: {
           main: {
             label: 'Main Content',
@@ -1162,7 +1188,10 @@
         for (const id of BOX_ORDER) {
           const box = state.boxes[id]
           if (!box.visible) continue
-          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+          const rect = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'rect'
+          )
           rect.setAttribute('x', Math.round(box.x))
           rect.setAttribute('y', Math.round(box.y))
           rect.setAttribute('width', Math.round(box.w))
@@ -1176,7 +1205,8 @@
       function renderBorder() {
         const b = state.outerBorder
         const el = document.getElementById('ov-border')
-        el.style.display = b.visible && (b.widthH > 0 || b.widthV > 0) ? 'block' : 'none'
+        el.style.display =
+          b.visible && (b.widthH > 0 || b.widthV > 0) ? 'block' : 'none'
         el.style.borderStyle = 'solid'
         el.style.borderColor = b.color
         el.style.borderTopWidth = b.widthH + 'px'
@@ -1525,8 +1555,10 @@
         b.widthV = +document.getElementById('border-width-v').value
         b.opacity = +document.getElementById('border-opacity').value
         document.getElementById('border-color-val').textContent = b.color
-        document.getElementById('border-width-h-val').textContent = b.widthH + 'px'
-        document.getElementById('border-width-v-val').textContent = b.widthV + 'px'
+        document.getElementById('border-width-h-val').textContent =
+          b.widthH + 'px'
+        document.getElementById('border-width-v-val').textContent =
+          b.widthV + 'px'
         document.getElementById('border-opacity-val').textContent =
           Math.round(b.opacity * 100) + '%'
         renderBorder()
@@ -1548,8 +1580,10 @@
         document.getElementById('border-width-v').value = b.widthV
         document.getElementById('border-opacity').value = b.opacity
         document.getElementById('border-color-val').textContent = b.color
-        document.getElementById('border-width-h-val').textContent = b.widthH + 'px'
-        document.getElementById('border-width-v-val').textContent = b.widthV + 'px'
+        document.getElementById('border-width-h-val').textContent =
+          b.widthH + 'px'
+        document.getElementById('border-width-v-val').textContent =
+          b.widthV + 'px'
         document.getElementById('border-opacity-val').textContent =
           Math.round(b.opacity * 100) + '%'
       }
