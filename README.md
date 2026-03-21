@@ -4,6 +4,8 @@ Companion website for the [1g of Code Twitch channel](https://twitch.tv/1gOfCode
 
 ## Quick Start
 
+Install bun: https://bun.com/docs/installation
+
 ```bash
 bun install
 bun run dev
