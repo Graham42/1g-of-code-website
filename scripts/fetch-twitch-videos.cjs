@@ -76,7 +76,8 @@ function readEnvFile(filePath) {
           return [line.slice(0, eq).trim(), line.slice(eq + 1).trim()]
         })
     )
-  } catch {
+  } catch (e) {
+    console.error("Failed to read env file", e);
     return {}
   }
 }
