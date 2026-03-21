@@ -1,5 +1,31 @@
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import type { Result } from 'axe-core'
+
+/**
+ * Formats axe-core violations into a human-readable string for test failure messages.
+ *
+ * Why this exists: when using `expect(violations).toEqual([])` or `.toHaveLength(0)`,
+ * Playwright dumps the full raw axe violations array as a JSON diff — often hundreds
+ * of lines of deeply nested objects per violation. That output is effectively unreadable.
+ *
+ * By throwing `new Error(formatViolations(...))` instead, we get only this concise
+ * summary with the impact level, rule ID, affected selectors, and a docs link.
+ * No raw JSON noise.
+ */
+function formatViolations(violations: Result[]): string {
+  if (violations.length === 0) return 'No violations'
+  const items = violations.map((v) => {
+    const nodes = v.nodes
+      .map(
+        (n) =>
+          `  → ${n.target.join(', ')}: ${n.failureSummary?.split('\n')[1]?.trim() ?? ''}`
+      )
+      .join('\n')
+    return `[${v.impact}] ${v.id} — ${v.description} (${v.nodes.length} node${v.nodes.length !== 1 ? 's' : ''})\n  Fix: ${v.help}\n${nodes}\n  Docs: ${v.helpUrl}`
+  })
+  return `Found ${violations.length} accessibility violation(s):\n\n${items.join('\n\n')}`
+}
 
 /**
  * Layer 1: Axe-Core Scanning
@@ -29,7 +55,9 @@ test.describe('Axe-Core WCAG Scans', () => {
       .exclude(['#playwright-report']) // Exclude playwright UI elements if present
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 
   test('episodes listing page should not have accessibility violations', async ({
@@ -42,7 +70,9 @@ test.describe('Axe-Core WCAG Scans', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 
   test('individual episode page (2026-01-05) should not have accessibility violations', async ({
@@ -55,7 +85,9 @@ test.describe('Axe-Core WCAG Scans', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 
   test('individual episode page (2026-01-19) should not have accessibility violations', async ({
@@ -68,7 +100,9 @@ test.describe('Axe-Core WCAG Scans', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 
   test('about page should not have accessibility violations', async ({
@@ -81,7 +115,9 @@ test.describe('Axe-Core WCAG Scans', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 
   test('404 page should not have accessibility violations', async ({
@@ -94,7 +130,9 @@ test.describe('Axe-Core WCAG Scans', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 
   test('home page in dark mode should not have accessibility violations', async ({
@@ -113,7 +151,9 @@ test.describe('Axe-Core WCAG Scans', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 
   test('home page with mobile menu open should not have accessibility violations', async ({
@@ -131,6 +171,8 @@ test.describe('Axe-Core WCAG Scans', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
       .analyze()
 
-    expect(accessibilityScanResults.violations).toEqual([])
+    if (accessibilityScanResults.violations.length > 0) {
+      throw new Error(formatViolations(accessibilityScanResults.violations))
+    }
   })
 })
