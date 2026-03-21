@@ -1,6 +1,6 @@
 import { test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
-import type { Result } from 'axe-core'
+import type { NodeResult, Result } from 'axe-core'
 
 /**
  * Formats axe-core violations into a human-readable string for test failure messages.
@@ -12,19 +12,68 @@ import type { Result } from 'axe-core'
  * By throwing `new Error(formatViolations(...))` instead, we get only this concise
  * summary with the impact level, rule ID, affected selectors, and a docs link.
  * No raw JSON noise.
+ *
+ * color-contrast violations are grouped by color pair since many elements often share
+ * the same root cause (e.g. a single CSS variable used in many places).
  */
 function formatViolations(violations: Result[]): string {
   if (violations.length === 0) return 'No violations'
   const items = violations.map((v) => {
-    const nodes = v.nodes
-      .map(
-        (n) =>
-          `  → ${n.target.join(', ')}: ${n.failureSummary?.split('\n')[1]?.trim() ?? ''}`
-      )
-      .join('\n')
-    return `[${v.impact}] ${v.id} — ${v.description} (${v.nodes.length} node${v.nodes.length !== 1 ? 's' : ''})\n  Fix: ${v.help}\n${nodes}\n  Docs: ${v.helpUrl}`
+    const nodeLines =
+      v.id === 'color-contrast'
+        ? formatColorContrastNodes(v.nodes)
+        : v.nodes
+            .map(
+              (n) =>
+                `  → ${n.target.join(', ')}: ${n.failureSummary?.split('\n')[1]?.trim() ?? ''}`
+            )
+            .join('\n')
+    return `[${v.impact}] ${v.id} — ${v.description} (${v.nodes.length} node${v.nodes.length !== 1 ? 's' : ''})\n  Fix: ${v.help}\n${nodeLines}\n  Docs: ${v.helpUrl}`
   })
   return `Found ${violations.length} accessibility violation(s):\n\n${items.join('\n\n')}`
+}
+
+type ColorContrastData = {
+  fgColor?: string
+  bgColor?: string
+  contrastRatio?: number
+  expectedContrastRatio?: string
+}
+
+function formatColorContrastNodes(nodes: NodeResult[]): string {
+  const groups = new Map<
+    string,
+    { fg: string; bg: string; ratio: string; need: string; selectors: string[] }
+  >()
+
+  for (const node of nodes) {
+    const d = node.any[0]?.data as ColorContrastData | undefined
+    if (!d?.fgColor || !d?.bgColor) continue
+    const key = `${d.fgColor}|${d.bgColor}|${d.expectedContrastRatio}`
+    if (!groups.has(key)) {
+      groups.set(key, {
+        fg: d.fgColor,
+        bg: d.bgColor,
+        ratio: d.contrastRatio?.toFixed(2) ?? '?',
+        need: d.expectedContrastRatio ?? '?',
+        selectors: [],
+      })
+    }
+    groups.get(key)!.selectors.push(node.target.flat().join(', '))
+  }
+
+  const MAX_SHOWN = 3
+  return [...groups.values()]
+    .map(({ fg, bg, ratio, need, selectors }) => {
+      const shown = selectors.slice(0, MAX_SHOWN).join(', ')
+      const overflow =
+        selectors.length > MAX_SHOWN
+          ? `, and ${selectors.length - MAX_SHOWN} more`
+          : ''
+      const count = `${selectors.length} element${selectors.length !== 1 ? 's' : ''}`
+      return `  ${fg} on ${bg} — ratio ${ratio}:1, need ${need} — ${count}: ${shown}${overflow}`
+    })
+    .join('\n')
 }
 
 /**
