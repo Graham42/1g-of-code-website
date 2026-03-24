@@ -85,18 +85,12 @@ test.describe('Focus Indicators', () => {
       const className = await element.evaluate((el) => el.className)
       const id = await element.evaluate((el) => el.id)
 
-      // Verify it has a focus indicator
       const hasIndicator = hasFocusIndicator(styles)
-
-      // Provide better error message showing which element failed
-      if (!hasIndicator) {
-        console.error(
-          `Element missing focus indicator: ${tagName}${id ? '#' + id : ''}${className ? '.' + className.split(' ').join('.') : ''}`
-        )
-        console.error('Styles:', styles)
-      }
-
-      expect(hasIndicator).toBe(true)
+      const selector = `${tagName}${id ? '#' + id : ''}${className ? '.' + className.split(' ').join('.') : ''}`
+      expect(
+        hasIndicator,
+        `Missing focus indicator on <${selector}> — outline: ${styles?.outlineWidth} ${styles?.outlineStyle} ${styles?.outlineColor}, box-shadow: ${styles?.boxShadow}`
+      ).toBe(true)
     }
   })
 

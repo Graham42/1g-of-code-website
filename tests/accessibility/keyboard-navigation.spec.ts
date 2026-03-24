@@ -403,15 +403,13 @@ test.describe('Keyboard Navigation', () => {
         return document.activeElement === el
       })
 
-      // Get element info for debugging if test fails
-      if (!isFocused) {
-        const tagName = await element.evaluate((el) => el.tagName)
-        const className = await element.evaluate((el) => el.className)
-        const id = await element.evaluate((el) => el.id)
-        console.log(`Failed to focus: ${tagName}#${id}.${className}`)
-      }
-
-      expect(isFocused).toBe(true)
+      const tagName = await element.evaluate((el) => el.tagName)
+      const className = await element.evaluate((el) => el.className)
+      const id = await element.evaluate((el) => el.id)
+      expect(
+        isFocused,
+        `Element not focusable: <${tagName.toLowerCase()}${id ? '#' + id : ''}${className ? '.' + className.split(' ').join('.') : ''}>`
+      ).toBe(true)
     }
   })
 })

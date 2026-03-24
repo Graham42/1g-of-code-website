@@ -33,23 +33,21 @@ test.describe('Accessibility Tree Validation', () => {
     expect(buttons.length).toBeGreaterThan(0)
 
     for (const button of buttons) {
-      // Check if button has accessible name (text content or aria-label)
-      const accessibleName = await button.evaluate((el) => {
-        // Get accessible name from text content, aria-label, or aria-labelledby
-        return (
+      const { accessibleName, outerHTML } = await button.evaluate((el) => ({
+        accessibleName:
           el.getAttribute('aria-label') ||
           el.textContent?.trim() ||
           (el.getAttribute('aria-labelledby')
             ? document
                 .getElementById(el.getAttribute('aria-labelledby')!)
                 ?.textContent?.trim()
-            : '')
-        )
-      })
+            : ''),
+        outerHTML: el.outerHTML.slice(0, 120),
+      }))
 
-      expect(accessibleName).toBeTruthy()
-      expect(accessibleName).not.toBe('button')
-      expect(accessibleName!.length).toBeGreaterThan(0)
+      expect(accessibleName, `Button has no accessible name: ${outerHTML}`).toBeTruthy()
+      expect(accessibleName, `Button name is too generic: ${outerHTML}`).not.toBe('button')
+      expect(accessibleName!.length, `Button name is empty: ${outerHTML}`).toBeGreaterThan(0)
     }
   })
 
@@ -62,22 +60,21 @@ test.describe('Accessibility Tree Validation', () => {
     expect(links.length).toBeGreaterThan(0)
 
     for (const link of links) {
-      // Check if link has accessible name
-      const accessibleName = await link.evaluate((el) => {
-        return (
+      const { accessibleName, outerHTML } = await link.evaluate((el) => ({
+        accessibleName:
           el.getAttribute('aria-label') ||
           el.textContent?.trim() ||
           (el.getAttribute('aria-labelledby')
             ? document
                 .getElementById(el.getAttribute('aria-labelledby')!)
                 ?.textContent?.trim()
-            : '')
-        )
-      })
+            : ''),
+        outerHTML: el.outerHTML.slice(0, 120),
+      }))
 
-      expect(accessibleName).toBeTruthy()
-      expect(accessibleName).not.toBe('link')
-      expect(accessibleName!.length).toBeGreaterThan(0)
+      expect(accessibleName, `Link has no accessible name: ${outerHTML}`).toBeTruthy()
+      expect(accessibleName, `Link name is too generic: ${outerHTML}`).not.toBe('link')
+      expect(accessibleName!.length, `Link name is empty: ${outerHTML}`).toBeGreaterThan(0)
     }
   })
 

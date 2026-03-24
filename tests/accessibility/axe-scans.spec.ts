@@ -190,10 +190,18 @@ test.describe('Axe-Core WCAG Scans', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    // Set theme to dark mode
+    // Set theme to dark mode, disabling transitions first so axe scans
+    // the final state rather than a mid-transition intermediate color
     await page.evaluate(() => {
+      const style = document.createElement('style')
+      style.id = 'disable-transitions'
+      style.textContent = '*, *::before, *::after { transition: none !important; }'
+      document.head.appendChild(style)
       document.documentElement.setAttribute('data-theme-setting', 'dark')
       document.documentElement.setAttribute('data-theme', 'dark')
+      // Force reflow so styles settle before the style tag is removed
+      document.body.getBoundingClientRect()
+      style.remove()
     })
 
     const accessibilityScanResults = await new AxeBuilder({ page })
