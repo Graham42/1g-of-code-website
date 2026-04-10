@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Claude Alert Bar — Design Playground</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        height: 100%;
+        background: #0d0d0d;
+        color: #e0e0e0;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+        overflow: hidden;
+      }
+
+      /* ── LAYOUT ─────────────────────────────────────────────── */
+      .layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        grid-template-rows: 44px 1fr;
+        height: 100vh;
+      }
+
+      /* ── PRESETS BAR ────────────────────────────────────────── */
+      .presets-bar {
+        grid-column: 1 / -1;
+        background: #111;
+        border-bottom: 1px solid #1e1e1e;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .presets-label {
+        color: #444;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-right: 4px;
+        flex-shrink: 0;
+      }
+
+      .preset-btn {
+        background: transparent;
+        border: 1px solid #2a2a2a;
+        border-radius: 4px;
+        color: #666;
+        cursor: pointer;
+        font-size: 11px;
+        padding: 4px 12px;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+      .preset-btn:hover { background: #1a1a1a; border-color: #333; color: #ccc; }
+      .preset-btn.active { background: #0a2020; border-color: #00ffcc; color: #00ffcc; }
+
+      /* ── CONTROLS PANEL ─────────────────────────────────────── */
+      .controls {
+        background: #0f0f0f;
+        border-right: 1px solid #1e1e1e;
+        overflow-y: auto;
+        padding: 16px;
+      }
+
+      .ctrl-group { margin-bottom: 20px; }
+
+      .group-label {
+        color: #3a3a3a;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #1a1a1a;
+      }
+
+      .ctrl-row { margin-bottom: 10px; }
+
+      .ctrl-row label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+
+      .ctrl-row label .val {
+        color: #555;
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+      }
+
+      input[type=range] {
+        width: 100%;
+        height: 4px;
+        accent-color: #00ffcc;
+        cursor: pointer;
+      }
+
+      .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #888;
+      }
+
+      input[type=checkbox] {
+        accent-color: #00ffcc;
+        cursor: pointer;
+        width: 14px;
+        height: 14px;
+      }
+
+      /* ── RIGHT PANEL ────────────────────────────────────────── */
+      .right-panel {
+        display: grid;
+        grid-template-rows: 1fr 140px;
+        overflow: hidden;
+      }
+
+      /* ── PREVIEW AREA ───────────────────────────────────────── */
+      .preview-area {
+        position: relative;
+        background: #080808;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 40px 40px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        padding: 20px;
+      }
+
+      .preview-label {
+        position: absolute;
+        top: 10px;
+        left: 14px;
+        color: #2a2a2a;
+        font-size: 11px;
+        font-family: monospace;
+        pointer-events: none;
+      }
+
+      /* Notification stack in preview */
+      #notif-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+
+      .notif-bar {
+        /* dims + styles set by JS */
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-family: 'Courier New', 'Lucida Console', Courier, monospace;
+        color: #fff;
+        transform: translateX(600px);
+        flex-shrink: 0;
+        overflow: hidden;
+        position: relative;
+        cursor: default;
+      }
+
+      .notif-bar.entering { transform: translateX(0) !important; }
+      .notif-bar.exiting  { transform: translateX(600px) !important; }
+
+      .bar-icon-el {
+        font-size: 22px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      .bar-content { flex: 1; min-width: 0; }
+
+      .bar-title-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 3px;
+      }
+
+      .bar-event-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .bar-sep { color: #333; font-size: 10px; }
+      .bar-session { font-size: 10px; color: #555; }
+      .bar-subtitle { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      .bar-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        width: 100%;
+        opacity: 0.45;
+        transform-origin: left;
+      }
+
+      /* ── FIRE CONTROLS ──────────────────────────────────────── */
+      .fire-controls {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        display: flex;
+        gap: 8px;
+      }
+
+      .fire-btn {
+        padding: 7px 14px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-family: monospace;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.15s;
+      }
+
+      .fire-btn.done {
+        background: rgba(0,255,204,0.08);
+        border-color: rgba(0,255,204,0.35);
+        color: #00ffcc;
+      }
+      .fire-btn.done:hover { background: rgba(0,255,204,0.16); border-color: #00ffcc; }
+
+      .fire-btn.input {
+        background: rgba(255,170,0,0.08);
+        border-color: rgba(255,170,0,0.35);
+        color: #ffaa00;
+      }
+      .fire-btn.input:hover { background: rgba(255,170,0,0.16); border-color: #ffaa00; }
+
+      .fire-btn.clr {
+        background: rgba(255,255,255,0.03);
+        border-color: #2a2a2a;
+        color: #444;
+      }
+      .fire-btn.clr:hover { background: rgba(255,255,255,0.06); color: #777; border-color: #333; }
+
+      /* ── PROMPT AREA ────────────────────────────────────────── */
+      .prompt-area {
+        background: #0f0f0f;
+        border-top: 1px solid #1e1e1e;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .prompt-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .prompt-header label {
+        color: #3a3a3a;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .copy-btn {
+        background: #0a1a12;
+        border: 1px solid #1a3a24;
+        border-radius: 4px;
+        color: #00aa66;
+        cursor: pointer;
+        font-size: 11px;
+        padding: 3px 12px;
+        transition: all 0.15s;
+      }
+      .copy-btn:hover { background: #0d2018; border-color: #00cc88; color: #00cc88; }
+      .copy-btn.copied { color: #00ffcc; border-color: #00ffcc; }
+
+      .prompt-text {
+        flex: 1;
+        color: #888;
+        font-size: 12px;
+        line-height: 1.55;
+        font-family: 'Courier New', monospace;
+        background: #0a0a0a;
+        border: 1px solid #181818;
+        border-radius: 4px;
+        padding: 10px 12px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+
+      <!-- Presets bar -->
+      <div class="presets-bar">
+        <span class="presets-label">Preset</span>
+        <button class="preset-btn active" data-preset="Workshop">Workshop</button>
+        <button class="preset-btn" data-preset="Terminal">Terminal</button>
+        <button class="preset-btn" data-preset="Synthwave">Synthwave</button>
+        <button class="preset-btn" data-preset="Blood Moon">Blood Moon</button>
+        <button class="preset-btn" data-preset="Neon">Neon</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+
+        <div class="ctrl-group">
+          <div class="group-label">Accent Color (Done event)</div>
+          <div class="ctrl-row">
+            <label>Hue <span class="val" id="v-hue">174°</span></label>
+            <input type="range" id="c-hue" min="0" max="360" value="174">
+          </div>
+          <div class="ctrl-row">
+            <label>Saturation <span class="val" id="v-sat">100%</span></label>
+            <input type="range" id="c-sat" min="0" max="100" value="100">
+          </div>
+          <div class="ctrl-row">
+            <label>Lightness <span class="val" id="v-lit">50%</span></label>
+            <input type="range" id="c-lit" min="30" max="75" value="50">
+          </div>
+        </div>
+
+        <div class="ctrl-group">
+          <div class="group-label">Bar Size</div>
+          <div class="ctrl-row">
+            <label>Width <span class="val" id="v-w">350px</span></label>
+            <input type="range" id="c-w" min="280" max="394" value="350">
+          </div>
+          <div class="ctrl-row">
+            <label>Height <span class="val" id="v-h">60px</span></label>
+            <input type="range" id="c-h" min="48" max="100" value="60">
+          </div>
+          <div class="ctrl-row">
+            <label>Border Radius <span class="val" id="v-r">6px</span></label>
+            <input type="range" id="c-r" min="0" max="24" value="6">
+          </div>
+        </div>
+
+        <div class="ctrl-group">
+          <div class="group-label">Visual Effect</div>
+          <div class="ctrl-row">
+            <label>Glow Intensity <span class="val" id="v-glow">55</span></label>
+            <input type="range" id="c-glow" min="0" max="100" value="55">
+          </div>
+          <div class="ctrl-row">
+            <label>Background Opacity <span class="val" id="v-bgopa">93%</span></label>
+            <input type="range" id="c-bgopa" min="50" max="100" value="93">
+          </div>
+        </div>
+
+        <div class="ctrl-group">
+          <div class="group-label">Timing</div>
+          <div class="ctrl-row">
+            <label>Display Duration <span class="val" id="v-dur">14s</span></label>
+            <input type="range" id="c-dur" min="2" max="20" value="14">
+          </div>
+          <div class="ctrl-row">
+            <label>Slide-in Speed <span class="val" id="v-anim">380ms</span></label>
+            <input type="range" id="c-anim" min="100" max="700" value="380">
+          </div>
+        </div>
+
+        <div class="ctrl-group">
+          <div class="group-label">Content</div>
+          <div class="ctrl-row">
+            <label>Font Size <span class="val" id="v-fontsize">13px</span></label>
+            <input type="range" id="c-fontsize" min="9" max="18" value="13">
+          </div>
+          <div class="toggle-row">
+            <span>Show Icon</span>
+            <input type="checkbox" id="c-icon" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Show Session ID</span>
+            <input type="checkbox" id="c-session" checked>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: preview + prompt -->
+      <div class="right-panel">
+
+        <div class="preview-area">
+          <div class="preview-label">▶ Top-right corner · OBS Browser Source (1920×1080)</div>
+          <div id="notif-stack"></div>
+          <div class="fire-controls">
+            <button class="fire-btn done" id="btn-done">▷ Done</button>
+            <button class="fire-btn input" id="btn-input">▷ Needs Input</button>
+            <button class="fire-btn clr" id="btn-clr">✕ Clear</button>
+          </div>
+        </div>
+
+        <div class="prompt-area">
+          <div class="prompt-header">
+            <label>Design Prompt</label>
+            <button class="copy-btn" id="copy-btn">Copy Prompt</button>
+          </div>
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      // ── STATE ────────────────────────────────────────────────────────
+      const DEFAULTS = {
+        hue: 38, sat: 100, lit: 47,
+        w: 350, h: 60, r: 6,
+        glow: 52, bgopa: 94,
+        dur: 14, anim: 320,
+        fontSize: 13,
+        showIcon: false, showSession: true,
+      }
+
+      const PRESETS = {
+        // Brand-aligned: site accent amber, warm filament glow
+        // Brand-aligned: site accent amber, warm filament glow
+        'Workshop':   { hue: 38,  sat: 100, lit: 47, w: 350, h: 60, r: 6,  glow: 52, bgopa: 94, dur: 14, anim: 320, fontSize: 13, showIcon: false, showSession: true },
+        // Green phosphor CRT, sharp corners, snappy
+        'Terminal':   { hue: 120, sat: 100, lit: 42, w: 394, h: 60, r: 0,  glow: 22, bgopa: 96, dur: 5, anim: 200, fontSize: 11, showIcon: true,  showSession: true },
+        // Hot magenta, heavy glow, slow cinematic entry
+        'Synthwave':  { hue: 310, sat: 100, lit: 60, w: 394, h: 80, r: 10, glow: 92, bgopa: 94, dur: 7, anim: 520, fontSize: 12, showIcon: true,  showSession: true },
+        // Deep crimson, large, ominous — especially suits "Needs Input"
+        'Blood Moon': { hue: 4,   sat: 92,  lit: 48, w: 394, h: 74, r: 4,  glow: 68, bgopa: 95, dur: 7, anim: 460, fontSize: 12, showIcon: true,  showSession: true },
+        // Electric purple, heavy glow
+        'Neon':       { hue: 280, sat: 100, lit: 62, w: 394, h: 80, r: 8,  glow: 90, bgopa: 95, dur: 7, anim: 450, fontSize: 12, showIcon: true,  showSession: true },
+      }
+
+      let state = { ...DEFAULTS }
+      let activePreset = 'Workshop'
+
+      // ── CONTROLS ─────────────────────────────────────────────────────
+      const C = {
+        hue: document.getElementById('c-hue'),
+        sat: document.getElementById('c-sat'),
+        lit: document.getElementById('c-lit'),
+        w: document.getElementById('c-w'),
+        h: document.getElementById('c-h'),
+        r: document.getElementById('c-r'),
+        glow: document.getElementById('c-glow'),
+        bgopa: document.getElementById('c-bgopa'),
+        dur: document.getElementById('c-dur'),
+        anim: document.getElementById('c-anim'),
+        fontSize: document.getElementById('c-fontsize'),
+        showIcon: document.getElementById('c-icon'),
+        showSession: document.getElementById('c-session'),
+      }
+
+      const V = {
+        hue: document.getElementById('v-hue'),
+        sat: document.getElementById('v-sat'),
+        lit: document.getElementById('v-lit'),
+        w: document.getElementById('v-w'),
+        h: document.getElementById('v-h'),
+        r: document.getElementById('v-r'),
+        glow: document.getElementById('v-glow'),
+        bgopa: document.getElementById('v-bgopa'),
+        dur: document.getElementById('v-dur'),
+        anim: document.getElementById('v-anim'),
+        fontSize: document.getElementById('v-fontsize'),
+      }
+
+      function readState() {
+        state.hue  = +C.hue.value;  state.sat  = +C.sat.value;  state.lit  = +C.lit.value
+        state.w    = +C.w.value;    state.h    = +C.h.value;    state.r    = +C.r.value
+        state.glow = +C.glow.value; state.bgopa = +C.bgopa.value
+        state.dur  = +C.dur.value;  state.anim = +C.anim.value
+        state.fontSize = +C.fontSize.value
+        state.showIcon    = C.showIcon.checked
+        state.showSession = C.showSession.checked
+      }
+
+      function writeState() {
+        C.hue.value   = state.hue;   C.sat.value  = state.sat;   C.lit.value  = state.lit
+        C.w.value     = state.w;     C.h.value    = state.h;     C.r.value    = state.r
+        C.glow.value  = state.glow;  C.bgopa.value = state.bgopa
+        C.dur.value   = state.dur;   C.anim.value = state.anim
+        C.fontSize.value = state.fontSize
+        C.showIcon.checked    = state.showIcon
+        C.showSession.checked = state.showSession
+      }
+
+      function updateValueLabels() {
+        V.hue.textContent  = state.hue + '°';  V.sat.textContent  = state.sat + '%';  V.lit.textContent  = state.lit + '%'
+        V.w.textContent    = state.w + 'px';   V.h.textContent    = state.h + 'px';   V.r.textContent    = state.r + 'px'
+        V.glow.textContent = state.glow;       V.bgopa.textContent = state.bgopa + '%'
+        V.dur.textContent  = state.dur + 's';  V.anim.textContent = state.anim + 'ms'
+        V.fontSize.textContent = state.fontSize + 'px'
+      }
+
+      Object.values(C).forEach(el => {
+        el.addEventListener('input', () => {
+          readState()
+          activePreset = null
+          updatePresetButtons()
+          updateAll()
+        })
+      })
+
+      // ── COLOR UTILITIES ───────────────────────────────────────────────
+      function hslToHex(h, s, l) {
+        s /= 100; l /= 100
+        const a = s * Math.min(l, 1 - l)
+        const f = n => {
+          const k = (n + h / 30) % 12
+          const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+          return Math.round(255 * c).toString(16).padStart(2, '0')
+        }
+        return `#${f(0)}${f(8)}${f(4)}`
+      }
+
+      function hexToRgb(hex) {
+        return {
+          r: parseInt(hex.slice(1, 3), 16),
+          g: parseInt(hex.slice(3, 5), 16),
+          b: parseInt(hex.slice(5, 7), 16),
+        }
+      }
+
+      function colorName(hue) {
+        if (hue < 15 || hue > 345) return 'red'
+        if (hue < 40)  return 'orange'
+        if (hue < 65)  return 'yellow'
+        if (hue < 150) return 'green'
+        if (hue < 195) return 'teal'
+        if (hue < 250) return 'blue'
+        if (hue < 300) return 'purple'
+        return 'pink'
+      }
+
+      // ── NOTIFICATION BARS ─────────────────────────────────────────────
+      const stack = document.getElementById('notif-stack')
+
+      const THEMES = {
+        done: {
+          getAccent: () => hslToHex(state.hue, state.sat, state.lit),
+          getAccentRgb: () => hexToRgb(hslToHex(state.hue, state.sat, state.lit)),
+          icon: '🤖', label: 'CLAUDE DONE', subtitle: 'Finished responding — your turn',
+        },
+        input: {
+          getAccent: () => '#ffaa00',
+          getAccentRgb: () => ({ r: 255, g: 170, b: 0 }),
+          icon: '⚠️', label: 'NEEDS INPUT', subtitle: 'Waiting for your attention',
+        },
+      }
+
+      const FAKE_SESSIONS = ['abc123', 'def456', 'x9k2m7', 'zz4010', 'r3bl00', 'ff7a11']
+      let sessionIdx = 0
+
+      function applyBarStyle(bar, type) {
+        const theme = THEMES[type]
+        const accent = theme.getAccent()
+        const rgb = theme.getAccentRgb()
+        const bgAlpha = state.bgopa / 100
+        const glowA1 = (state.glow / 100) * 0.48
+        const glowA2 = (state.glow / 100) * 0.13
+
+        bar.style.width = state.w + 'px'
+        bar.style.height = state.h + 'px'
+        bar.style.borderRadius = state.r + 'px'
+        bar.style.borderLeft = `3px solid ${accent}`
+        bar.style.background = `rgba(10, 8, 20, ${bgAlpha})`
+        bar.style.boxShadow = `
+          -4px 0 ${8 + state.glow * 0.18}px rgba(${rgb.r},${rgb.g},${rgb.b},${glowA1}),
+          0 4px 20px rgba(0,0,0,0.65),
+          0 0 ${state.glow * 0.45}px rgba(${rgb.r},${rgb.g},${rgb.b},${glowA2})
+        `
+        bar.style.setProperty('--accent', accent)
+        bar.style.transition = `transform ${state.anim}ms cubic-bezier(0.16, 1, 0.3, 1)`
+        bar.style.padding = `0 ${Math.round(state.h * 0.24)}px`
+
+        const labelEl = bar.querySelector('.bar-event-label')
+        if (labelEl) labelEl.style.color = accent
+
+        const iconEl = bar.querySelector('.bar-icon-el')
+        if (iconEl) {
+          iconEl.style.display = state.showIcon ? '' : 'none'
+          iconEl.style.fontSize = Math.round(state.h * 0.38) + 'px'
+        }
+
+        const labelEl2 = bar.querySelector('.bar-event-label')
+        const subtitleEl = bar.querySelector('.bar-subtitle')
+        if (labelEl2) labelEl2.style.fontSize = state.fontSize + 'px'
+        if (subtitleEl) subtitleEl.style.fontSize = (state.fontSize + 2) + 'px'
+
+        const dotEl = bar.querySelector('.bar-sep')
+        const sessEl = bar.querySelector('.bar-session')
+        if (dotEl)  { dotEl.style.display = state.showSession ? '' : 'none'; dotEl.style.fontSize = (state.fontSize - 2) + 'px' }
+        if (sessEl) { sessEl.style.display = state.showSession ? '' : 'none'; sessEl.style.fontSize = (state.fontSize - 2) + 'px' }
+
+        const progress = bar.querySelector('.bar-progress')
+        if (progress) progress.style.background = accent
+      }
+
+      function addBar(type) {
+        const theme = THEMES[type]
+        const sessionId = FAKE_SESSIONS[sessionIdx++ % FAKE_SESSIONS.length]
+
+        const bar = document.createElement('div')
+        bar.className = 'notif-bar'
+        bar.dataset.type = type
+
+        bar.innerHTML = `
+          <span class="bar-icon-el">${theme.icon}</span>
+          <div class="bar-content">
+            <div class="bar-title-row">
+              <span class="bar-event-label">${theme.label}</span>
+              <span class="bar-sep">·</span>
+              <span class="bar-session">${sessionId}</span>
+            </div>
+            <div class="bar-subtitle">${theme.subtitle}</div>
+          </div>
+          <div class="bar-progress"></div>
+        `
+
+        applyBarStyle(bar, type)
+        stack.appendChild(bar)
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            bar.classList.add('entering')
+            const progress = bar.querySelector('.bar-progress')
+            progress.style.transition = `transform ${state.dur * 1000}ms linear`
+            requestAnimationFrame(() => { progress.style.transform = 'scaleX(0)' })
+          })
+        })
+
+        const dur = state.dur * 1000
+        const animOut = Math.round(state.anim * 0.75)
+        setTimeout(() => {
+          if (!bar.parentElement) return
+          bar.style.transition = `transform ${animOut}ms ease-in`
+          bar.classList.remove('entering')
+          bar.classList.add('exiting')
+          setTimeout(() => {
+            bar.style.transition = 'max-height 0.2s ease, opacity 0.15s ease, margin-bottom 0.2s ease'
+            bar.style.overflow = 'hidden'
+            bar.style.maxHeight = bar.offsetHeight + 'px'
+            void bar.offsetHeight
+            bar.style.maxHeight = '0'
+            bar.style.opacity = '0'
+            bar.style.marginBottom = '-8px'
+            setTimeout(() => bar.remove(), 220)
+          }, animOut)
+        }, dur)
+
+        return bar
+      }
+
+      function updateExistingBars() {
+        stack.querySelectorAll('.notif-bar').forEach(bar => applyBarStyle(bar, bar.dataset.type))
+      }
+
+      function clearAll() { stack.innerHTML = '' }
+
+      // ── PRESETS ───────────────────────────────────────────────────────
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state = { ...PRESETS[btn.dataset.preset] }
+          activePreset = btn.dataset.preset
+          writeState()
+          updatePresetButtons()
+          clearAll()
+          updateAll()
+        })
+      })
+
+      function updatePresetButtons() {
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.preset === activePreset)
+        })
+      }
+
+      // ── PROMPT OUTPUT ─────────────────────────────────────────────────
+      function updatePrompt() {
+        const hex = hslToHex(state.hue, state.sat, state.lit)
+        const cname = colorName(state.hue)
+        const parts = []
+
+        parts.push(`${state.w}×${state.h}px notification bars`)
+
+        parts.push(`${cname} accent for "Done" events (${hex}), amber (#ffaa00) for "Needs Input" events`)
+
+        if (state.glow === 0) parts.push('no glow')
+        else if (state.glow > 70) parts.push('heavy left-edge glow')
+        else if (state.glow > 35) parts.push('moderate glow')
+        else parts.push('subtle glow')
+
+        if (state.r === 0) parts.push('sharp corners')
+        else if (state.r > 14) parts.push(`very rounded corners (${state.r}px border-radius)`)
+        else if (state.r !== DEFAULTS.r) parts.push(`${state.r}px border-radius`)
+
+        if (state.bgopa < 70)       parts.push('very transparent background')
+        else if (state.bgopa < 82)  parts.push('semi-transparent background')
+        else if (state.bgopa > 97)  parts.push('nearly opaque background')
+
+        if (state.dur !== DEFAULTS.dur) parts.push(`visible for ${state.dur}s`)
+
+        if (state.anim < 200)       parts.push('snappy slide-in')
+        else if (state.anim > 500)  parts.push('slow dramatic slide-in')
+        else if (state.anim !== DEFAULTS.anim) parts.push(`${state.anim}ms slide-in`)
+
+        const flags = []
+        if (!state.showIcon)    flags.push('no icon')
+        if (!state.showSession) flags.push('session ID hidden')
+        if (flags.length) parts.push(flags.join(', '))
+
+        const presetNote = activePreset ? ` (${activePreset} preset)` : ''
+        document.getElementById('prompt-text').textContent =
+          `Claude Code notification bars${presetNote}: ${parts.join(', ')}. Bars slide in from the right, stack vertically in the top-right corner, and auto-dismiss with a shrink animation.`
+      }
+
+      // ── COPY ──────────────────────────────────────────────────────────
+      document.getElementById('copy-btn').addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('prompt-text').textContent).then(() => {
+          const btn = document.getElementById('copy-btn')
+          btn.textContent = 'Copied!'
+          btn.classList.add('copied')
+          setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied') }, 1500)
+        })
+      })
+
+      // ── FIRE BUTTONS ─────────────────────────────────────────────────
+      document.getElementById('btn-done').addEventListener('click', () => addBar('done'))
+      document.getElementById('btn-input').addEventListener('click', () => addBar('input'))
+      document.getElementById('btn-clr').addEventListener('click', clearAll)
+
+      // ── MAIN UPDATE ───────────────────────────────────────────────────
+      function updateAll() {
+        updateValueLabels()
+        updateExistingBars()
+        updatePrompt()
+      }
+
+      // ── INIT ──────────────────────────────────────────────────────────
+      writeState()
+      updateAll()
+      setTimeout(() => addBar('done'), 300)
+      setTimeout(() => addBar('input'), 850)
+    </script>
+  </body>
+</html>

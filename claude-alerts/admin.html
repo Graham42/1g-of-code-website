@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Claude Alerts — Admin</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: #0d0d0d;
+        color: #e0e0e0;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+      }
+
+      header {
+        background: #111;
+        border-bottom: 1px solid #222;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      header h1 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #fff;
+        margin: 0;
+        font-family: 'Courier New', monospace;
+      }
+
+      header h1 span { color: #00ffcc; }
+
+      .conn-badge {
+        font-size: 11px;
+        font-family: monospace;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        color: #666;
+        transition: all 0.3s;
+      }
+      .conn-badge.connected { border-color: #00ffcc; color: #00ffcc; }
+      .conn-badge.error { border-color: #ff4040; color: #ff4040; }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 24px;
+        padding: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .panel {
+        background: #111;
+        border: 1px solid #1e1e1e;
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .panel-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #555;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #1e1e1e;
+      }
+
+      /* Fire buttons */
+      .fire-section {
+        margin-bottom: 24px;
+      }
+
+      .field-row {
+        margin-bottom: 12px;
+      }
+
+      .field-row label {
+        display: block;
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .field-row input {
+        width: 100%;
+        background: #161616;
+        border: 1px solid #2a2a2a;
+        border-radius: 4px;
+        color: #ccc;
+        padding: 8px 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .field-row input:focus { border-color: #444; }
+
+      .btn-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .fire-btn {
+        flex: 1;
+        padding: 10px 0;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.05em;
+        transition: all 0.15s;
+      }
+
+      .fire-btn.stop {
+        background: rgba(0, 255, 204, 0.08);
+        border-color: rgba(0, 255, 204, 0.4);
+        color: #00ffcc;
+      }
+      .fire-btn.stop:hover { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; }
+      .fire-btn.stop:active { background: rgba(0, 255, 204, 0.22); }
+
+      .fire-btn.notification {
+        background: rgba(255, 170, 0, 0.08);
+        border-color: rgba(255, 170, 0, 0.4);
+        color: #ffaa00;
+      }
+      .fire-btn.notification:hover { background: rgba(255, 170, 0, 0.15); border-color: #ffaa00; }
+      .fire-btn.notification:active { background: rgba(255, 170, 0, 0.22); }
+
+      .mute-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid #1e1e1e;
+      }
+
+      .mute-btn {
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid #333;
+        background: #1a1a1a;
+        color: #888;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.05em;
+        transition: all 0.15s;
+        user-select: none;
+      }
+      .mute-btn:hover { background: #222; color: #ccc; border-color: #444; }
+      .mute-btn.muted {
+        background: rgba(255, 80, 80, 0.1);
+        border-color: rgba(255, 80, 80, 0.4);
+        color: #ff5050;
+      }
+      .mute-btn.muted:hover { background: rgba(255, 80, 80, 0.18); }
+
+      .mute-label {
+        font-size: 11px;
+        color: #555;
+      }
+
+      /* Burst section */
+      .burst-section {
+        border-top: 1px solid #1e1e1e;
+        padding-top: 20px;
+      }
+
+      .burst-title {
+        font-size: 11px;
+        color: #555;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .burst-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .burst-controls label { font-size: 12px; color: #777; }
+      .burst-controls input[type=number] {
+        width: 60px;
+        background: #161616;
+        border: 1px solid #2a2a2a;
+        border-radius: 4px;
+        color: #ccc;
+        padding: 5px 8px;
+        font-family: monospace;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .burst-btn {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid #333;
+        background: #1a1a1a;
+        color: #888;
+        font-family: monospace;
+        transition: all 0.15s;
+      }
+      .burst-btn:hover { background: #222; color: #ccc; border-color: #444; }
+
+      /* Event log */
+      .log-area {
+        height: 100%;
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .log-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #1e1e1e;
+      }
+
+      .log-header span {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #555;
+      }
+
+      .clear-log-btn {
+        background: none;
+        border: 1px solid #2a2a2a;
+        border-radius: 4px;
+        color: #555;
+        cursor: pointer;
+        font-size: 11px;
+        padding: 3px 10px;
+        transition: all 0.15s;
+      }
+      .clear-log-btn:hover { color: #999; border-color: #444; }
+
+      #event-log {
+        flex: 1;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .log-entry {
+        display: grid;
+        grid-template-columns: 100px 110px 90px 1fr 1fr;
+        gap: 8px;
+        align-items: center;
+        padding: 7px 10px;
+        border-radius: 4px;
+        background: #0d0d0d;
+        border: 1px solid #161616;
+        animation: logIn 0.2s ease-out;
+      }
+
+      @keyframes logIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to   { opacity: 1; transform: none; }
+      }
+
+      .log-time { color: #444; font-size: 11px; }
+
+      .log-type {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+      .log-type.Stop {
+        background: rgba(0, 255, 204, 0.1);
+        color: #00ffcc;
+        border: 1px solid rgba(0, 255, 204, 0.25);
+      }
+      .log-type.Notification {
+        background: rgba(255, 170, 0, 0.1);
+        color: #ffaa00;
+        border: 1px solid rgba(255, 170, 0, 0.25);
+      }
+
+      .log-session { color: #555; font-size: 11px; }
+      .log-project { color: #666; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .log-source {
+        font-size: 10px;
+        color: #3a3a3a;
+        text-align: right;
+      }
+
+      .empty-log {
+        color: #333;
+        text-align: center;
+        padding: 40px;
+        font-size: 12px;
+      }
+
+      /* Links */
+      .links-section {
+        margin-top: 20px;
+        border-top: 1px solid #1e1e1e;
+        padding-top: 16px;
+      }
+
+      .links-title {
+        font-size: 11px;
+        color: #555;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .link-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+
+      .link-row span {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .link-row a {
+        font-family: monospace;
+        font-size: 11px;
+        color: #00ffcc;
+        text-decoration: none;
+        opacity: 0.7;
+        transition: opacity 0.15s;
+      }
+      .link-row a:hover { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Claude Alerts <span>Admin</span></h1>
+      <div class="conn-badge" id="conn-badge">⬤ connecting…</div>
+    </header>
+
+    <div class="layout">
+      <!-- Left: controls -->
+      <div class="panel">
+        <div class="panel-title">Fire Test Notification</div>
+
+        <div class="fire-section">
+          <div class="field-row">
+            <label>Session ID</label>
+            <input type="text" id="session-input" value="abc123" maxlength="8" />
+          </div>
+          <div class="field-row">
+            <label>Project Name</label>
+            <input type="text" id="project-input" value="my-project" />
+          </div>
+          <div class="btn-row">
+            <button class="fire-btn stop" id="btn-stop">🤖 Done</button>
+            <button class="fire-btn notification" id="btn-notif">⚠️ Needs Input</button>
+          </div>
+          <div class="mute-row">
+            <button class="mute-btn" id="btn-mute">🔇 Mute Sound</button>
+            <span class="mute-label" id="mute-label">Sound on</span>
+          </div>
+        </div>
+
+        <div class="burst-section">
+          <div class="burst-title">Burst Test (Multi-session)</div>
+          <div class="burst-controls">
+            <label>Count</label>
+            <input type="number" id="burst-count" value="3" min="1" max="8" />
+            <label>Delay (ms)</label>
+            <input type="number" id="burst-delay" value="400" min="0" max="3000" step="100" />
+          </div>
+          <button class="burst-btn" id="btn-burst">Fire Burst</button>
+        </div>
+
+        <div class="links-section">
+          <div class="links-title">Links</div>
+          <div class="link-row">
+            <span>OBS Overlay</span>
+            <a href="/overlay" target="_blank">localhost:3001/overlay</a>
+          </div>
+          <div class="link-row">
+            <span>Design Playground</span>
+            <a href="/playground" target="_blank">localhost:3001/playground</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: event log -->
+      <div class="panel log-area">
+        <div class="log-header">
+          <span>Event Log</span>
+          <button class="clear-log-btn" id="btn-clear-log">Clear</button>
+        </div>
+        <div id="event-log">
+          <div class="empty-log">No events yet — fire a test notification to begin.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ── SSE ─────────────────────────────────────────────────────────
+      const badge = document.getElementById('conn-badge')
+      const log = document.getElementById('event-log')
+      let logEmpty = true
+
+      function connect() {
+        badge.textContent = '⬤ connecting…'
+        badge.className = 'conn-badge'
+
+        const es = new EventSource('/claude-events')
+        es.onopen = () => {
+          badge.textContent = '⬤ connected'
+          badge.className = 'conn-badge connected'
+        }
+        es.onerror = () => {
+          badge.textContent = '⬤ disconnected'
+          badge.className = 'conn-badge error'
+        }
+        es.onmessage = (ev) => {
+          try {
+            const data = JSON.parse(ev.data)
+            if (data.type) appendLog(data.type, data.sessionId, data.projectName, 'hook')
+          } catch {}
+        }
+      }
+
+      function appendLog(type, sessionId, projectName, source) {
+        if (logEmpty) {
+          log.innerHTML = ''
+          logEmpty = false
+        }
+        const now = new Date()
+        const time = now.toLocaleTimeString('en-US', { hour12: false })
+        const entry = document.createElement('div')
+        entry.className = 'log-entry'
+        entry.innerHTML = `
+          <span class="log-time">${time}</span>
+          <span class="log-type ${type}">${type}</span>
+          <span class="log-session">${sessionId || '—'}</span>
+          <span class="log-project">${projectName || '—'}</span>
+          <span class="log-source">${source}</span>
+        `
+        log.insertBefore(entry, log.firstChild)
+      }
+
+      // ── MUTE TOGGLE ─────────────────────────────────────────────────
+      let muted = false
+      const muteBtn = document.getElementById('btn-mute')
+      const muteLabel = document.getElementById('mute-label')
+
+      muteBtn.addEventListener('click', () => {
+        muted = !muted
+        muteBtn.classList.toggle('muted', muted)
+        muteBtn.textContent = muted ? '🔊 Unmute Sound' : '🔇 Mute Sound'
+        muteLabel.textContent = muted ? 'Sound off' : 'Sound on'
+      })
+
+      // ── FIRE BUTTONS ────────────────────────────────────────────────
+      function getSession() { return document.getElementById('session-input').value.trim() || 'test01' }
+      function getProject() { return document.getElementById('project-input').value.trim() || 'my-project' }
+
+      async function fire(url, sessionId, projectName) {
+        appendLog(url.includes('stop') ? 'Stop' : 'Notification', sessionId, projectName, 'admin')
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, projectName, mute: muted }),
+        })
+      }
+
+      document.getElementById('btn-stop').addEventListener('click', () => {
+        fire('/simulate/stop', getSession(), getProject())
+      })
+
+      document.getElementById('btn-notif').addEventListener('click', () => {
+        fire('/simulate/notification', getSession(), getProject())
+      })
+
+      // ── BURST ───────────────────────────────────────────────────────
+      document.getElementById('btn-burst').addEventListener('click', async () => {
+        const count = parseInt(document.getElementById('burst-count').value) || 3
+        const delay = parseInt(document.getElementById('burst-delay').value) || 400
+        const project = getProject()
+        const types = ['stop', 'notification']
+
+        for (let i = 0; i < count; i++) {
+          const type = types[i % 2]
+          const sessionId = Math.random().toString(36).slice(2, 8)
+          await new Promise(r => setTimeout(r, i === 0 ? 0 : delay))
+          fire(`/simulate/${type}`, sessionId, project)
+        }
+      })
+
+      // ── CLEAR LOG ───────────────────────────────────────────────────
+      document.getElementById('btn-clear-log').addEventListener('click', () => {
+        log.innerHTML = '<div class="empty-log">Log cleared.</div>'
+        logEmpty = false
+      })
+
+      // ── INIT ────────────────────────────────────────────────────────
+      connect()
+    </script>
+  </body>
+</html>

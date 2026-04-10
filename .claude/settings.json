@@ -1,5 +1,26 @@
 {
   "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-alerts/notify.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-alerts/notify.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",

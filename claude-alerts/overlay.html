@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Claude Alerts Overlay</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 410px;
+        height: 450px;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      /* Status dot — small connection indicator */
+      #status-dot {
+        position: fixed;
+        bottom: 12px;
+        right: 12px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #444;
+        z-index: 100;
+        transition: background 0.3s, box-shadow 0.3s, opacity 1s;
+      }
+      #status-dot.connecting { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
+      #status-dot.connected  { background: #00ff88; box-shadow: 0 0 5px #00ff88; }
+      #status-dot.error      { background: #ff4040; box-shadow: 0 0 5px #ff4040; opacity: 1 !important; }
+
+      /* Notification stack — top-right corner */
+      #notif-stack {
+        position: fixed;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+        z-index: 10;
+      }
+
+      /* Individual notification bar */
+      .notif-bar {
+        width: 350px;
+        height: 60px;
+        background: rgba(10, 8, 20, 0.94);
+        border-left: 3px solid var(--accent, #f09800);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 14px;
+        font-family: 'Courier New', 'Lucida Console', Courier, monospace;
+        color: #fff;
+        /* Start off-screen to the right */
+        transform: translateX(420px);
+        transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        flex-shrink: 0;
+        max-height: 60px;
+      }
+
+      .notif-bar.entering {
+        transform: translateX(0);
+      }
+
+      .notif-bar.exiting {
+        transform: translateX(420px);
+        transition: transform 0.28s ease-in;
+      }
+
+      /* Bar icon */
+      .bar-icon {
+        font-size: 26px;
+        line-height: 1;
+        flex-shrink: 0;
+        filter: drop-shadow(0 0 6px var(--accent, #00ffcc));
+      }
+
+      /* Bar text content */
+      .bar-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .bar-title-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 3px;
+      }
+
+      .bar-event-label {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent, #00ffcc);
+      }
+
+      .bar-sep {
+        color: #333;
+        font-size: 11px;
+      }
+
+      .bar-session {
+        font-size: 11px;
+        color: #555;
+        letter-spacing: 0.05em;
+      }
+
+      .bar-project {
+        font-size: 11px;
+        color: #444;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .bar-subtitle {
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.65);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Progress bar at bottom of each notification */
+      .bar-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        background: var(--accent, #00ffcc);
+        opacity: 0.5;
+        width: 100%;
+        transform-origin: left;
+        /* animation set in JS */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status-dot"></div>
+    <div id="notif-stack"></div>
+
+    <script>
+      const DISPLAY_DURATION_MS = 14000
+
+      // ── BUTLER PHRASES ─────────────────────────────────────────────
+      const BUTLER_SOUNDS = [
+        'your attention please.m4a',
+        "when you're quite ready.m4a",
+        'beg your pardon.m4a',
+        'your input is needed.m4a',
+        'await instruction.m4a',
+        'earliest convenience.m4a',
+        'a moment.m4a',
+        'pardon the interrupt.m4a',
+        'presence required.m4a',
+        'may trouble you.m4a',
+      ].map(f => `/butler-sounds/${encodeURIComponent(f)}`)
+
+      function randomButlerSound() {
+        return BUTLER_SOUNDS[Math.floor(Math.random() * BUTLER_SOUNDS.length)]
+      }
+
+      // ── THEMES ─────────────────────────────────────────────────────
+      const THEMES = {
+        Stop: {
+          accent: '#f09800',
+          accentRgb: '240, 152, 0',
+          icon: '🤖',
+          label: 'CLAUDE DONE',
+          subtitle: 'Finished responding — your turn',
+        },
+        Notification: {
+          accent: '#ffaa00',
+          accentRgb: '255, 170, 0',
+          icon: '⚠️',
+          label: 'NEEDS INPUT',
+          subtitle: 'Waiting for your attention',
+        },
+      }
+
+      // ── STATUS DOT ─────────────────────────────────────────────────
+      const dot = document.getElementById('status-dot')
+      function setStatus(s) { dot.className = s }
+
+      // ── AUDIO ──────────────────────────────────────────────────────
+      const audioCache = {}
+      function getAudio(src) {
+        if (!audioCache[src]) audioCache[src] = new Audio(src)
+        return audioCache[src]
+      }
+      function playAudio(src) {
+        const a = getAudio(src)
+        a.currentTime = 0
+        a.play().catch(() => {})
+      }
+
+      // ── NOTIFICATION STACK ─────────────────────────────────────────
+      const stack = document.getElementById('notif-stack')
+
+      function removeBar(bar) {
+        if (!bar.parentElement) return
+        bar.classList.remove('entering')
+        bar.classList.add('exiting')
+        setTimeout(() => {
+          // Collapse height after slide-out
+          bar.style.overflow = 'hidden'
+          bar.style.transition = 'max-height 0.2s ease, opacity 0.15s ease, margin-bottom 0.2s ease'
+          bar.style.maxHeight = bar.offsetHeight + 'px'
+          void bar.offsetHeight
+          bar.style.maxHeight = '0'
+          bar.style.opacity = '0'
+          bar.style.marginBottom = '-8px'
+          setTimeout(() => bar.remove(), 220)
+        }, 300)
+      }
+
+      function showNotification(type, sessionId, projectName, mute) {
+        const theme = THEMES[type] || THEMES.Stop
+
+        const bar = document.createElement('div')
+        bar.className = 'notif-bar'
+        bar.style.setProperty('--accent', theme.accent)
+        bar.style.boxShadow = `
+          -4px 0 17px rgba(${theme.accentRgb}, 0.25),
+          0 4px 20px rgba(0,0,0,0.65),
+          0 0 23px rgba(${theme.accentRgb}, 0.07)
+        `
+        bar.style.position = 'relative'
+
+        const sessionPart = sessionId
+          ? `<span class="bar-sep">·</span><span class="bar-session">${sessionId}</span>`
+          : ''
+        const projectPart = projectName
+          ? `<span class="bar-sep">·</span><span class="bar-project">${projectName}</span>`
+          : ''
+
+        bar.innerHTML = `
+          <div class="bar-content">
+            <div class="bar-title-row">
+              <span class="bar-event-label">${theme.label}</span>
+              ${sessionPart}
+              ${projectPart}
+            </div>
+            <div class="bar-subtitle">${theme.subtitle}</div>
+          </div>
+          <div class="bar-progress"></div>
+        `
+
+        stack.appendChild(bar)
+
+        // Trigger slide-in on next two frames (ensures transition fires)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            bar.classList.add('entering')
+
+            // Animate progress bar
+            const progress = bar.querySelector('.bar-progress')
+            progress.style.transition = `transform ${DISPLAY_DURATION_MS}ms linear`
+            requestAnimationFrame(() => {
+              progress.style.transform = 'scaleX(0)'
+            })
+          })
+        })
+
+        // Play audio (skipped when muted via admin)
+        if (!mute) playAudio(randomButlerSound())
+
+        // Schedule removal
+        setTimeout(() => removeBar(bar), DISPLAY_DURATION_MS)
+      }
+
+      // ── SSE CONNECTION ─────────────────────────────────────────────
+      function connectSSE() {
+        setStatus('connecting')
+        const es = new EventSource('/claude-events')
+
+        es.onopen = () => {
+          setStatus('connected')
+          setTimeout(() => { dot.style.opacity = '0' }, 3000)
+        }
+
+        es.onerror = () => {
+          setStatus('error')
+          dot.style.opacity = '1'
+        }
+
+        es.onmessage = (ev) => {
+          let data
+          try { data = JSON.parse(ev.data) } catch { return }
+          if (data.type === 'Stop' || data.type === 'Notification') {
+            showNotification(data.type, data.sessionId, data.projectName, data.mute)
+          }
+        }
+      }
+
+      // ── INIT ───────────────────────────────────────────────────────
+      dot.style.transition = 'background 0.3s, box-shadow 0.3s, opacity 1s'
+      connectSSE()
+    </script>
+  </body>
+</html>
