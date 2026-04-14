@@ -36,17 +36,17 @@ Multiple sessions stack as separate bars. Each bar shows the event type, a short
 
 Each notification plays a random butler voice snippet from `sounds/`. The server serves these at `/butler-sounds/<filename>` (URL-encoded). The old overlays sounds proxy (`/sounds/`) is still present but unused.
 
-The 10 phrases are recorded as `.m4a` files:
-- `your attention please.m4a`
-- `when you're quite ready.m4a`
-- `beg your pardon.m4a`
-- `your input is needed.m4a`
-- `await instruction.m4a`
-- `earliest convenience.m4a`
-- `a moment.m4a`
-- `pardon the interrupt.m4a`
-- `presence required.m4a`
-- `may trouble you.m4a`
+The 10 phrases are recorded as `.mp4` files:
+- `alert - your attention if you please.mp4`
+- `alert - when you're quite ready.mp4`
+- `alert - I beg your pardon.mp4`
+- `alert - Your input is needed.mp4`
+- `alert - I await your instruction.mp4`
+- `alert - at your earliest convenience.mp4`
+- `alert - a moment of your time.mp4`
+- `alert - pardon the interuption.mp4`
+- `alert - you presence is required.mp4`
+- `alert - if i may trouble you.mp4`
 
 ## Hook configuration
 

@@ -21,7 +21,8 @@
     "fetch-videos": "bun scripts/fetch-twitch-videos.ts && bun run format -- .",
     "format": "prettier --write",
     "format:check": "prettier --check .",
-    "validate": "bun run typecheck && bun run test"
+    "validate": "bun run typecheck && bun run test",
+    "alerts": "bun claude-alerts/server.ts"
   },
   "dependencies": {
     "astro": "^5.17.1"
