@@ -147,6 +147,7 @@
 
     <script>
       const DISPLAY_DURATION_MS = 14000
+      const MAX_QUEUED = 3  // max notifications waiting behind the active one
 
       // ── BUTLER PHRASES ─────────────────────────────────────────────
       const BUTLER_SOUNDS = [
@@ -200,6 +201,32 @@
         a.play().catch(() => {})
       }
 
+      // ── NOTIFICATION QUEUE ─────────────────────────────────────────
+      // Serialises display: at most one bar visible at a time.
+      // Up to MAX_QUEUED notifications wait behind the active one;
+      // anything beyond that is dropped so bursts don't create an endless backlog.
+      const notifQueue = []
+      let notifActive = false
+
+      function enqueueNotification(type, sessionId, projectName, mute) {
+        if (!notifActive) {
+          notifActive = true
+          showNotification(type, sessionId, projectName, mute)
+        } else if (notifQueue.length < MAX_QUEUED) {
+          notifQueue.push({ type, sessionId, projectName, mute })
+        }
+        // else: queue full — drop the incoming notification
+      }
+
+      function onNotificationDone() {
+        if (notifQueue.length > 0) {
+          const next = notifQueue.shift()
+          showNotification(next.type, next.sessionId, next.projectName, next.mute)
+        } else {
+          notifActive = false
+        }
+      }
+
       // ── NOTIFICATION STACK ─────────────────────────────────────────
       const stack = document.getElementById('notif-stack')
 
@@ -216,7 +243,7 @@
           bar.style.maxHeight = '0'
           bar.style.opacity = '0'
           bar.style.marginBottom = '-8px'
-          setTimeout(() => bar.remove(), 220)
+          setTimeout(() => { bar.remove(); onNotificationDone() }, 220)
         }, 300)
       }
 
@@ -294,7 +321,7 @@
           let data
           try { data = JSON.parse(ev.data) } catch { return }
           if (data.type === 'Stop' || data.type === 'Notification') {
-            showNotification(data.type, data.sessionId, data.projectName, data.mute)
+            enqueueNotification(data.type, data.sessionId, data.projectName, data.mute)
           }
         }
       }
