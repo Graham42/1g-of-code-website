@@ -26,6 +26,10 @@ const TWITCH_OK = !!(TWITCH_CLIENT_ID && TWITCH_TOKEN && TWITCH_BROADCASTER_ID)
 
 let lastState: unknown = null
 const sseClients = new Set<http.ServerResponse>()
+
+// ── Follow deduplication (24h per user) ──────────────────
+const recentFollowers = new Map<string, number>()
+const FOLLOW_DEDUP_MS = 24 * 60 * 60 * 1000
 const followClients = new Set<http.ServerResponse>()
 const subscribeClients = new Set<http.ServerResponse>()
 const alertClients = new Set<http.ServerResponse>()
@@ -222,9 +226,21 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
       msg.metadata?.subscription_type === 'channel.follow'
     ) {
       const username = msg.payload?.event?.user_name ?? 'Someone'
-      console.log(`  [twitch] ♥  ${username} followed`)
-      broadcastFollow(username)
-      broadcastAlert('follow', username)
+      const lastSeen = recentFollowers.get(username)
+      if (lastSeen && Date.now() - lastSeen < FOLLOW_DEDUP_MS) {
+        console.log(
+          `  [twitch] ♥  ${username} followed (dedup — last seen ${Math.round((Date.now() - lastSeen) / 60000)}m ago, skipping)`
+        )
+      } else {
+        recentFollowers.set(username, Date.now())
+        // prune entries older than 24h
+        for (const [user, ts] of recentFollowers) {
+          if (Date.now() - ts > FOLLOW_DEDUP_MS) recentFollowers.delete(user)
+        }
+        console.log(`  [twitch] ♥  ${username} followed`)
+        broadcastFollow(username)
+        broadcastAlert('follow', username)
+      }
     }
 
     if (

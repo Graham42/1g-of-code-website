@@ -255,7 +255,10 @@
           } catch {
             return
           }
-          if (data.type === 'follow') showAlert(data.username)
+          if (data.type === 'follow') {
+            alertQueue.push(data.username)
+            processQueue()
+          }
         }
       }
 
@@ -318,6 +321,18 @@
 
       // ─── AUDIO ───────────────────────────────────────────────────
       const alertAudio = new Audio('/sounds/dragon-studio-shutdown-386182.mp3')
+      // Rate limit: max 3 sounds per 30-second rolling window
+      let soundTimestamps = []
+
+      // ─── ALERT QUEUE ─────────────────────────────────────────────
+      const alertQueue = []
+      let isAlertShowing = false
+
+      function processQueue() {
+        if (isAlertShowing || alertQueue.length === 0) return
+        isAlertShowing = true
+        showAlert(alertQueue.shift())
+      }
 
       // ─── ALERT DISPLAY ───────────────────────────────────────────
       const alertBox = document.getElementById('alert-box')
@@ -327,8 +342,6 @@
         outTimer = null
 
       function showAlert(username) {
-        clearTimeout(hideTimer)
-        clearTimeout(outTimer)
         stopParticles()
 
         usernameEl.textContent = username
@@ -341,8 +354,14 @@
         alertBox.classList.add('glitch-in')
         iconEl.classList.add('pulsing')
 
-        alertAudio.currentTime = 0
-        alertAudio.play().catch(() => {})
+        // Play sound only if under the rate limit (max 3 in 30s)
+        const now = Date.now()
+        soundTimestamps = soundTimestamps.filter((t) => now - t < 30_000)
+        if (soundTimestamps.length < 3) {
+          soundTimestamps.push(now)
+          alertAudio.currentTime = 0
+          alertAudio.play().catch(() => {})
+        }
 
         spawnParticles()
         runParticles()
@@ -354,6 +373,8 @@
             alertBox.className = ''
             alertBox.style.opacity = '0'
             stopParticles()
+            isAlertShowing = false
+            processQueue()
           }, 400)
         }, 5000)
       }
