@@ -27,6 +27,20 @@ const TWITCH_OK = !!(TWITCH_CLIENT_ID && TWITCH_TOKEN && TWITCH_BROADCASTER_ID)
 let lastState: unknown = null
 const sseClients = new Set<http.ServerResponse>()
 
+// ── Follow timestamp persistence ─────────────────────────
+const FOLLOW_STATE_PATH = path.join(DIR, 'follow-state.json')
+let lastFollowAt: string | null = null
+
+try {
+  const raw = fs.readFileSync(FOLLOW_STATE_PATH, 'utf8')
+  lastFollowAt = JSON.parse(raw).lastFollowAt ?? null
+} catch {}
+
+function saveLastFollowAt(isoString: string) {
+  lastFollowAt = isoString
+  fs.writeFileSync(FOLLOW_STATE_PATH, JSON.stringify({ lastFollowAt: isoString }))
+}
+
 // ── Follow deduplication (24h per user) ──────────────────
 const recentFollowers = new Map<string, number>()
 const FOLLOW_DEDUP_MS = 24 * 60 * 60 * 1000
@@ -238,6 +252,7 @@ function connectTwitch(url = 'wss://eventsub.wss.twitch.tv/ws') {
           if (Date.now() - ts > FOLLOW_DEDUP_MS) recentFollowers.delete(user)
         }
         console.log(`  [twitch] ♥  ${username} followed`)
+        saveLastFollowAt(new Date().toISOString())
         broadcastFollow(username)
         broadcastAlert('follow', username)
       }
@@ -446,6 +461,79 @@ const server = http.createServer(async (req, res) => {
       const count = parseInt(viewers) || 42
       console.log(`  [admin] Simulated raid: ${name} (${count} viewers)`)
       broadcastRaid(name, count)
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'text/plain' })
+      res.end('Bad JSON')
+      return
+    }
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('ok')
+    return
+  }
+
+  // GET /twitch/missed-followers → followers newer than lastFollowAt
+  if (method === 'GET' && url === '/twitch/missed-followers') {
+    if (!TWITCH_OK) {
+      res.writeHead(503, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Twitch credentials not configured' }))
+      return
+    }
+    try {
+      const params = new URLSearchParams({
+        broadcaster_id: TWITCH_BROADCASTER_ID!,
+        first: '100',
+      })
+      const r = await fetch(
+        `https://api.twitch.tv/helix/channels/followers?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${TWITCH_TOKEN}`,
+            'Client-Id': TWITCH_CLIENT_ID!,
+          },
+        }
+      )
+      if (!r.ok) {
+        const text = await r.text()
+        res.writeHead(r.status, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: text }))
+        return
+      }
+      const json = (await r.json()) as {
+        data: { user_name: string; followed_at: string }[]
+      }
+      const since = lastFollowAt ? new Date(lastFollowAt) : null
+      const missed = since
+        ? json.data.filter((f) => new Date(f.followed_at) > since)
+        : json.data
+      // Advance the cursor to the newest follower so the next fetch doesn't repeat
+      if (missed.length > 0) {
+        const newest = missed.reduce((a, b) =>
+          a.followed_at > b.followed_at ? a : b
+        )
+        saveLastFollowAt(newest.followed_at)
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ followers: missed, since: lastFollowAt }))
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: (e as Error).message }))
+    }
+    return
+  }
+
+  // POST /clear-dedup → remove a username (or all) from the follow dedup cache
+  if (method === 'POST' && url === '/clear-dedup') {
+    let body
+    try {
+      body = await readBody(req)
+      const { username } = JSON.parse(body)
+      if (username) {
+        recentFollowers.delete(username.trim())
+        console.log(`  [admin] Cleared dedup for: ${username.trim()}`)
+      } else {
+        recentFollowers.clear()
+        console.log('  [admin] Cleared all follow dedup entries')
+      }
     } catch {
       res.writeHead(400, { 'Content-Type': 'text/plain' })
       res.end('Bad JSON')
