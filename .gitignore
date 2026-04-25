@@ -26,3 +26,12 @@ pnpm-debug.log*
 # playwright
 playwright-report/
 test-results/
+
+# local claude settings
+.claude/settings.local.json
+
+# netlify local dev
+.netlify/
+
+# runtime state
+overlays/follow-state.json
