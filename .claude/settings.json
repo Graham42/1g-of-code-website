@@ -1,3 +1,17 @@
 {
-  "hooks": {}
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-edit-format.sh",
+            "timeout": 30,
+            "statusMessage": "Formatting..."
+          }
+        ]
+      }
+    ]
+  }
 }
