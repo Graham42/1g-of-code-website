@@ -195,7 +195,8 @@ test.describe('Axe-Core WCAG Scans', () => {
     await page.evaluate(() => {
       const style = document.createElement('style')
       style.id = 'disable-transitions'
-      style.textContent = '*, *::before, *::after { transition: none !important; }'
+      style.textContent =
+        '*, *::before, *::after { transition: none !important; }'
       document.head.appendChild(style)
       document.documentElement.setAttribute('data-theme-setting', 'dark')
       document.documentElement.setAttribute('data-theme', 'dark')

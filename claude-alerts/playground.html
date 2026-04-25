@@ -4,13 +4,23 @@
     <meta charset="UTF-8" />
     <title>Claude Alert Bar — Design Playground</title>
     <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-      html, body {
+      html,
+      body {
         height: 100%;
         background: #0d0d0d;
         color: #e0e0e0;
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
         font-size: 14px;
         overflow: hidden;
       }
@@ -55,8 +65,16 @@
         transition: all 0.15s;
         white-space: nowrap;
       }
-      .preset-btn:hover { background: #1a1a1a; border-color: #333; color: #ccc; }
-      .preset-btn.active { background: #0a2020; border-color: #00ffcc; color: #00ffcc; }
+      .preset-btn:hover {
+        background: #1a1a1a;
+        border-color: #333;
+        color: #ccc;
+      }
+      .preset-btn.active {
+        background: #0a2020;
+        border-color: #00ffcc;
+        color: #00ffcc;
+      }
 
       /* ── CONTROLS PANEL ─────────────────────────────────────── */
       .controls {
@@ -66,7 +84,9 @@
         padding: 16px;
       }
 
-      .ctrl-group { margin-bottom: 20px; }
+      .ctrl-group {
+        margin-bottom: 20px;
+      }
 
       .group-label {
         color: #3a3a3a;
@@ -79,7 +99,9 @@
         border-bottom: 1px solid #1a1a1a;
       }
 
-      .ctrl-row { margin-bottom: 10px; }
+      .ctrl-row {
+        margin-bottom: 10px;
+      }
 
       .ctrl-row label {
         display: flex;
@@ -96,7 +118,7 @@
         font-size: 11px;
       }
 
-      input[type=range] {
+      input[type='range'] {
         width: 100%;
         height: 4px;
         accent-color: #00ffcc;
@@ -112,7 +134,7 @@
         color: #888;
       }
 
-      input[type=checkbox] {
+      input[type='checkbox'] {
         accent-color: #00ffcc;
         cursor: pointer;
         width: 14px;
@@ -131,8 +153,8 @@
         position: relative;
         background: #080808;
         background-image:
-          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
         background-size: 40px 40px;
         overflow: hidden;
         display: flex;
@@ -173,8 +195,12 @@
         cursor: default;
       }
 
-      .notif-bar.entering { transform: translateX(0) !important; }
-      .notif-bar.exiting  { transform: translateX(600px) !important; }
+      .notif-bar.entering {
+        transform: translateX(0) !important;
+      }
+      .notif-bar.exiting {
+        transform: translateX(600px) !important;
+      }
 
       .bar-icon-el {
         font-size: 22px;
@@ -182,7 +208,10 @@
         flex-shrink: 0;
       }
 
-      .bar-content { flex: 1; min-width: 0; }
+      .bar-content {
+        flex: 1;
+        min-width: 0;
+      }
 
       .bar-title-row {
         display: flex;
@@ -198,9 +227,21 @@
         text-transform: uppercase;
       }
 
-      .bar-sep { color: #333; font-size: 10px; }
-      .bar-session { font-size: 10px; color: #555; }
-      .bar-subtitle { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .bar-sep {
+        color: #333;
+        font-size: 10px;
+      }
+      .bar-session {
+        font-size: 10px;
+        color: #555;
+      }
+      .bar-subtitle {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
       .bar-progress {
         position: absolute;
@@ -232,25 +273,35 @@
       }
 
       .fire-btn.done {
-        background: rgba(0,255,204,0.08);
-        border-color: rgba(0,255,204,0.35);
+        background: rgba(0, 255, 204, 0.08);
+        border-color: rgba(0, 255, 204, 0.35);
         color: #00ffcc;
       }
-      .fire-btn.done:hover { background: rgba(0,255,204,0.16); border-color: #00ffcc; }
+      .fire-btn.done:hover {
+        background: rgba(0, 255, 204, 0.16);
+        border-color: #00ffcc;
+      }
 
       .fire-btn.input {
-        background: rgba(255,170,0,0.08);
-        border-color: rgba(255,170,0,0.35);
+        background: rgba(255, 170, 0, 0.08);
+        border-color: rgba(255, 170, 0, 0.35);
         color: #ffaa00;
       }
-      .fire-btn.input:hover { background: rgba(255,170,0,0.16); border-color: #ffaa00; }
+      .fire-btn.input:hover {
+        background: rgba(255, 170, 0, 0.16);
+        border-color: #ffaa00;
+      }
 
       .fire-btn.clr {
-        background: rgba(255,255,255,0.03);
+        background: rgba(255, 255, 255, 0.03);
         border-color: #2a2a2a;
         color: #444;
       }
-      .fire-btn.clr:hover { background: rgba(255,255,255,0.06); color: #777; border-color: #333; }
+      .fire-btn.clr:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #777;
+        border-color: #333;
+      }
 
       /* ── PROMPT AREA ────────────────────────────────────────── */
       .prompt-area {
@@ -286,8 +337,15 @@
         padding: 3px 12px;
         transition: all 0.15s;
       }
-      .copy-btn:hover { background: #0d2018; border-color: #00cc88; color: #00cc88; }
-      .copy-btn.copied { color: #00ffcc; border-color: #00ffcc; }
+      .copy-btn:hover {
+        background: #0d2018;
+        border-color: #00cc88;
+        color: #00cc88;
+      }
+      .copy-btn.copied {
+        color: #00ffcc;
+        border-color: #00ffcc;
+      }
 
       .prompt-text {
         flex: 1;
@@ -305,11 +363,12 @@
   </head>
   <body>
     <div class="layout">
-
       <!-- Presets bar -->
       <div class="presets-bar">
         <span class="presets-label">Preset</span>
-        <button class="preset-btn active" data-preset="Workshop">Workshop</button>
+        <button class="preset-btn active" data-preset="Workshop">
+          Workshop
+        </button>
         <button class="preset-btn" data-preset="Terminal">Terminal</button>
         <button class="preset-btn" data-preset="Synthwave">Synthwave</button>
         <button class="preset-btn" data-preset="Blood Moon">Blood Moon</button>
@@ -318,20 +377,19 @@
 
       <!-- Controls -->
       <div class="controls">
-
         <div class="ctrl-group">
           <div class="group-label">Accent Color (Done event)</div>
           <div class="ctrl-row">
             <label>Hue <span class="val" id="v-hue">174°</span></label>
-            <input type="range" id="c-hue" min="0" max="360" value="174">
+            <input type="range" id="c-hue" min="0" max="360" value="174" />
           </div>
           <div class="ctrl-row">
             <label>Saturation <span class="val" id="v-sat">100%</span></label>
-            <input type="range" id="c-sat" min="0" max="100" value="100">
+            <input type="range" id="c-sat" min="0" max="100" value="100" />
           </div>
           <div class="ctrl-row">
             <label>Lightness <span class="val" id="v-lit">50%</span></label>
-            <input type="range" id="c-lit" min="30" max="75" value="50">
+            <input type="range" id="c-lit" min="30" max="75" value="50" />
           </div>
         </div>
 
@@ -339,65 +397,76 @@
           <div class="group-label">Bar Size</div>
           <div class="ctrl-row">
             <label>Width <span class="val" id="v-w">350px</span></label>
-            <input type="range" id="c-w" min="280" max="394" value="350">
+            <input type="range" id="c-w" min="280" max="394" value="350" />
           </div>
           <div class="ctrl-row">
             <label>Height <span class="val" id="v-h">60px</span></label>
-            <input type="range" id="c-h" min="48" max="100" value="60">
+            <input type="range" id="c-h" min="48" max="100" value="60" />
           </div>
           <div class="ctrl-row">
             <label>Border Radius <span class="val" id="v-r">6px</span></label>
-            <input type="range" id="c-r" min="0" max="24" value="6">
+            <input type="range" id="c-r" min="0" max="24" value="6" />
           </div>
         </div>
 
         <div class="ctrl-group">
           <div class="group-label">Visual Effect</div>
           <div class="ctrl-row">
-            <label>Glow Intensity <span class="val" id="v-glow">55</span></label>
-            <input type="range" id="c-glow" min="0" max="100" value="55">
+            <label
+              >Glow Intensity <span class="val" id="v-glow">55</span></label
+            >
+            <input type="range" id="c-glow" min="0" max="100" value="55" />
           </div>
           <div class="ctrl-row">
-            <label>Background Opacity <span class="val" id="v-bgopa">93%</span></label>
-            <input type="range" id="c-bgopa" min="50" max="100" value="93">
+            <label
+              >Background Opacity
+              <span class="val" id="v-bgopa">93%</span></label
+            >
+            <input type="range" id="c-bgopa" min="50" max="100" value="93" />
           </div>
         </div>
 
         <div class="ctrl-group">
           <div class="group-label">Timing</div>
           <div class="ctrl-row">
-            <label>Display Duration <span class="val" id="v-dur">14s</span></label>
-            <input type="range" id="c-dur" min="2" max="20" value="14">
+            <label
+              >Display Duration <span class="val" id="v-dur">14s</span></label
+            >
+            <input type="range" id="c-dur" min="2" max="20" value="14" />
           </div>
           <div class="ctrl-row">
-            <label>Slide-in Speed <span class="val" id="v-anim">380ms</span></label>
-            <input type="range" id="c-anim" min="100" max="700" value="380">
+            <label
+              >Slide-in Speed <span class="val" id="v-anim">380ms</span></label
+            >
+            <input type="range" id="c-anim" min="100" max="700" value="380" />
           </div>
         </div>
 
         <div class="ctrl-group">
           <div class="group-label">Content</div>
           <div class="ctrl-row">
-            <label>Font Size <span class="val" id="v-fontsize">13px</span></label>
-            <input type="range" id="c-fontsize" min="9" max="18" value="13">
+            <label
+              >Font Size <span class="val" id="v-fontsize">13px</span></label
+            >
+            <input type="range" id="c-fontsize" min="9" max="18" value="13" />
           </div>
           <div class="toggle-row">
             <span>Show Icon</span>
-            <input type="checkbox" id="c-icon" checked>
+            <input type="checkbox" id="c-icon" checked />
           </div>
           <div class="toggle-row">
             <span>Show Session ID</span>
-            <input type="checkbox" id="c-session" checked>
+            <input type="checkbox" id="c-session" checked />
           </div>
         </div>
-
       </div>
 
       <!-- Right: preview + prompt -->
       <div class="right-panel">
-
         <div class="preview-area">
-          <div class="preview-label">▶ Top-right corner · OBS Browser Source (1920×1080)</div>
+          <div class="preview-label">
+            ▶ Top-right corner · OBS Browser Source (1920×1080)
+          </div>
           <div id="notif-stack"></div>
           <div class="fire-controls">
             <button class="fire-btn done" id="btn-done">▷ Done</button>
@@ -413,33 +482,109 @@
           </div>
           <div class="prompt-text" id="prompt-text"></div>
         </div>
-
       </div>
     </div>
 
     <script>
       // ── STATE ────────────────────────────────────────────────────────
       const DEFAULTS = {
-        hue: 38, sat: 100, lit: 47,
-        w: 350, h: 60, r: 6,
-        glow: 52, bgopa: 94,
-        dur: 14, anim: 320,
+        hue: 38,
+        sat: 100,
+        lit: 47,
+        w: 350,
+        h: 60,
+        r: 6,
+        glow: 52,
+        bgopa: 94,
+        dur: 14,
+        anim: 320,
         fontSize: 13,
-        showIcon: false, showSession: true,
+        showIcon: false,
+        showSession: true,
       }
 
       const PRESETS = {
         // Brand-aligned: site accent amber, warm filament glow
         // Brand-aligned: site accent amber, warm filament glow
-        'Workshop':   { hue: 38,  sat: 100, lit: 47, w: 350, h: 60, r: 6,  glow: 52, bgopa: 94, dur: 14, anim: 320, fontSize: 13, showIcon: false, showSession: true },
+        Workshop: {
+          hue: 38,
+          sat: 100,
+          lit: 47,
+          w: 350,
+          h: 60,
+          r: 6,
+          glow: 52,
+          bgopa: 94,
+          dur: 14,
+          anim: 320,
+          fontSize: 13,
+          showIcon: false,
+          showSession: true,
+        },
         // Green phosphor CRT, sharp corners, snappy
-        'Terminal':   { hue: 120, sat: 100, lit: 42, w: 394, h: 60, r: 0,  glow: 22, bgopa: 96, dur: 5, anim: 200, fontSize: 11, showIcon: true,  showSession: true },
+        Terminal: {
+          hue: 120,
+          sat: 100,
+          lit: 42,
+          w: 394,
+          h: 60,
+          r: 0,
+          glow: 22,
+          bgopa: 96,
+          dur: 5,
+          anim: 200,
+          fontSize: 11,
+          showIcon: true,
+          showSession: true,
+        },
         // Hot magenta, heavy glow, slow cinematic entry
-        'Synthwave':  { hue: 310, sat: 100, lit: 60, w: 394, h: 80, r: 10, glow: 92, bgopa: 94, dur: 7, anim: 520, fontSize: 12, showIcon: true,  showSession: true },
+        Synthwave: {
+          hue: 310,
+          sat: 100,
+          lit: 60,
+          w: 394,
+          h: 80,
+          r: 10,
+          glow: 92,
+          bgopa: 94,
+          dur: 7,
+          anim: 520,
+          fontSize: 12,
+          showIcon: true,
+          showSession: true,
+        },
         // Deep crimson, large, ominous — especially suits "Needs Input"
-        'Blood Moon': { hue: 4,   sat: 92,  lit: 48, w: 394, h: 74, r: 4,  glow: 68, bgopa: 95, dur: 7, anim: 460, fontSize: 12, showIcon: true,  showSession: true },
+        'Blood Moon': {
+          hue: 4,
+          sat: 92,
+          lit: 48,
+          w: 394,
+          h: 74,
+          r: 4,
+          glow: 68,
+          bgopa: 95,
+          dur: 7,
+          anim: 460,
+          fontSize: 12,
+          showIcon: true,
+          showSession: true,
+        },
         // Electric purple, heavy glow
-        'Neon':       { hue: 280, sat: 100, lit: 62, w: 394, h: 80, r: 8,  glow: 90, bgopa: 95, dur: 7, anim: 450, fontSize: 12, showIcon: true,  showSession: true },
+        Neon: {
+          hue: 280,
+          sat: 100,
+          lit: 62,
+          w: 394,
+          h: 80,
+          r: 8,
+          glow: 90,
+          bgopa: 95,
+          dur: 7,
+          anim: 450,
+          fontSize: 12,
+          showIcon: true,
+          showSession: true,
+        },
       }
 
       let state = { ...DEFAULTS }
@@ -477,34 +622,52 @@
       }
 
       function readState() {
-        state.hue  = +C.hue.value;  state.sat  = +C.sat.value;  state.lit  = +C.lit.value
-        state.w    = +C.w.value;    state.h    = +C.h.value;    state.r    = +C.r.value
-        state.glow = +C.glow.value; state.bgopa = +C.bgopa.value
-        state.dur  = +C.dur.value;  state.anim = +C.anim.value
+        state.hue = +C.hue.value
+        state.sat = +C.sat.value
+        state.lit = +C.lit.value
+        state.w = +C.w.value
+        state.h = +C.h.value
+        state.r = +C.r.value
+        state.glow = +C.glow.value
+        state.bgopa = +C.bgopa.value
+        state.dur = +C.dur.value
+        state.anim = +C.anim.value
         state.fontSize = +C.fontSize.value
-        state.showIcon    = C.showIcon.checked
+        state.showIcon = C.showIcon.checked
         state.showSession = C.showSession.checked
       }
 
       function writeState() {
-        C.hue.value   = state.hue;   C.sat.value  = state.sat;   C.lit.value  = state.lit
-        C.w.value     = state.w;     C.h.value    = state.h;     C.r.value    = state.r
-        C.glow.value  = state.glow;  C.bgopa.value = state.bgopa
-        C.dur.value   = state.dur;   C.anim.value = state.anim
+        C.hue.value = state.hue
+        C.sat.value = state.sat
+        C.lit.value = state.lit
+        C.w.value = state.w
+        C.h.value = state.h
+        C.r.value = state.r
+        C.glow.value = state.glow
+        C.bgopa.value = state.bgopa
+        C.dur.value = state.dur
+        C.anim.value = state.anim
         C.fontSize.value = state.fontSize
-        C.showIcon.checked    = state.showIcon
+        C.showIcon.checked = state.showIcon
         C.showSession.checked = state.showSession
       }
 
       function updateValueLabels() {
-        V.hue.textContent  = state.hue + '°';  V.sat.textContent  = state.sat + '%';  V.lit.textContent  = state.lit + '%'
-        V.w.textContent    = state.w + 'px';   V.h.textContent    = state.h + 'px';   V.r.textContent    = state.r + 'px'
-        V.glow.textContent = state.glow;       V.bgopa.textContent = state.bgopa + '%'
-        V.dur.textContent  = state.dur + 's';  V.anim.textContent = state.anim + 'ms'
+        V.hue.textContent = state.hue + '°'
+        V.sat.textContent = state.sat + '%'
+        V.lit.textContent = state.lit + '%'
+        V.w.textContent = state.w + 'px'
+        V.h.textContent = state.h + 'px'
+        V.r.textContent = state.r + 'px'
+        V.glow.textContent = state.glow
+        V.bgopa.textContent = state.bgopa + '%'
+        V.dur.textContent = state.dur + 's'
+        V.anim.textContent = state.anim + 'ms'
         V.fontSize.textContent = state.fontSize + 'px'
       }
 
-      Object.values(C).forEach(el => {
+      Object.values(C).forEach((el) => {
         el.addEventListener('input', () => {
           readState()
           activePreset = null
@@ -515,12 +678,15 @@
 
       // ── COLOR UTILITIES ───────────────────────────────────────────────
       function hslToHex(h, s, l) {
-        s /= 100; l /= 100
+        s /= 100
+        l /= 100
         const a = s * Math.min(l, 1 - l)
-        const f = n => {
+        const f = (n) => {
           const k = (n + h / 30) % 12
           const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
-          return Math.round(255 * c).toString(16).padStart(2, '0')
+          return Math.round(255 * c)
+            .toString(16)
+            .padStart(2, '0')
         }
         return `#${f(0)}${f(8)}${f(4)}`
       }
@@ -535,8 +701,8 @@
 
       function colorName(hue) {
         if (hue < 15 || hue > 345) return 'red'
-        if (hue < 40)  return 'orange'
-        if (hue < 65)  return 'yellow'
+        if (hue < 40) return 'orange'
+        if (hue < 65) return 'yellow'
         if (hue < 150) return 'green'
         if (hue < 195) return 'teal'
         if (hue < 250) return 'blue'
@@ -550,17 +716,29 @@
       const THEMES = {
         done: {
           getAccent: () => hslToHex(state.hue, state.sat, state.lit),
-          getAccentRgb: () => hexToRgb(hslToHex(state.hue, state.sat, state.lit)),
-          icon: '🤖', label: 'CLAUDE DONE', subtitle: 'Finished responding — your turn',
+          getAccentRgb: () =>
+            hexToRgb(hslToHex(state.hue, state.sat, state.lit)),
+          icon: '🤖',
+          label: 'CLAUDE DONE',
+          subtitle: 'Finished responding — your turn',
         },
         input: {
           getAccent: () => '#ffaa00',
           getAccentRgb: () => ({ r: 255, g: 170, b: 0 }),
-          icon: '⚠️', label: 'NEEDS INPUT', subtitle: 'Waiting for your attention',
+          icon: '⚠️',
+          label: 'NEEDS INPUT',
+          subtitle: 'Waiting for your attention',
         },
       }
 
-      const FAKE_SESSIONS = ['abc123', 'def456', 'x9k2m7', 'zz4010', 'r3bl00', 'ff7a11']
+      const FAKE_SESSIONS = [
+        'abc123',
+        'def456',
+        'x9k2m7',
+        'zz4010',
+        'r3bl00',
+        'ff7a11',
+      ]
       let sessionIdx = 0
 
       function applyBarStyle(bar, type) {
@@ -597,12 +775,18 @@
         const labelEl2 = bar.querySelector('.bar-event-label')
         const subtitleEl = bar.querySelector('.bar-subtitle')
         if (labelEl2) labelEl2.style.fontSize = state.fontSize + 'px'
-        if (subtitleEl) subtitleEl.style.fontSize = (state.fontSize + 2) + 'px'
+        if (subtitleEl) subtitleEl.style.fontSize = state.fontSize + 2 + 'px'
 
         const dotEl = bar.querySelector('.bar-sep')
         const sessEl = bar.querySelector('.bar-session')
-        if (dotEl)  { dotEl.style.display = state.showSession ? '' : 'none'; dotEl.style.fontSize = (state.fontSize - 2) + 'px' }
-        if (sessEl) { sessEl.style.display = state.showSession ? '' : 'none'; sessEl.style.fontSize = (state.fontSize - 2) + 'px' }
+        if (dotEl) {
+          dotEl.style.display = state.showSession ? '' : 'none'
+          dotEl.style.fontSize = state.fontSize - 2 + 'px'
+        }
+        if (sessEl) {
+          sessEl.style.display = state.showSession ? '' : 'none'
+          sessEl.style.fontSize = state.fontSize - 2 + 'px'
+        }
 
         const progress = bar.querySelector('.bar-progress')
         if (progress) progress.style.background = accent
@@ -637,7 +821,9 @@
             bar.classList.add('entering')
             const progress = bar.querySelector('.bar-progress')
             progress.style.transition = `transform ${state.dur * 1000}ms linear`
-            requestAnimationFrame(() => { progress.style.transform = 'scaleX(0)' })
+            requestAnimationFrame(() => {
+              progress.style.transform = 'scaleX(0)'
+            })
           })
         })
 
@@ -649,7 +835,8 @@
           bar.classList.remove('entering')
           bar.classList.add('exiting')
           setTimeout(() => {
-            bar.style.transition = 'max-height 0.2s ease, opacity 0.15s ease, margin-bottom 0.2s ease'
+            bar.style.transition =
+              'max-height 0.2s ease, opacity 0.15s ease, margin-bottom 0.2s ease'
             bar.style.overflow = 'hidden'
             bar.style.maxHeight = bar.offsetHeight + 'px'
             void bar.offsetHeight
@@ -664,13 +851,17 @@
       }
 
       function updateExistingBars() {
-        stack.querySelectorAll('.notif-bar').forEach(bar => applyBarStyle(bar, bar.dataset.type))
+        stack
+          .querySelectorAll('.notif-bar')
+          .forEach((bar) => applyBarStyle(bar, bar.dataset.type))
       }
 
-      function clearAll() { stack.innerHTML = '' }
+      function clearAll() {
+        stack.innerHTML = ''
+      }
 
       // ── PRESETS ───────────────────────────────────────────────────────
-      document.querySelectorAll('.preset-btn').forEach(btn => {
+      document.querySelectorAll('.preset-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
           state = { ...PRESETS[btn.dataset.preset] }
           activePreset = btn.dataset.preset
@@ -682,7 +873,7 @@
       })
 
       function updatePresetButtons() {
-        document.querySelectorAll('.preset-btn').forEach(btn => {
+        document.querySelectorAll('.preset-btn').forEach((btn) => {
           btn.classList.toggle('active', btn.dataset.preset === activePreset)
         })
       }
@@ -695,7 +886,9 @@
 
         parts.push(`${state.w}×${state.h}px notification bars`)
 
-        parts.push(`${cname} accent for "Done" events (${hex}), amber (#ffaa00) for "Needs Input" events`)
+        parts.push(
+          `${cname} accent for "Done" events (${hex}), amber (#ffaa00) for "Needs Input" events`
+        )
 
         if (state.glow === 0) parts.push('no glow')
         else if (state.glow > 70) parts.push('heavy left-edge glow')
@@ -703,21 +896,24 @@
         else parts.push('subtle glow')
 
         if (state.r === 0) parts.push('sharp corners')
-        else if (state.r > 14) parts.push(`very rounded corners (${state.r}px border-radius)`)
-        else if (state.r !== DEFAULTS.r) parts.push(`${state.r}px border-radius`)
+        else if (state.r > 14)
+          parts.push(`very rounded corners (${state.r}px border-radius)`)
+        else if (state.r !== DEFAULTS.r)
+          parts.push(`${state.r}px border-radius`)
 
-        if (state.bgopa < 70)       parts.push('very transparent background')
-        else if (state.bgopa < 82)  parts.push('semi-transparent background')
-        else if (state.bgopa > 97)  parts.push('nearly opaque background')
+        if (state.bgopa < 70) parts.push('very transparent background')
+        else if (state.bgopa < 82) parts.push('semi-transparent background')
+        else if (state.bgopa > 97) parts.push('nearly opaque background')
 
         if (state.dur !== DEFAULTS.dur) parts.push(`visible for ${state.dur}s`)
 
-        if (state.anim < 200)       parts.push('snappy slide-in')
-        else if (state.anim > 500)  parts.push('slow dramatic slide-in')
-        else if (state.anim !== DEFAULTS.anim) parts.push(`${state.anim}ms slide-in`)
+        if (state.anim < 200) parts.push('snappy slide-in')
+        else if (state.anim > 500) parts.push('slow dramatic slide-in')
+        else if (state.anim !== DEFAULTS.anim)
+          parts.push(`${state.anim}ms slide-in`)
 
         const flags = []
-        if (!state.showIcon)    flags.push('no icon')
+        if (!state.showIcon) flags.push('no icon')
         if (!state.showSession) flags.push('session ID hidden')
         if (flags.length) parts.push(flags.join(', '))
 
@@ -728,17 +924,26 @@
 
       // ── COPY ──────────────────────────────────────────────────────────
       document.getElementById('copy-btn').addEventListener('click', () => {
-        navigator.clipboard.writeText(document.getElementById('prompt-text').textContent).then(() => {
-          const btn = document.getElementById('copy-btn')
-          btn.textContent = 'Copied!'
-          btn.classList.add('copied')
-          setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied') }, 1500)
-        })
+        navigator.clipboard
+          .writeText(document.getElementById('prompt-text').textContent)
+          .then(() => {
+            const btn = document.getElementById('copy-btn')
+            btn.textContent = 'Copied!'
+            btn.classList.add('copied')
+            setTimeout(() => {
+              btn.textContent = 'Copy Prompt'
+              btn.classList.remove('copied')
+            }, 1500)
+          })
       })
 
       // ── FIRE BUTTONS ─────────────────────────────────────────────────
-      document.getElementById('btn-done').addEventListener('click', () => addBar('done'))
-      document.getElementById('btn-input').addEventListener('click', () => addBar('input'))
+      document
+        .getElementById('btn-done')
+        .addEventListener('click', () => addBar('done'))
+      document
+        .getElementById('btn-input')
+        .addEventListener('click', () => addBar('input'))
       document.getElementById('btn-clr').addEventListener('click', clearAll)
 
       // ── MAIN UPDATE ───────────────────────────────────────────────────

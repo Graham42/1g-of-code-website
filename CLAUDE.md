@@ -4,14 +4,14 @@ After making code changes, before committing, run `bun run format -- .` and the 
 
 All tests are Playwright-based. The dev server starts automatically via `webServer` in playwright.config.ts — no need to run `astro dev` separately.
 
-| Command | When to use |
-|---|---|
-| `bun run test:a11y` | Any HTML/CSS/component change |
-| `bun run test:a11y:axe` | Quick axe-core WCAG scan only |
-| `bun run test:a11y:keyboard` | Keyboard nav / focus order changes |
-| `bun run test:a11y:focus` | Focus indicator / overflow changes |
-| `bun run typecheck` | Any TypeScript change |
-| `bun run test` | Full suite (all Playwright tests, all browsers) |
+| Command                      | When to use                                     |
+| ---------------------------- | ----------------------------------------------- |
+| `bun run test:a11y`          | Any HTML/CSS/component change                   |
+| `bun run test:a11y:axe`      | Quick axe-core WCAG scan only                   |
+| `bun run test:a11y:keyboard` | Keyboard nav / focus order changes              |
+| `bun run test:a11y:focus`    | Focus indicator / overflow changes              |
+| `bun run typecheck`          | Any TypeScript change                           |
+| `bun run test`               | Full suite (all Playwright tests, all browsers) |
 
 ## References
 

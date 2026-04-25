@@ -19,11 +19,11 @@ Runs on port 3001. The existing overlays server (in `../overlays/`) runs on port
 
 ## Pages
 
-| URL | Purpose |
-|---|---|
-| `http://localhost:3001/` | Admin panel — fire test events, burst test, event log |
-| `http://localhost:3001/overlay` | OBS Browser Source (1920×1080 transparent) |
-| `http://localhost:3001/playground` | Visual design tool for tuning bar appearance |
+| URL                                | Purpose                                               |
+| ---------------------------------- | ----------------------------------------------------- |
+| `http://localhost:3001/`           | Admin panel — fire test events, burst test, event log |
+| `http://localhost:3001/overlay`    | OBS Browser Source (1920×1080 transparent)            |
+| `http://localhost:3001/playground` | Visual design tool for tuning bar appearance          |
 
 ## Notification types
 
@@ -37,6 +37,7 @@ Multiple sessions stack as separate bars. Each bar shows the event type, a short
 Each notification plays a random butler voice snippet from `sounds/`. The server serves these at `/butler-sounds/<filename>` (URL-encoded). The old overlays sounds proxy (`/sounds/`) is still present but unused.
 
 The 10 phrases are recorded as `.mp4` files:
+
 - `alert - your attention if you please.mp4`
 - `alert - when you're quite ready.mp4`
 - `alert - I beg your pardon.mp4`

@@ -4,14 +4,22 @@
     <meta charset="UTF-8" />
     <title>Claude Alerts — Admin</title>
     <style>
-      *, *::before, *::after { box-sizing: border-box; }
-      html, body {
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
         margin: 0;
         padding: 0;
         min-height: 100vh;
         background: #0d0d0d;
         color: #e0e0e0;
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
         font-size: 14px;
       }
 
@@ -32,7 +40,9 @@
         font-family: 'Courier New', monospace;
       }
 
-      header h1 span { color: #00ffcc; }
+      header h1 span {
+        color: #00ffcc;
+      }
 
       .conn-badge {
         font-size: 11px;
@@ -44,8 +54,14 @@
         color: #666;
         transition: all 0.3s;
       }
-      .conn-badge.connected { border-color: #00ffcc; color: #00ffcc; }
-      .conn-badge.error { border-color: #ff4040; color: #ff4040; }
+      .conn-badge.connected {
+        border-color: #00ffcc;
+        color: #00ffcc;
+      }
+      .conn-badge.error {
+        border-color: #ff4040;
+        color: #ff4040;
+      }
 
       .layout {
         display: grid;
@@ -104,7 +120,9 @@
         outline: none;
         transition: border-color 0.15s;
       }
-      .field-row input:focus { border-color: #444; }
+      .field-row input:focus {
+        border-color: #444;
+      }
 
       .btn-row {
         display: flex;
@@ -130,16 +148,26 @@
         border-color: rgba(0, 255, 204, 0.4);
         color: #00ffcc;
       }
-      .fire-btn.stop:hover { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; }
-      .fire-btn.stop:active { background: rgba(0, 255, 204, 0.22); }
+      .fire-btn.stop:hover {
+        background: rgba(0, 255, 204, 0.15);
+        border-color: #00ffcc;
+      }
+      .fire-btn.stop:active {
+        background: rgba(0, 255, 204, 0.22);
+      }
 
       .fire-btn.notification {
         background: rgba(255, 170, 0, 0.08);
         border-color: rgba(255, 170, 0, 0.4);
         color: #ffaa00;
       }
-      .fire-btn.notification:hover { background: rgba(255, 170, 0, 0.15); border-color: #ffaa00; }
-      .fire-btn.notification:active { background: rgba(255, 170, 0, 0.22); }
+      .fire-btn.notification:hover {
+        background: rgba(255, 170, 0, 0.15);
+        border-color: #ffaa00;
+      }
+      .fire-btn.notification:active {
+        background: rgba(255, 170, 0, 0.22);
+      }
 
       .mute-row {
         display: flex;
@@ -164,13 +192,19 @@
         transition: all 0.15s;
         user-select: none;
       }
-      .mute-btn:hover { background: #222; color: #ccc; border-color: #444; }
+      .mute-btn:hover {
+        background: #222;
+        color: #ccc;
+        border-color: #444;
+      }
       .mute-btn.muted {
         background: rgba(255, 80, 80, 0.1);
         border-color: rgba(255, 80, 80, 0.4);
         color: #ff5050;
       }
-      .mute-btn.muted:hover { background: rgba(255, 80, 80, 0.18); }
+      .mute-btn.muted:hover {
+        background: rgba(255, 80, 80, 0.18);
+      }
 
       .mute-label {
         font-size: 11px;
@@ -198,8 +232,11 @@
         margin-bottom: 10px;
       }
 
-      .burst-controls label { font-size: 12px; color: #777; }
-      .burst-controls input[type=number] {
+      .burst-controls label {
+        font-size: 12px;
+        color: #777;
+      }
+      .burst-controls input[type='number'] {
         width: 60px;
         background: #161616;
         border: 1px solid #2a2a2a;
@@ -223,7 +260,11 @@
         font-family: monospace;
         transition: all 0.15s;
       }
-      .burst-btn:hover { background: #222; color: #ccc; border-color: #444; }
+      .burst-btn:hover {
+        background: #222;
+        color: #ccc;
+        border-color: #444;
+      }
 
       /* Event log */
       .log-area {
@@ -260,7 +301,10 @@
         padding: 3px 10px;
         transition: all 0.15s;
       }
-      .clear-log-btn:hover { color: #999; border-color: #444; }
+      .clear-log-btn:hover {
+        color: #999;
+        border-color: #444;
+      }
 
       #event-log {
         flex: 1;
@@ -285,11 +329,20 @@
       }
 
       @keyframes logIn {
-        from { opacity: 0; transform: translateY(-4px); }
-        to   { opacity: 1; transform: none; }
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
       }
 
-      .log-time { color: #444; font-size: 11px; }
+      .log-time {
+        color: #444;
+        font-size: 11px;
+      }
 
       .log-type {
         font-size: 10px;
@@ -310,8 +363,17 @@
         border: 1px solid rgba(255, 170, 0, 0.25);
       }
 
-      .log-session { color: #555; font-size: 11px; }
-      .log-project { color: #666; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .log-session {
+        color: #555;
+        font-size: 11px;
+      }
+      .log-project {
+        color: #666;
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       .log-source {
         font-size: 10px;
         color: #3a3a3a;
@@ -360,7 +422,9 @@
         opacity: 0.7;
         transition: opacity 0.15s;
       }
-      .link-row a:hover { opacity: 1; }
+      .link-row a:hover {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
@@ -377,7 +441,12 @@
         <div class="fire-section">
           <div class="field-row">
             <label>Session ID</label>
-            <input type="text" id="session-input" value="abc123" maxlength="8" />
+            <input
+              type="text"
+              id="session-input"
+              value="abc123"
+              maxlength="8"
+            />
           </div>
           <div class="field-row">
             <label>Project Name</label>
@@ -385,7 +454,9 @@
           </div>
           <div class="btn-row">
             <button class="fire-btn stop" id="btn-stop">🤖 Done</button>
-            <button class="fire-btn notification" id="btn-notif">⚠️ Needs Input</button>
+            <button class="fire-btn notification" id="btn-notif">
+              ⚠️ Needs Input
+            </button>
           </div>
           <div class="mute-row">
             <button class="mute-btn" id="btn-mute">🔇 Mute Sound</button>
@@ -399,7 +470,14 @@
             <label>Count</label>
             <input type="number" id="burst-count" value="3" min="1" max="8" />
             <label>Delay (ms)</label>
-            <input type="number" id="burst-delay" value="400" min="0" max="3000" step="100" />
+            <input
+              type="number"
+              id="burst-delay"
+              value="400"
+              min="0"
+              max="3000"
+              step="100"
+            />
           </div>
           <button class="burst-btn" id="btn-burst">Fire Burst</button>
         </div>
@@ -424,7 +502,9 @@
           <button class="clear-log-btn" id="btn-clear-log">Clear</button>
         </div>
         <div id="event-log">
-          <div class="empty-log">No events yet — fire a test notification to begin.</div>
+          <div class="empty-log">
+            No events yet — fire a test notification to begin.
+          </div>
         </div>
       </div>
     </div>
@@ -451,7 +531,8 @@
         es.onmessage = (ev) => {
           try {
             const data = JSON.parse(ev.data)
-            if (data.type) appendLog(data.type, data.sessionId, data.projectName, 'hook')
+            if (data.type)
+              appendLog(data.type, data.sessionId, data.projectName, 'hook')
           } catch {}
         }
       }
@@ -488,11 +569,22 @@
       })
 
       // ── FIRE BUTTONS ────────────────────────────────────────────────
-      function getSession() { return document.getElementById('session-input').value.trim() || 'test01' }
-      function getProject() { return document.getElementById('project-input').value.trim() || 'my-project' }
+      function getSession() {
+        return document.getElementById('session-input').value.trim() || 'test01'
+      }
+      function getProject() {
+        return (
+          document.getElementById('project-input').value.trim() || 'my-project'
+        )
+      }
 
       async function fire(url, sessionId, projectName) {
-        appendLog(url.includes('stop') ? 'Stop' : 'Notification', sessionId, projectName, 'admin')
+        appendLog(
+          url.includes('stop') ? 'Stop' : 'Notification',
+          sessionId,
+          projectName,
+          'admin'
+        )
         await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -509,19 +601,23 @@
       })
 
       // ── BURST ───────────────────────────────────────────────────────
-      document.getElementById('btn-burst').addEventListener('click', async () => {
-        const count = parseInt(document.getElementById('burst-count').value) || 3
-        const delay = parseInt(document.getElementById('burst-delay').value) || 400
-        const project = getProject()
-        const types = ['stop', 'notification']
+      document
+        .getElementById('btn-burst')
+        .addEventListener('click', async () => {
+          const count =
+            parseInt(document.getElementById('burst-count').value) || 3
+          const delay =
+            parseInt(document.getElementById('burst-delay').value) || 400
+          const project = getProject()
+          const types = ['stop', 'notification']
 
-        for (let i = 0; i < count; i++) {
-          const type = types[i % 2]
-          const sessionId = Math.random().toString(36).slice(2, 8)
-          await new Promise(r => setTimeout(r, i === 0 ? 0 : delay))
-          fire(`/simulate/${type}`, sessionId, project)
-        }
-      })
+          for (let i = 0; i < count; i++) {
+            const type = types[i % 2]
+            const sessionId = Math.random().toString(36).slice(2, 8)
+            await new Promise((r) => setTimeout(r, i === 0 ? 0 : delay))
+            fire(`/simulate/${type}`, sessionId, project)
+          }
+        })
 
       // ── CLEAR LOG ───────────────────────────────────────────────────
       document.getElementById('btn-clear-log').addEventListener('click', () => {

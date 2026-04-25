@@ -45,9 +45,18 @@ test.describe('Accessibility Tree Validation', () => {
         outerHTML: el.outerHTML.slice(0, 120),
       }))
 
-      expect(accessibleName, `Button has no accessible name: ${outerHTML}`).toBeTruthy()
-      expect(accessibleName, `Button name is too generic: ${outerHTML}`).not.toBe('button')
-      expect(accessibleName!.length, `Button name is empty: ${outerHTML}`).toBeGreaterThan(0)
+      expect(
+        accessibleName,
+        `Button has no accessible name: ${outerHTML}`
+      ).toBeTruthy()
+      expect(
+        accessibleName,
+        `Button name is too generic: ${outerHTML}`
+      ).not.toBe('button')
+      expect(
+        accessibleName!.length,
+        `Button name is empty: ${outerHTML}`
+      ).toBeGreaterThan(0)
     }
   })
 
@@ -72,9 +81,17 @@ test.describe('Accessibility Tree Validation', () => {
         outerHTML: el.outerHTML.slice(0, 120),
       }))
 
-      expect(accessibleName, `Link has no accessible name: ${outerHTML}`).toBeTruthy()
-      expect(accessibleName, `Link name is too generic: ${outerHTML}`).not.toBe('link')
-      expect(accessibleName!.length, `Link name is empty: ${outerHTML}`).toBeGreaterThan(0)
+      expect(
+        accessibleName,
+        `Link has no accessible name: ${outerHTML}`
+      ).toBeTruthy()
+      expect(accessibleName, `Link name is too generic: ${outerHTML}`).not.toBe(
+        'link'
+      )
+      expect(
+        accessibleName!.length,
+        `Link name is empty: ${outerHTML}`
+      ).toBeGreaterThan(0)
     }
   })
 

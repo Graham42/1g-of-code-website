@@ -16,7 +16,9 @@ const claudeClients = new Set<http.ServerResponse>()
 function broadcast(data: unknown) {
   const msg = `data: ${JSON.stringify(data)}\n\n`
   for (const res of claudeClients) {
-    try { res.write(msg) } catch {}
+    try {
+      res.write(msg)
+    } catch {}
   }
 }
 
@@ -38,7 +40,9 @@ function serveFile(filePath: string, res: http.ServerResponse) {
       return
     }
     const ext = path.extname(filePath)
-    res.writeHead(200, { 'Content-Type': MIME[ext] ?? 'text/html; charset=utf-8' })
+    res.writeHead(200, {
+      'Content-Type': MIME[ext] ?? 'text/html; charset=utf-8',
+    })
     res.end(data)
   })
 }
@@ -46,7 +50,7 @@ function serveFile(filePath: string, res: http.ServerResponse) {
 function readBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
-    req.on('data', c => chunks.push(c))
+    req.on('data', (c) => chunks.push(c))
     req.on('end', () => resolve(Buffer.concat(chunks).toString()))
     req.on('error', reject)
   })
@@ -59,17 +63,24 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
-  if (method === 'OPTIONS') { res.writeHead(204); res.end(); return }
+  if (method === 'OPTIONS') {
+    res.writeHead(204)
+    res.end()
+    return
+  }
 
   // ── Static pages ─────────────────────────────────────────────
   if (method === 'GET' && url === '/') {
-    serveFile(path.join(__dirname, 'admin.html'), res); return
+    serveFile(path.join(__dirname, 'admin.html'), res)
+    return
   }
   if (method === 'GET' && url === '/overlay') {
-    serveFile(path.join(__dirname, 'overlay.html'), res); return
+    serveFile(path.join(__dirname, 'overlay.html'), res)
+    return
   }
   if (method === 'GET' && url === '/playground') {
-    serveFile(path.join(__dirname, 'playground.html'), res); return
+    serveFile(path.join(__dirname, 'playground.html'), res)
+    return
   }
 
   // ── SSE stream for overlay ────────────────────────────────────
@@ -85,7 +96,11 @@ const server = http.createServer(async (req, res) => {
     console.log(`  [sse] Client connected (${claudeClients.size} total)`)
 
     const ping = setInterval(() => {
-      try { res.write(': ping\n\n') } catch { clearInterval(ping) }
+      try {
+        res.write(': ping\n\n')
+      } catch {
+        clearInterval(ping)
+      }
     }, 20000)
 
     req.on('close', () => {
@@ -107,43 +122,70 @@ const server = http.createServer(async (req, res) => {
       const cwd = data.cwd || ''
       const projectName = cwd ? path.basename(cwd) : ''
       const payload = { type, sessionId, projectName, ts: Date.now() }
-      console.log(`  [notify] ${type} · ${sessionId || '?'} · ${projectName || cwd || 'unknown'}`)
+      console.log(
+        `  [notify] ${type} · ${sessionId || '?'} · ${projectName || cwd || 'unknown'}`
+      )
       broadcast(payload)
     } catch {
-      res.writeHead(400); res.end('Bad JSON'); return
+      res.writeHead(400)
+      res.end('Bad JSON')
+      return
     }
-    res.writeHead(200); res.end('ok')
+    res.writeHead(200)
+    res.end('ok')
     return
   }
 
   // ── Simulate endpoints (admin testing) ───────────────────────
   if (method === 'POST' && url === '/simulate/stop') {
-    let sessionId = 'test01', projectName = 'my-project', mute = false
+    let sessionId = 'test01',
+      projectName = 'my-project',
+      mute = false
     try {
       const data = JSON.parse(await readBody(req))
       sessionId = data.sessionId || sessionId
       projectName = data.projectName || projectName
       mute = !!data.mute
     } catch {}
-    const payload = { type: 'Stop', sessionId, projectName, mute, ts: Date.now() }
-    console.log(`  [admin] Simulated Stop · ${sessionId}${mute ? ' · muted' : ''}`)
+    const payload = {
+      type: 'Stop',
+      sessionId,
+      projectName,
+      mute,
+      ts: Date.now(),
+    }
+    console.log(
+      `  [admin] Simulated Stop · ${sessionId}${mute ? ' · muted' : ''}`
+    )
     broadcast(payload)
-    res.writeHead(200); res.end('ok')
+    res.writeHead(200)
+    res.end('ok')
     return
   }
 
   if (method === 'POST' && url === '/simulate/notification') {
-    let sessionId = 'test02', projectName = 'my-project', mute = false
+    let sessionId = 'test02',
+      projectName = 'my-project',
+      mute = false
     try {
       const data = JSON.parse(await readBody(req))
       sessionId = data.sessionId || sessionId
       projectName = data.projectName || projectName
       mute = !!data.mute
     } catch {}
-    const payload = { type: 'Notification', sessionId, projectName, mute, ts: Date.now() }
-    console.log(`  [admin] Simulated Notification · ${sessionId}${mute ? ' · muted' : ''}`)
+    const payload = {
+      type: 'Notification',
+      sessionId,
+      projectName,
+      mute,
+      ts: Date.now(),
+    }
+    console.log(
+      `  [admin] Simulated Notification · ${sessionId}${mute ? ' · muted' : ''}`
+    )
     broadcast(payload)
-    res.writeHead(200); res.end('ok')
+    res.writeHead(200)
+    res.end('ok')
     return
   }
 
@@ -156,12 +198,15 @@ const server = http.createServer(async (req, res) => {
 
   // ── Butler voice snippets ─────────────────────────────────────
   if (method === 'GET' && url?.startsWith('/butler-sounds/')) {
-    const file = decodeURIComponent(path.basename(url.slice('/butler-sounds/'.length)))
+    const file = decodeURIComponent(
+      path.basename(url.slice('/butler-sounds/'.length))
+    )
     serveFile(path.join(__dirname, 'sounds', file), res)
     return
   }
 
-  res.writeHead(404); res.end('Not found')
+  res.writeHead(404)
+  res.end('Not found')
 })
 
 server.listen(PORT, '127.0.0.1', () => {
@@ -172,7 +217,9 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`  Overlay    →  http://localhost:${PORT}/overlay`)
   console.log(`  Playground →  http://localhost:${PORT}/playground`)
   console.log('')
-  console.log(`  OBS: Browser Source → http://localhost:${PORT}/overlay  (1920×1080)`)
+  console.log(
+    `  OBS: Browser Source → http://localhost:${PORT}/overlay  (1920×1080)`
+  )
   console.log('')
   console.log(`  Hook endpoint: POST http://localhost:${PORT}/claude/notify`)
   console.log('')

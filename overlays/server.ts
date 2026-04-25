@@ -38,7 +38,10 @@ try {
 
 function saveLastFollowAt(isoString: string) {
   lastFollowAt = isoString
-  fs.writeFileSync(FOLLOW_STATE_PATH, JSON.stringify({ lastFollowAt: isoString }))
+  fs.writeFileSync(
+    FOLLOW_STATE_PATH,
+    JSON.stringify({ lastFollowAt: isoString })
+  )
 }
 
 // ── Follow deduplication (24h per user) ──────────────────
